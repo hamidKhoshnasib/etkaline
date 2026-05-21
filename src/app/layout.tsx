@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Vazirmatn, Geist_Mono } from "next/font/google";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
+import { Providers } from "@/providers";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -32,7 +33,9 @@ export default function RootLayout({
       className={`${vazirmatn.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <DirectionProvider direction="rtl">{children}</DirectionProvider>
+        <DirectionProvider direction="rtl">
+          <Providers>{children}</Providers>
+        </DirectionProvider>
       </body>
     </html>
   );
