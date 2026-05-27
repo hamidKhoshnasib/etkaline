@@ -15,7 +15,9 @@ export function NavBar() {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const open = useCallback(() => {
-    if (closeTimer.current) { clearTimeout(closeTimer.current); }
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+    }
     setIsOpen(true);
   }, []);
 
@@ -44,7 +46,7 @@ export function NavBar() {
                 <span>{categoriesLink.label}</span>
               </span>
               <span
-                className={`absolute inset-x-0 bottom-3 h-0.5 rounded-full bg-primary-hover transition-opacity ${
+                className={`bg-primary-hover absolute inset-x-0 bottom-3 h-0.5 rounded-full transition-opacity ${
                   isOpen ? "opacity-100" : "opacity-0"
                 }`}
               />
@@ -54,7 +56,7 @@ export function NavBar() {
               <Link
                 key={href}
                 href={href}
-                className="label-large flex items-center gap-3 text-gray-600 transition-colors hover:text-primary-hover"
+                className="label-large hover:text-primary-hover flex items-center gap-3 text-gray-600 transition-colors"
               >
                 <Icon size={15} />
                 <span>{label}</span>

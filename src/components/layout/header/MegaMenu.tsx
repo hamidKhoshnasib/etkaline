@@ -15,8 +15,7 @@ export function MegaMenu({
   onMouseEnter,
   onMouseLeave,
 }: Props) {
-  const activeCategory =
-    categories.find((c) => c.id === activeCategoryId) ?? categories[0];
+  const activeCategory = categories.find((c) => c.id === activeCategoryId) ?? categories[0];
 
   return (
     <div
@@ -59,7 +58,7 @@ export function MegaMenu({
               <div key={sub.id}>
                 <Link
                   href={sub.href}
-                  className="title-small-bold  hover:text-primary-hover mb-6 flex w-42 items-center justify-between gap-1 transition-colors"
+                  className="title-small-bold hover:text-primary-hover mb-6 flex w-42 items-center justify-between gap-1 transition-colors"
                 >
                   <span className="border-primary-hover line-clamp-1 rounded-r-[4px] border-r-4 pr-2">
                     {sub.label}
