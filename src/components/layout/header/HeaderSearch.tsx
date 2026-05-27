@@ -8,7 +8,7 @@ export function HeaderSearch() {
         {/* Store label */}
         <div className="text-primary flex shrink-0 items-center gap-2 px-4 py-2.5">
           <IconStore size={18} strokeWidth={1.5} />
-          <span className="whitespace-nowrap text-sm font-medium text-gray-400">
+          <span className="text-sm font-medium whitespace-nowrap text-gray-400">
             خرید از
             <span className="text-secondary font-bold"> انبار مرکزی اتکالاین </span>
           </span>
