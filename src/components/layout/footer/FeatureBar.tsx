@@ -13,7 +13,7 @@ const FEATURES = [
 
 export function FeatureBar() {
   return (
-    <div className="absolute w-full overflow-hidden rounded-b-4xl bg-white shadow-2xl">
+    <div className="absolute w-full overflow-hidden rounded-b-[28px] bg-white shadow-2xl">
       <div className="container mx-auto">
         <ul className="flex items-center justify-between p-6">
           {FEATURES.map(({ Icon, title }, i) => (

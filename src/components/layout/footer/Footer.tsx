@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { FeatureBar } from "@/components/layout/FeatureBar";
-import { AppSupportBar } from "@/components/layout/AppSupportBar";
-import { LINK_COLUMNS, SOCIALS } from "@/components/layout/footer.config";
+import { FeatureBar } from "@/components/layout/footer/FeatureBar";
+import { AppSupportBar } from "@/components/layout/footer/AppSupportBar";
+import { LINK_COLUMNS, SOCIALS } from "@/components/layout/footer/footer.config";
 import EtkalineLogo from "@/assets/icons/logo.svg";
 import Enamad from "@/assets/icons/enamad-icon.svg";
 import Etehadie from "@/assets/icons/etehadie-icon.svg";
