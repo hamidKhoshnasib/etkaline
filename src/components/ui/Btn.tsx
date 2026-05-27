@@ -19,10 +19,6 @@ const btnVariants = cva(
         default:
           "bg-primary text-secondary hover:bg-primary-hover disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100 disabled:cursor-not-allowed",
 
-        // Outlined – gray ring default, primary ring on hover (ring = box-shadow, no layout impact)
-        outline:
-          "ring-1 ring-border bg-transparent text-secondary hover:ring-primary hover:text-primary-hover",
-
         // Outlined with primary ring always
         "outline-primary":
           "ring-1 ring-primary bg-transparent text-secondary hover:bg-primary/10 disabled:bg-gray-100 disabled:text-gray-400 disabled:ring-gray-200 disabled:opacity-100",
@@ -32,7 +28,7 @@ const btnVariants = cva(
 
         // Secondary gray – gray ring, gray-100 bg on hover, gray-400 ring when disabled
         "secondary-gray":
-          "ring-1 ring-gray-200 bg-transparent hover:text-secondary hover:bg-gray-100 disabled:ring-gray-400 disabled:text-gray-400 disabled:opacity-100",
+          "ring-1 ring-gray-200 bg-transparent hover:text-secondary disabled:bg-gray-100 hover:bg-gray-100 disabled:ring-gray-400 disabled:text-gray-400 disabled:opacity-100",
       },
 
       size: {
