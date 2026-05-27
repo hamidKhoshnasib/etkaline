@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@source "../../src";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -131,28 +133,180 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
-  h1 {
-    font-size: 3.5rem;
-    line-height: 3.85rem;
+  /*h1 {*/
+  /*  font-size: 3.5rem;*/
+  /*  line-height: 3.85rem;*/
+  /*}*/
+  /*h2 {*/
+  /*  font-size: 3rem;*/
+  /*  line-height: 3.3rem;*/
+  /*}*/
+  /*h3 {*/
+  /*  font-size: 2.5rem;*/
+  /*  line-height: 2.75rem;*/
+  /*}*/
+  /*h4 {*/
+  /*  font-size: 2rem;*/
+  /*  line-height: 2.2rem;*/
+  /*}*/
+  /*h5 {*/
+  /*  font-size: 1.5rem;*/
+  /*  line-height: 1.65rem;*/
+  /*}*/
+  /*h6 {*/
+  /*  font-size: 1.25rem;*/
+  /*  line-height: 1.375rem;*/
+  /*}*/
+}
+
+@layer components {
+  .body-large-bold {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 700;
   }
-  h2 {
-    font-size: 3rem;
-    line-height: 3.3rem;
+  .body-large {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 400;
   }
-  h3 {
-    font-size: 2.5rem;
+  .body-medium-bold {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+  }
+  .body-medium {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 400;
+  }
+  .body-small-bold {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 700;
+  }
+  .body-small {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 400;
+  }
+
+  .title-large-bold {
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+  }
+  .title-large {
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    font-weight: 400;
+  }
+  .title-medium-bold {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 700;
+  }
+  .title-medium {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 400;
+  }
+  .title-small-bold {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+  }
+  .title-small {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 400;
+  }
+
+  .label-large-bold {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+  }
+  .label-large {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 400;
+  }
+  .label-medium-bold {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 700;
+  }
+  .label-medium {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 400;
+  }
+  .label-small-bold {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 700;
+  }
+  .label-small {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 400;
+  }
+
+  .display-large-bold {
+    font-size: 3.5625rem;
+    line-height: 4rem;
+    font-weight: 700;
+  }
+  .display-medium-bold {
+    font-size: 2.8125rem;
+    line-height: 3.25rem;
+    font-weight: 700;
+  }
+  .display-medium {
+    font-size: 2.8125rem;
+    line-height: 3.25rem;
+    font-weight: 400;
+  }
+  .display-small-bold {
+    font-size: 2.25rem;
     line-height: 2.75rem;
+    font-weight: 700;
   }
-  h4 {
+  .display-small {
+    font-size: 2.25rem;
+    line-height: 2.75rem;
+    font-weight: 400;
+  }
+
+  .headline-large-bold {
     font-size: 2rem;
-    line-height: 2.2rem;
+    line-height: 2.5rem;
+    font-weight: 700;
   }
-  h5 {
+  .headline-large {
+    font-size: 2rem;
+    line-height: 2.5rem;
+    font-weight: 400;
+  }
+  .headline-medium-bold {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+  }
+  .headline-medium {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+    font-weight: 400;
+  }
+  .headline-small-bold {
     font-size: 1.5rem;
-    line-height: 1.65rem;
+    line-height: 2rem;
+    font-weight: 700;
   }
-  h6 {
-    font-size: 1.25rem;
-    line-height: 1.375rem;
+  .headline-small {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 400;
   }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Vazirmatn, Geist_Mono } from "next/font/google";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
+import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/providers";
 import "./globals.css";
 
@@ -34,7 +35,10 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <DirectionProvider direction="rtl">
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            <Footer />
+          </Providers>
         </DirectionProvider>
       </body>
     </html>
