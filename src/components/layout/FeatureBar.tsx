@@ -13,18 +13,18 @@ const FEATURES = [
 
 export function FeatureBar() {
   return (
-    <div className="bg-white rounded-b-4xl shadow-2xl overflow-hidden absolute w-full">
-      <div className="mx-auto container">
+    <div className="absolute w-full overflow-hidden rounded-b-4xl bg-white shadow-2xl">
+      <div className="container mx-auto">
         <ul className="flex items-center justify-between p-6">
           {FEATURES.map(({ Icon, title }, i) => (
             <Fragment key={title}>
               {i > 0 && (
-                <li aria-hidden="true" className="self-stretch flex items-center">
-                  <span className="h-full w-px bg-secondary/15" />
+                <li aria-hidden="true" className="flex items-center self-stretch">
+                  <span className="bg-secondary/15 h-full w-px" />
                 </li>
               )}
               <li className="flex items-center gap-4">
-                <p className="text-sm font-bold text-secondary">{title}</p>
+                <p className="text-secondary text-sm font-bold">{title}</p>
                 <Icon className="size-12 shrink-0" aria-hidden="true" />
               </li>
             </Fragment>

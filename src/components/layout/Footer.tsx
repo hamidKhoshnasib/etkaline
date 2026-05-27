@@ -19,7 +19,7 @@ export function Footer() {
         <div className="container mx-auto pt-12">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
             {/* Company info */}
-            <div className="space-y-4.25  ">
+            <div className="space-y-4.25">
               <EtkalineLogo className="text-secondary h-8.75 w-30" />
               <p className="body-medium line-clamp-7">
                 اتکالاین سال‌ها است که به انتخاب اول بسیاری از خریداران اینترنتی تبدیل شده است.
