@@ -4,6 +4,7 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/components/layout/footer/Footer";
 import { Header } from "@/components/layout/header/Header";
 import { Providers } from "@/providers";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -39,6 +40,7 @@ export default function RootLayout({
           <Providers>
             <Header />
             {children}
+            <Toaster />
             <Footer />
           </Providers>
         </DirectionProvider>
