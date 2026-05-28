@@ -1,10 +1,10 @@
-import React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 // r=42 → circumference ≈ 264 → 25% arc ≈ 66
-const TRACK_R = 42
-const ARC_DASH = "66 198"
+const TRACK_R = 42;
+const ARC_DASH = "66 198";
 
 const spinnerVariants = cva("shrink-0 animate-spin", {
   variants: {
@@ -15,11 +15,9 @@ const spinnerVariants = cva("shrink-0 animate-spin", {
     },
   },
   defaultVariants: { size: "md" },
-})
+});
 
-interface SpinnerProps
-  extends React.ComponentProps<"svg">,
-    VariantProps<typeof spinnerVariants> {}
+interface SpinnerProps extends React.ComponentProps<"svg">, VariantProps<typeof spinnerVariants> {}
 
 function Spinner({ className, size, ...props }: SpinnerProps) {
   return (
@@ -33,14 +31,18 @@ function Spinner({ className, size, ...props }: SpinnerProps) {
     >
       {/* Track */}
       <circle
-        cx="50" cy="50" r={TRACK_R}
+        cx="50"
+        cy="50"
+        r={TRACK_R}
         stroke="currentColor"
         strokeWidth="10"
         className="text-gray-200"
       />
       {/* Arc — rotated so it starts at 12 o'clock */}
       <circle
-        cx="50" cy="50" r={TRACK_R}
+        cx="50"
+        cy="50"
+        r={TRACK_R}
         stroke="currentColor"
         strokeWidth="10"
         strokeLinecap="round"
@@ -49,8 +51,8 @@ function Spinner({ className, size, ...props }: SpinnerProps) {
         className="text-blue-700"
       />
     </svg>
-  )
+  );
 }
 
-export { Spinner, spinnerVariants }
-export type { SpinnerProps }
+export { Spinner, spinnerVariants };
+export type { SpinnerProps };
