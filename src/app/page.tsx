@@ -15,7 +15,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { ProductCard } from "@/components/ui/ProductCard";
 import gazImg from "@/assets/images/gaz.png";
 import { Check, HomeIcon } from "lucide-react";
-import ArrowLeft from "@/assets/icons/arrow-left.svg"
+import ArrowLeft from "@/assets/icons/arrow-left.svg";
 
 const sizes = ["sm", "md", "lg", "xl"] as const;
 const iconSizes = ["icon-sm", "icon-md", "icon-lg", "icon-xl"] as const;
@@ -125,35 +125,48 @@ export default function Home() {
         <div className="flex flex-wrap gap-4">
           {/* Default */}
           <ProductCard
-            image={gazImg.src} title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
-            price={580_000_000} originalPrice={680_000_000} discount={30}
+            image={gazImg.src}
+            title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
+            price={580_000_000}
+            originalPrice={680_000_000}
+            discount={30}
             className="w-52"
           />
           {/* No discount */}
           <ProductCard
-            image={gazImg.src} title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
+            image={gazImg.src}
+            title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
             price={580_000_000}
             className="w-52"
           />
           {/* With bookmark */}
           <ProductCard
-            image={gazImg.src} title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
-            price={580_000_000} originalPrice={680_000_000} discount={30}
+            image={gazImg.src}
+            title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
+            price={580_000_000}
+            originalPrice={680_000_000}
+            discount={30}
             isBookmarked
             className="w-52"
           />
           {/* Out of stock */}
           <ProductCard
-            image={gazImg.src} title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
-            price={580_000_000} originalPrice={680_000_000} discount={30}
+            image={gazImg.src}
+            title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
+            price={580_000_000}
+            originalPrice={680_000_000}
+            discount={30}
             outOfStock
             className="w-52"
           />
           {/* Mobile */}
           <ProductCard
             variant="mobile"
-            image={gazImg.src} title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
-            price={580_000_000} originalPrice={680_000_000} discount={30}
+            image={gazImg.src}
+            title="ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M"
+            price={580_000_000}
+            originalPrice={680_000_000}
+            discount={30}
             className="w-72"
           />
         </div>
@@ -161,7 +174,7 @@ export default function Home() {
 
       <div className="flex flex-col gap-4">
         <p className="title-large-bold">Pagination</p>
-        <Pagination page={5} total={9} onChange={() => {}}/>
+        <Pagination page={5} total={9} onChange={() => {}} />
       </div>
 
       <div className="flex flex-col gap-4">

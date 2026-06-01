@@ -1,38 +1,45 @@
-"use client"
+"use client";
 
-import { BookmarkIcon, ScaleIcon, FrownIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import TomanIcon from "@/assets/icons/Toman-Symbol.svg"
+import { BookmarkIcon, ScaleIcon, FrownIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import { Image } from "next/dist/client/image-component";
 
 function formatPrice(n: number): string {
-  return n.toLocaleString("fa-IR")
+  return n.toLocaleString("fa-IR");
 }
 
 function toPersian(n: number): string {
-  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d])
+  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProductCardProps {
-  image: string
-  title: string
-  price: number
-  originalPrice?: number
-  discount?: number
-  isBookmarked?: boolean
-  outOfStock?: boolean
-  onBookmark?: () => void
-  onCompare?: () => void
-  onAddToCart?: () => void
-  variant?: "default" | "mobile"
-  className?: string
+  image: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  isBookmarked?: boolean;
+  outOfStock?: boolean;
+  onBookmark?: () => void;
+  onCompare?: () => void;
+  onAddToCart?: () => void;
+  variant?: "default" | "mobile";
+  className?: string;
 }
 
 // ─── Mobile variant ───────────────────────────────────────────────────────────
 
-function MobileProductCard({ image, title, price, originalPrice, discount, className }: ProductCardProps) {
+function MobileProductCard({
+  image,
+  title,
+  price,
+  originalPrice,
+  discount,
+  className,
+}: ProductCardProps) {
   return (
     <div
       className={cn(
@@ -60,7 +67,7 @@ function MobileProductCard({ image, title, price, originalPrice, discount, class
         <img src={image} alt={title} className="h-full w-full object-contain p-1" />
       </div>
     </div>
-  )
+  );
 }
 
 // ─── Default card ─────────────────────────────────────────────────────────────
@@ -82,11 +89,14 @@ function ProductCard({
   if (variant === "mobile") {
     return (
       <MobileProductCard
-        image={image} title={title} price={price}
-        originalPrice={originalPrice} discount={discount}
+        image={image}
+        title={title}
+        price={price}
+        originalPrice={originalPrice}
+        discount={discount}
         className={className}
       />
-    )
+    );
   }
 
   return (
@@ -168,5 +178,5 @@ function ProductCard({
   );
 }
 
-export { ProductCard }
-export type { ProductCardProps }
+export { ProductCard };
+export type { ProductCardProps };
