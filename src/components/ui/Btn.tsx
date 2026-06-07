@@ -28,7 +28,7 @@ const btnVariants = cva(
 
         // Secondary gray – gray ring, gray-100 bg on hover, gray-400 ring when disabled
         "secondary-gray":
-          "ring-1 ring-gray-200 bg-transparent hover:text-secondary disabled:bg-gray-100 hover:bg-gray-100 disabled:ring-gray-400 disabled:text-gray-400 disabled:opacity-100",
+          "ring-1 ring-gray-200 bg-white hover:text-secondary disabled:bg-gray-100 hover:bg-gray-100 disabled:ring-gray-400 disabled:text-gray-400 disabled:opacity-100",
       },
 
       size: {

@@ -102,13 +102,13 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-2xl border border-gray-500 bg-white p-4",
+        "group relative rounded-2xl border border-[#E2E8F0] bg-white p-4",
         "hover:border-primary transition-all hover:shadow-md",
         className,
       )}
     >
       {/* Image area */}
-      <div className="relative overflow-hidden rounded-xl bg-gray-50">
+      <div className="relative overflow-hidden bg-gray-50">
         <Image
           src={image}
           alt={`عکس-${title}`}
@@ -155,16 +155,16 @@ function ProductCard({
 
       {/* Content */}
       <div className="mt-3">
-        <p className="title-small text-gray-700">{title}</p>
+        <p className="title-small text-gray-700 line-clamp-2 h-10">{title}</p>
 
         <div className="mt-3 w-full">
-          <div className="text-right">
+          <div className="h-12.5">
             {discount && originalPrice && (
               <div className="flex items-center justify-between gap-1.5">
-                <span className="label-small bg-primary-hover rounded px-1.5 py-0.5 text-white">
+                <span className="text-[12px] bg-primary-hover rounded-lg px-1 py-0.5 text-white">
                   {toPersian(discount)}٪
                 </span>
-                <s className="body-small text-gray-400">{formatPrice(originalPrice)}</s>
+                <s className="text-[12px] text-gray-400">{formatPrice(originalPrice)}</s>
               </div>
             )}
             <div className="flex items-center justify-between">
