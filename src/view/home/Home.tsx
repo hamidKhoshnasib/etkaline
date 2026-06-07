@@ -24,17 +24,67 @@ const sampleProducts = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const popularBrands = [
-  { id: 1, name: "Bella PRO", image: "https://via.placeholder.com/90x40?text=bella", href: "/brand/bella" },
-  { id: 2, name: "Bissell", image: "https://via.placeholder.com/90x40?text=BISSELL", href: "/brand/bissell" },
-  { id: 3, name: "Bosch", image: "https://via.placeholder.com/90x40?text=BOSCH", href: "/brand/bosch" },
-  { id: 4, name: "DeLonghi", image: "https://via.placeholder.com/90x40?text=DeLonghi", href: "/brand/delonghi" },
-  { id: 5, name: "Dyson", image: "https://via.placeholder.com/90x40?text=dyson", href: "/brand/dyson" },
-  { id: 6, name: "Insignia", image: "https://via.placeholder.com/90x40?text=INSIGNIA", href: "/brand/insignia" },
-  { id: 7, name: "iRobot", image: "https://via.placeholder.com/90x40?text=iRobot", href: "/brand/irobot" },
-  { id: 8, name: "KitchenAid", image: "https://via.placeholder.com/90x40?text=KitchenAid", href: "/brand/kitchenaid" },
+  {
+    id: 1,
+    name: "Bella PRO",
+    image: "https://via.placeholder.com/90x40?text=bella",
+    href: "/brand/bella",
+  },
+  {
+    id: 2,
+    name: "Bissell",
+    image: "https://via.placeholder.com/90x40?text=BISSELL",
+    href: "/brand/bissell",
+  },
+  {
+    id: 3,
+    name: "Bosch",
+    image: "https://via.placeholder.com/90x40?text=BOSCH",
+    href: "/brand/bosch",
+  },
+  {
+    id: 4,
+    name: "DeLonghi",
+    image: "https://via.placeholder.com/90x40?text=DeLonghi",
+    href: "/brand/delonghi",
+  },
+  {
+    id: 5,
+    name: "Dyson",
+    image: "https://via.placeholder.com/90x40?text=dyson",
+    href: "/brand/dyson",
+  },
+  {
+    id: 6,
+    name: "Insignia",
+    image: "https://via.placeholder.com/90x40?text=INSIGNIA",
+    href: "/brand/insignia",
+  },
+  {
+    id: 7,
+    name: "iRobot",
+    image: "https://via.placeholder.com/90x40?text=iRobot",
+    href: "/brand/irobot",
+  },
+  {
+    id: 8,
+    name: "KitchenAid",
+    image: "https://via.placeholder.com/90x40?text=KitchenAid",
+    href: "/brand/kitchenaid",
+  },
   { id: 9, name: "LG", image: "https://via.placeholder.com/90x40?text=LG", href: "/brand/lg" },
-  { id: 10, name: "Samsung", image: "https://via.placeholder.com/90x40?text=SAMSUNG", href: "/brand/samsung" },
-  { id: 11, name: "Whirlpool", image: "https://via.placeholder.com/90x40?text=Whirlpool", href: "/brand/whirlpool" },
+  {
+    id: 10,
+    name: "Samsung",
+    image: "https://via.placeholder.com/90x40?text=SAMSUNG",
+    href: "/brand/samsung",
+  },
+  {
+    id: 11,
+    name: "Whirlpool",
+    image: "https://via.placeholder.com/90x40?text=Whirlpool",
+    href: "/brand/whirlpool",
+  },
 ];
 
 const sampleArticles = [

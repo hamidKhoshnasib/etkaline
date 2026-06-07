@@ -16,7 +16,7 @@ function BrandCard({ name, image, href = "#" }: Brand) {
   return (
     <Link
       href={href}
-      className="border border-[#CBD5E1] flex h-26.25 w-[102.5px] shrink-0 items-center justify-center rounded-[20px]"
+      className="flex h-26.25 w-[102.5px] shrink-0 items-center justify-center rounded-[20px] border border-[#CBD5E1]"
     >
       <Image src={image} alt={name} width={103} height={105} className="object-contain" />
     </Link>
@@ -25,7 +25,7 @@ function BrandCard({ name, image, href = "#" }: Brand) {
 
 export default function PopularBrands({ brands }: PopularBrandsProps) {
   return (
-    <section className="w-full rounded-[28px] border-[#E2E8F0] border bg-white p-4">
+    <section className="w-full rounded-[28px] border border-[#E2E8F0] bg-white p-4">
       <h2 className="headline-small-bold mb-4 text-center">برندهای محبوب</h2>
 
       <div className="flex gap-4 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">

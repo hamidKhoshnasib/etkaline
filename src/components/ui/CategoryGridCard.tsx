@@ -44,7 +44,7 @@ export default function CategoryGridCard({
             key={item.id}
             href={showMoreLink}
             className={cn(
-              "flex flex-col items-center gap-1.5 p-2 h-34 justify-center",
+              "flex h-34 flex-col items-center justify-center gap-1.5 p-2",
               i < 2 && "border-b border-[#CBD5E1]",
               i % 2 === 0 && "border-l border-[#CBD5E1]",
             )}
@@ -54,7 +54,7 @@ export default function CategoryGridCard({
               height={54}
               src={item.image}
               alt={item.title}
-              className="h-13.5 w-10.75 object-contain line-clamp-1"
+              className="line-clamp-1 h-13.5 w-10.75 object-contain"
             />
             <p className="label-large w-full truncate">{item.title}</p>
           </Link>

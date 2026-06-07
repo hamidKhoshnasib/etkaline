@@ -32,15 +32,9 @@ export default function CategoryStrip() {
   return (
     <div className="flex justify-between gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
       {categories.map(({ id, Icon, label, href }) => (
-        <Link
-          key={id}
-          href={href}
-          className="flex shrink-0 flex-col items-center gap-2"
-        >
-            <Icon width={80} height={80} />
-          <span className="label-medium text-center">
-            {label}
-          </span>
+        <Link key={id} href={href} className="flex shrink-0 flex-col items-center gap-2">
+          <Icon width={80} height={80} />
+          <span className="label-medium text-center">{label}</span>
         </Link>
       ))}
     </div>
