@@ -155,13 +155,13 @@ function ProductCard({
 
       {/* Content */}
       <div className="mt-3">
-        <p className="title-small text-gray-700 line-clamp-2 h-10">{title}</p>
+        <p className="title-small line-clamp-2 h-10 text-gray-700">{title}</p>
 
         <div className="mt-3 w-full">
           <div className="h-12.5">
             {discount && originalPrice && (
               <div className="flex items-center justify-between gap-1.5">
-                <span className="text-[12px] bg-primary-hover rounded-lg px-1 py-0.5 text-white">
+                <span className="bg-primary-hover rounded-lg px-1 py-0.5 text-[12px] text-white">
                   {toPersian(discount)}٪
                 </span>
                 <s className="text-[12px] text-gray-400">{formatPrice(originalPrice)}</s>

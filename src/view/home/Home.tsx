@@ -39,7 +39,7 @@ export default function HomePage() {
             src={banner.src}
             width={1280}
             height={308}
-            className="h-full w-full my-9"
+            className="my-9 h-full w-full"
           />
         </Link>
         <ProductSectionList

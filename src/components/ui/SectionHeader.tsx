@@ -11,7 +11,7 @@ export default function SectionHeader({ title, description, showMoreLink }: Sect
   return (
     <div className="mb-5 flex items-start justify-between">
       <div className="flex gap-2">
-        <GripVertical className="size-6 text-primary" />
+        <GripVertical className="text-primary size-6" />
         <div className="space-y-1">
           <h3 className="title-large text-secondary">{title}</h3>
           {description && <p className="title-small text-[#475569]">{description}</p>}
@@ -19,7 +19,7 @@ export default function SectionHeader({ title, description, showMoreLink }: Sect
       </div>
 
       {showMoreLink && (
-        <div className="flex items-center gap-4 text-primary">
+        <div className="text-primary flex items-center gap-4">
           <Link href={showMoreLink} className="text-[14px] text-[#64748B]">
             مشاهده همه
           </Link>

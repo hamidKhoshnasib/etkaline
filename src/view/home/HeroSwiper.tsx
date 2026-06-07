@@ -9,7 +9,7 @@ import "swiper/css";
 import swiper1 from "@/assets/images/swiper1.png";
 import swiper2 from "@/assets/images/swiper2.jpg";
 
-const slides = [swiper1, swiper2, swiper1,swiper1,swiper1];
+const slides = [swiper1, swiper2, swiper1, swiper1, swiper1];
 
 export default function HeroSwiper() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -51,9 +51,7 @@ export default function HeroSwiper() {
             key={i}
             onClick={() => swiperRef?.slideToLoop(i)}
             className={`h-2.75 w-2.75 rounded-full transition-colors duration-300 ${
-              activeIndex === i
-                ? "bg-primary border border-[#F8FAFC]"
-                : "bg-[#F8FAFC]"
+              activeIndex === i ? "bg-primary border border-[#F8FAFC]" : "bg-[#F8FAFC]"
             }`}
           />
         ))}

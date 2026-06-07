@@ -24,13 +24,14 @@ export default function SupermarketCta() {
         {/* Title */}
 
         {/* Product swiper */}
-        <div className="flex min-w-0 flex-1 items-center justify-around gap-15 rounded-l-[55px] rounded-r-[20px] border border-white bg-linear-to-l from-[#FFFFFF] to-[#E2E8F0] px-6 py-3.75 overflow-hidden">
+        <div className="flex min-w-0 flex-1 items-center justify-around gap-15 overflow-hidden rounded-l-[55px] rounded-r-[20px] border border-white bg-linear-to-l from-[#FFFFFF] to-[#E2E8F0] px-6 py-3.75">
           <h3 className="headline-small shrink-0 text-[#00C853]">سوپرمارکت اتکالاین</h3>
           <div className="flex">
             {products.map((product) => (
-                <div key={product.id} className="h-16 w-16 rounded-full border-2 border-[#CBD5E1] bg-white" >
-
-              </div>
+              <div
+                key={product.id}
+                className="h-16 w-16 rounded-full border-2 border-[#CBD5E1] bg-white"
+              ></div>
             ))}
           </div>
           <span className="title-medium hidden shrink-0 text-[#00C853] md:block">

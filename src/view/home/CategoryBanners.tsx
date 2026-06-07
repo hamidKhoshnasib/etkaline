@@ -18,12 +18,8 @@ export default function CategoryBanners() {
     <section className="w-full">
       <div className="flex gap-5">
         {banners.map((banner, i) => (
-          <div key={i} className="flex-1 overflow-hidden rounded-2xl cursor-pointer">
-            <Image
-              src={banner.src}
-              alt={banner.alt}
-              className="w-full h-auto object-cover"
-            />
+          <div key={i} className="flex-1 cursor-pointer overflow-hidden rounded-2xl">
+            <Image src={banner.src} alt={banner.alt} className="h-auto w-full object-cover" />
           </div>
         ))}
       </div>

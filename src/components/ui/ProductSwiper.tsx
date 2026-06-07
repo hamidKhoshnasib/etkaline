@@ -47,7 +47,9 @@ export default function ProductSwiper<T extends { id: number | string }>({
       <Swiper
         key={swiperKey}
         modules={[Navigation]}
-        onSwiper={(s) => { swiperRef.current = s; }}
+        onSwiper={(s) => {
+          swiperRef.current = s;
+        }}
         slidesPerView={slidesPerView}
         spaceBetween={spaceBetween}
         breakpoints={breakpoints}
