@@ -5,7 +5,7 @@ export const LINK_COLUMNS = [
       { label: "درباره اتکالاین", href: "/about" },
       { label: "فرصت‌های شغلی", href: "/careers" },
       { label: "اتکالاین در رسانه‌ها", href: "/media" },
-      { label: "تماس با اتکالاین", href: "/contact" },
+      { label: "تماس با اتکالاین", href: "/contact-us" },
       { label: "افزودن کسب‌وکار", href: "/business" },
     ],
   },
