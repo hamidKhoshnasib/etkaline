@@ -95,13 +95,13 @@ export default function ContactForm() {
           onChange={handleChange}
           placeholder="متن پیام خود را بنویسید..."
           rows={6}
-          className="border-input bg-transparent placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors focus-visible:ring-3"
+          className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm transition-colors outline-none focus-visible:ring-3"
         />
       </div>
 
       <Button
         type="submit"
-        className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary-hover text-base font-bold"
+        className="bg-primary text-primary-foreground hover:bg-primary-hover h-11 w-full text-base font-bold"
       >
         ارسال
       </Button>

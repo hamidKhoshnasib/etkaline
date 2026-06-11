@@ -55,21 +55,21 @@ export default function ContactUsPage() {
           رضایت شما الویت ماست .
         </p>
 
-          <div className="flex flex-col gap-6">
-            <div>
-              <h1 className="mt-2.5 mb-3.75 font-bold"> فرم تماس اتکالاین</h1>
-              <p>
-                لطفا قبل از تماس یا ارسال ایمیل ، ابتدا
-                <Link href="/faq" className="text-primary-hover">
-                  {" "}
-                  سوالات متداول{" "}
-                </Link>
-                را مشاهده کنید.
-              </p>
-            </div>
-
-            <ContactForm />
+        <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="mt-2.5 mb-3.75 font-bold"> فرم تماس اتکالاین</h1>
+            <p>
+              لطفا قبل از تماس یا ارسال ایمیل ، ابتدا
+              <Link href="/faq" className="text-primary-hover">
+                {" "}
+                سوالات متداول{" "}
+              </Link>
+              را مشاهده کنید.
+            </p>
           </div>
+
+          <ContactForm />
+        </div>
 
         {/* Map */}
         <div className="mt-12 flex flex-col justify-center rounded-[16px] border border-[#D1D4D4] px-[105px] py-12">
