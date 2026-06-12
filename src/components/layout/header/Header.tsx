@@ -5,7 +5,7 @@ import { HeaderAuth } from "./HeaderAuth";
 
 export function Header() {
   return (
-    <header>
+    <header className="hidden md:block">
       <div className="bg-primary text-secondary relative pb-15">
         <div className="container mx-auto">
           <div className="flex items-center py-3">

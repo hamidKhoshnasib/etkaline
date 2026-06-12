@@ -15,7 +15,7 @@ export function Footer() {
     <footer className="relative">
       <FeatureBar />
 
-      <div className="bg-primary text-secondary pt-24.5">
+      <div className="bg-primary text-secondary pt-36 sm:pt-24.5">
         <div className="container mx-auto pt-12">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
             {/* Company info */}

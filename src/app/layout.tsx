@@ -3,6 +3,7 @@ import { Vazirmatn, Geist_Mono } from "next/font/google";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/components/layout/footer/Footer";
 import { Header } from "@/components/layout/header/Header";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -39,9 +40,12 @@ export default function RootLayout({
         <DirectionProvider direction="rtl">
           <Providers>
             <Header />
-            {children}
+            <div className="flex-1 pb-16 md:pb-0">{children}</div>
             <Toaster />
-            <Footer />
+            <div className="hidden md:block">
+              <Footer />
+            </div>
+            <MobileBottomNav />
           </Providers>
         </DirectionProvider>
       </body>

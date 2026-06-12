@@ -15,17 +15,17 @@ export function FeatureBar() {
   return (
     <div className="absolute w-full overflow-hidden rounded-b-[28px] bg-white shadow-2xl">
       <div className="container mx-auto">
-        <ul className="flex items-center justify-between p-6">
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 sm:flex sm:items-center sm:justify-between sm:gap-0 sm:p-6">
           {FEATURES.map(({ Icon, title }, i) => (
             <Fragment key={title}>
               {i > 0 && (
-                <li aria-hidden="true" className="flex items-center self-stretch">
+                <li aria-hidden="true" className="hidden items-center self-stretch sm:flex">
                   <span className="bg-secondary/15 h-full w-px" />
                 </li>
               )}
-              <li className="flex items-center gap-4">
-                <p className="text-secondary text-sm font-bold">{title}</p>
-                <Icon className="size-12 shrink-0" aria-hidden="true" />
+              <li className="flex items-center gap-2 sm:gap-4">
+                <p className="text-secondary text-xs font-bold sm:text-sm">{title}</p>
+                <Icon className="size-9 shrink-0 sm:size-12" aria-hidden="true" />
               </li>
             </Fragment>
           ))}
