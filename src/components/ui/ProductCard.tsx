@@ -9,10 +9,6 @@ function formatPrice(n: number): string {
   return n.toLocaleString("fa-IR");
 }
 
-function toPersian(n: number): string {
-  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
-}
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProductCardProps {
@@ -28,6 +24,7 @@ interface ProductCardProps {
   onAddToCart?: () => void;
   variant?: "default" | "mobile";
   className?: string;
+  Link?: string;
 }
 
 // ─── Mobile variant ───────────────────────────────────────────────────────────
@@ -54,7 +51,7 @@ function MobileProductCard({
             <div className="flex items-center gap-1.5">
               <s className="label-small text-gray-400">{formatPrice(originalPrice)}</s>
               <span className="label-small rounded bg-orange-500 px-1 py-0.5 text-white">
-                {toPersian(discount)}٪
+                {discount}٪
               </span>
             </div>
           )}
@@ -162,7 +159,7 @@ function ProductCard({
             {discount && originalPrice && (
               <div className="flex items-center justify-between gap-1.5">
                 <span className="bg-primary-hover rounded-lg px-1 py-0.5 text-[12px] text-white">
-                  {toPersian(discount)}٪
+                  {discount}٪
                 </span>
                 <s className="text-[12px] text-gray-400">{formatPrice(originalPrice)}</s>
               </div>

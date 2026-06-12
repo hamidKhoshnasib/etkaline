@@ -173,7 +173,7 @@ const categoryGridSections = [
   },
 ];
 
-export default function HomePage() {
+export default function Home() {
   return (
     <main>
       <HeroSwiper />
