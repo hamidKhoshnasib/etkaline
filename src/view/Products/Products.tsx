@@ -1,5 +1,3 @@
 export default function Products() {
-  return (
-    <div>222</div>
-  );
+  return <div>222</div>;
 }
