@@ -99,8 +99,8 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-2xl border border-[#E2E8F0] bg-white p-4",
-        "hover:border-primary transition-all hover:shadow-md",
+        "group relative rounded-2xl border border-[#E2E8F0] bg-white",
+        "hover:border-primary transition-all",
         className,
       )}
     >
@@ -151,7 +151,7 @@ function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="mt-3">
+      <div className="mt-3 px-2 pb-2">
         <p className="title-small line-clamp-2 h-10 text-gray-700">{title}</p>
 
         <div className="mt-3 w-full">

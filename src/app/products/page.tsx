@@ -1,5 +1,5 @@
-import Products from "@/view/Products/Products";
+import ProductsPage from "@/view/Products/Products";
 
 export default function ProductIndex() {
-  return <Products />;
+  return <ProductsPage />;
 }
