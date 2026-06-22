@@ -40,7 +40,7 @@ export default function ReviewStep({ onEdit }: ReviewStepProps) {
       <section className="relative rounded-2xl border border-[#E2E8F0] bg-white p-5">
         <button
           onClick={onEdit}
-          className="absolute top-5 left-5 flex items-center gap-1 text-[#64748B] hover:text-secondary"
+          className="hover:text-secondary absolute top-5 left-5 flex items-center gap-1 text-[#64748B]"
         >
           <span className="body-small">تغییر آدرس و زمان ارسال</span>
           <ArrowLeft className="size-4" />

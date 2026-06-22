@@ -31,7 +31,12 @@ function Row({ label, value, muted }: { label: string; value: number; muted?: bo
   );
 }
 
-export default function OrderSummary({ step, items, canProceed = true, onPrimary }: OrderSummaryProps) {
+export default function OrderSummary({
+  step,
+  items,
+  canProceed = true,
+  onPrimary,
+}: OrderSummaryProps) {
   const [discountCode, setDiscountCode] = useState("");
 
   const itemsTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -80,24 +85,27 @@ export default function OrderSummary({ step, items, canProceed = true, onPrimary
       {/* Warning note */}
       <div className="text-secondary mt-4 flex items-start gap-2">
         <TriangleAlert className="size-5 shrink-0 text-[#FFC300]" />
-        <p className="body-small text-[#475569] leading-5">
+        <p className="body-small leading-5 text-[#475569]">
           هزینه این سفارش هنوز پرداخت نشده و در صورت اتمام موجودی، کالاها از سبد حذف می‌شوند.
         </p>
       </div>
 
       {/* Primary action */}
       {step === "review" ? (
-        <Btn onClick={onPrimary} size="lg" className="mt-4 w-full bg-[#22C55E] text-white hover:bg-[#16A34A]">
-          پرداخت
-        </Btn>
-      ) : (
         <Btn
           onClick={onPrimary}
           size="lg"
-          disabled={!canProceed}
-          className="mt-4 w-full"
+          className="mt-4 w-full bg-[#22C55E] text-white hover:bg-[#16A34A]"
         >
-          {step === "cart" ? "تایید و تکمیل سفارش" : canProceed ? "تایید و ادامه" : "زمان انتخاب نشده !"}
+          پرداخت
+        </Btn>
+      ) : (
+        <Btn onClick={onPrimary} size="lg" disabled={!canProceed} className="mt-4 w-full">
+          {step === "cart"
+            ? "تایید و تکمیل سفارش"
+            : canProceed
+              ? "تایید و ادامه"
+              : "زمان انتخاب نشده !"}
         </Btn>
       )}
     </aside>

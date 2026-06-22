@@ -40,12 +40,7 @@ export default function CartPage() {
         {step === "review" && <ReviewStep onEdit={() => setStep("address")} />}
       </div>
 
-      <OrderSummary
-        step={step}
-        items={items}
-        canProceed={canProceed}
-        onPrimary={handlePrimary}
-      />
+      <OrderSummary step={step} items={items} canProceed={canProceed} onPrimary={handlePrimary} />
     </main>
   );
 }

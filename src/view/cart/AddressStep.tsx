@@ -71,7 +71,13 @@ function DeliveryGroup({
               key={it.id}
               className="relative size-16 overflow-hidden rounded-xl border border-[#E2E8F0] bg-gray-50"
             >
-              <Image src={it.image} alt="" width={64} height={64} className="size-full object-contain p-1" />
+              <Image
+                src={it.image}
+                alt=""
+                width={64}
+                height={64}
+                className="size-full object-contain p-1"
+              />
               <span className="bg-secondary/80 absolute bottom-0 left-0 rounded-tr-lg px-1.5 text-[11px] text-white">
                 {it.index}
               </span>
@@ -96,12 +102,18 @@ function DeliveryGroup({
                 onClick={() => onChange({ ...selection, date: d.id })}
                 className={cn(
                   "flex w-28 flex-col items-center gap-1 rounded-xl border bg-white px-3 py-3 transition-colors",
-                  active ? "border-2 border-[#0EA5E9]" : "border-[#E2E8F0] hover:border-[#0EA5E9]/50",
+                  active
+                    ? "border-2 border-[#0EA5E9]"
+                    : "border-[#E2E8F0] hover:border-[#0EA5E9]/50",
                 )}
               >
                 <span className="body-small-bold text-secondary">{d.weekday}</span>
                 <span className="label-small text-[#64748B]">{d.date}</span>
-                <Price value={d.price} className="label-small text-secondary" iconClassName="size-3" />
+                <Price
+                  value={d.price}
+                  className="label-small text-secondary"
+                  iconClassName="size-3"
+                />
               </button>
             );
           })}
@@ -112,8 +124,8 @@ function DeliveryGroup({
       {selection.date && (
         <div>
           <p className="body-small text-secondary mb-3 text-right">
-            زمان را برای ارسال در تاریخ{" "}
-            <span className="text-[#0EA5E9]">دوشنبه ۳۰ فروردین</span> انتخاب نمایید:
+            زمان را برای ارسال در تاریخ <span className="text-[#0EA5E9]">دوشنبه ۳۰ فروردین</span>{" "}
+            انتخاب نمایید:
           </p>
           <div className="flex flex-wrap gap-3">
             {group.times.map((t) => {
@@ -126,7 +138,7 @@ function DeliveryGroup({
                     "rounded-full border px-5 py-2.5 transition-colors",
                     active
                       ? "border-[#0EA5E9] bg-[#0EA5E9] text-white"
-                      : "border-[#E2E8F0] text-secondary hover:border-[#0EA5E9]/50",
+                      : "text-secondary border-[#E2E8F0] hover:border-[#0EA5E9]/50",
                   )}
                 >
                   <span className="label-medium-bold">{t}</span>
