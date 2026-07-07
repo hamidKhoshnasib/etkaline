@@ -1,5 +1,5 @@
-import Home from "@/view/home/Home";
+import HomePage from "@/view/home/Home";
 
 export default function HomeIndex() {
-  return <Home />;
+  return <HomePage />;
 }

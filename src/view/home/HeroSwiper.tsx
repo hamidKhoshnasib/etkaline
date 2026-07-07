@@ -16,7 +16,7 @@ export default function HeroSwiper() {
   const [swiperRef, setSwiperRef] = useState<SwiperType | null>(null);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-[200px] w-full sm:h-[300px] md:h-[380px] lg:h-[460px]">
       <Swiper
         modules={[Autoplay]}
         onSwiper={setSwiperRef}

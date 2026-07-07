@@ -113,19 +113,19 @@ export default function FlashDeals() {
         <div className="bg-primary-hover absolute top-0 h-1/2 w-full" />
         <div className="absolute bottom-0 h-1/2 w-full bg-white" />
         {/* Title badge */}
-        <div className="bg-primary-hover z-10 flex h-18.75 shrink-0 items-center gap-2 rounded-l-[16px] px-2 pl-5">
-          <Bazel />
-          <span className="headline-large text-white">شگفتانه لحظه‌ای</span>
+        <div className="bg-primary-hover z-10 flex h-14 shrink-0 items-center gap-1.5 rounded-l-[16px] px-2 sm:h-18.75 sm:gap-2 sm:pl-5">
+          <Bazel className="size-7 sm:size-auto" />
+          <span className="title-medium-bold sm:headline-large text-white">شگفتانه لحظه‌ای</span>
         </div>
 
         {/* Category pills */}
-        <div className="z-10 flex h-18.75 flex-1 items-center gap-2.5 overflow-x-auto rounded-tr-[16px] bg-white px-3 [&::-webkit-scrollbar]:hidden">
+        <div className="z-10 flex h-14 flex-1 items-center gap-2 overflow-x-auto rounded-tr-[16px] bg-white px-3 sm:h-18.75 sm:gap-2.5 [&::-webkit-scrollbar]:hidden">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={cn(
-                "label-medium shrink-0 rounded-full border px-6 py-3 transition-colors",
+                "label-medium shrink-0 rounded-full border px-4 py-2 transition-colors sm:px-6 sm:py-3",
                 activeCategory === cat.id
                   ? "border-primary-hover text-secondary"
                   : "border[-#F0EEF0] text-[#475569]",

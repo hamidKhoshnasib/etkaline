@@ -173,11 +173,11 @@ const categoryGridSections = [
   },
 ];
 
-export default function Home() {
+export default function HomePage() {
   return (
     <main>
       <HeroSwiper />
-      <div className="container mx-auto mt-9 space-y-9 pb-15">
+      <div className="container mx-auto mt-5 space-y-6 px-4 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
         <CategoryStrip />
         <FlashDeals />
         <CategoryBanners />
@@ -203,7 +203,7 @@ export default function Home() {
           showMoreLink="/products"
           items={sampleProducts}
         />
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5">
           <Link href="#">
             <Image
               alt="عکس بنر"

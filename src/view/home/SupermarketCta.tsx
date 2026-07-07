@@ -20,17 +20,19 @@ export default function SupermarketCta() {
 
   return (
     <section dir="rtl" className="w-full overflow-hidden rounded-2xl bg-[#00C853]">
-      <div className="flex items-center gap-4 py-0.5 pr-0.5 pl-4">
+      <div className="flex items-center gap-2 py-0.5 pr-0.5 pl-2 sm:gap-4 sm:pl-4">
         {/* Title */}
 
         {/* Product swiper */}
-        <div className="flex min-w-0 flex-1 items-center justify-around gap-15 overflow-hidden rounded-l-[55px] rounded-r-[20px] border border-white bg-linear-to-l from-[#FFFFFF] to-[#E2E8F0] px-6 py-3.75">
-          <h3 className="headline-small shrink-0 text-[#00C853]">سوپرمارکت اتکالاین</h3>
-          <div className="flex">
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-3 overflow-hidden rounded-l-[40px] rounded-r-[20px] border border-white bg-linear-to-l from-[#FFFFFF] to-[#E2E8F0] px-3 py-2.5 sm:justify-around sm:gap-15 sm:rounded-l-[55px] sm:px-6 sm:py-3.75">
+          <h3 className="title-small-bold sm:headline-small shrink-0 text-[#00C853]">
+            سوپرمارکت اتکالاین
+          </h3>
+          <div className="flex shrink-0">
             {products.map((product) => (
               <div
                 key={product.id}
-                className="h-16 w-16 rounded-full border-2 border-[#CBD5E1] bg-white"
+                className="h-9 w-9 rounded-full border-2 border-[#CBD5E1] bg-white sm:h-16 sm:w-16"
               ></div>
             ))}
           </div>
@@ -42,7 +44,7 @@ export default function SupermarketCta() {
         {/* Nav arrow */}
         <button
           onClick={() => swiperRef.current?.slideNext()}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white sm:h-12 sm:w-12"
         >
           <ChevronLeft className="h-5 w-5 text-[#00C853]" />
         </button>
