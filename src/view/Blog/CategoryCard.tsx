@@ -32,7 +32,7 @@ export default function CategoryCard({ categories }: CategoryCardProps) {
               className={cn(
                 "flex items-center gap-2 rounded-lg border-b px-4 py-3 transition-colors",
                 active
-                  ? "border-primary-hover bg-[#FFFDE7] border-b-2"
+                  ? "border-primary-hover border-b-2 bg-[#FFFDE7]"
                   : "border-[#F0F1F1] hover:bg-[#FAFAFA]",
               )}
             >

@@ -13,7 +13,7 @@ export default function ShowMoreButton({ href = "#", className }: ShowMoreButton
       href={href}
       className={cn(
         "inline-flex items-center gap-1 rounded-lg px-4 py-1.5",
-        "label-medium text-[#3E4344] transition-colors hover:text-primary-hover",
+        "label-medium hover:text-primary-hover text-[#3E4344] transition-colors",
         className,
       )}
     >
