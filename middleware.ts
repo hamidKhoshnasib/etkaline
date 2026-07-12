@@ -7,7 +7,8 @@ export default auth((req) => {
   const isProtected = PROTECTED.some((path) => req.nextUrl.pathname.startsWith(path));
 
   if (isProtected && !req.auth) {
-    const loginUrl = new URL("/auth/login", req.url);
+    const loginUrl = new URL("/", req.url);
+    loginUrl.searchParams.set("login", "1");
     loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }

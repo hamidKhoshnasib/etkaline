@@ -1,6 +1,7 @@
 "use client";
 
 import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+import { getSession, signOut } from "next-auth/react";
 
 export const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -8,10 +9,16 @@ export const axiosClient = axios.create({
   timeout: 15_000,
 });
 
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+axiosClient.interceptors.request.use(async (config) => {
+  const session = await getSession();
+  if (session?.error === "RefreshTokenError") {
+    await signOut({ redirect: false });
+    window.dispatchEvent(new Event("etkala:open-auth"));
+    return config;
+  }
+
+  if (session?.accessToken) {
+    config.headers.Authorization = `Bearer ${session.accessToken}`;
   }
   return config;
 });
@@ -20,7 +27,8 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      window.location.href = "/auth/login";
+      void signOut({ redirect: false });
+      window.dispatchEvent(new Event("etkala:open-auth"));
     }
     return Promise.reject(error);
   },
