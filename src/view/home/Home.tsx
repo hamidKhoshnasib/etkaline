@@ -1,18 +1,8 @@
 import HeroSwiper from "./HeroSwiper";
-import FlashDeals from "./FlashDeals";
-import CategoryBanners from "./CategoryBanners";
-import SupermarketCta from "./SupermarketCta";
-import ProductSection from "@/components/ui/ProductSection";
-import ProductSectionList from "@/components/ui/ProductSectionList";
-import CategoryGridCard from "@/components/ui/CategoryGridCard";
 import PopularBrands from "./PopularBrands";
 import MagSection from "./MagSection";
 import CategoryStrip from "./CategoryStrip";
-import Image from "next/image";
-import banner from "@/assets/images/image 35.png";
-import miniBanner1 from "@/assets/images/image 36.png";
-import miniBanner2 from "@/assets/images/image 37.png";
-import Link from "next/link";
+import DynamicHomeLayout from "./DynamicHomeLayout";
 
 const sampleProducts = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
@@ -122,122 +112,13 @@ const sampleArticles = [
   },
 ];
 
-const categoryGridSections = [
-  {
-    id: "fridge",
-    title: "یخچال",
-    description: "ماشین لباسشویی و ...",
-    count: 306,
-    showMoreLink: "/category/fridge",
-    items: Array.from({ length: 4 }, (_, i) => ({
-      id: i + 1,
-      title: "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم",
-      image: "https://via.placeholder.com/120x120?text=Product",
-    })),
-  },
-  {
-    id: "washer",
-    title: "ماشین لباسشویی",
-    description: "یخچال و فریزر و ...",
-    count: 214,
-    showMoreLink: "/category/washer",
-    items: Array.from({ length: 4 }, (_, i) => ({
-      id: i + 1,
-      title: "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم",
-      image: "https://via.placeholder.com/120x120?text=Product",
-    })),
-  },
-  {
-    id: "tv",
-    title: "تلویزیون",
-    description: "جارو برقی و ...",
-    count: 189,
-    showMoreLink: "/category/tv",
-    items: Array.from({ length: 4 }, (_, i) => ({
-      id: i + 1,
-      title: "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم",
-      image: "https://via.placeholder.com/120x120?text=Product",
-    })),
-  },
-  {
-    id: "vacuum",
-    title: "جارو برقی",
-    description: "ماکروفر و ...",
-    count: 97,
-    showMoreLink: "/category/vacuum",
-    items: Array.from({ length: 4 }, (_, i) => ({
-      id: i + 1,
-      title: "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم",
-      image: "https://via.placeholder.com/120x120?text=Product",
-    })),
-  },
-];
-
 export default function HomePage() {
   return (
     <main>
       <HeroSwiper />
       <div className="container mx-auto mt-5 space-y-6 px-4 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
         <CategoryStrip />
-        <FlashDeals />
-        <CategoryBanners />
-        <SupermarketCta />
-        <ProductSection
-          title="عنوان دلخواه"
-          description="لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ"
-          showMoreLink="/products"
-          items={sampleProducts}
-        />
-        <Link href="#">
-          <Image
-            alt="عکس بنر"
-            src={banner.src}
-            width={1280}
-            height={308}
-            className="my-9 h-full w-full"
-          />
-        </Link>
-        <ProductSectionList
-          title="عنوان دلخواه"
-          description="لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ"
-          showMoreLink="/products"
-          items={sampleProducts}
-        />
-        <div className="grid grid-cols-2 gap-3 sm:gap-5">
-          <Link href="#">
-            <Image
-              alt="عکس بنر"
-              src={miniBanner1.src}
-              width={610}
-              height={168}
-              className="h-full w-full"
-            />
-          </Link>
-          <Link href="#">
-            <Image
-              alt="عکس بنر"
-              src={miniBanner2.src}
-              width={610}
-              height={168}
-              className="h-full w-full"
-            />
-          </Link>
-        </div>
-
-        {/* Category grid cards */}
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
-          {categoryGridSections.map((section) => (
-            <CategoryGridCard
-              key={section.id}
-              title={section.title}
-              description={section.description}
-              count={section.count}
-              showMoreLink={section.showMoreLink}
-              items={section.items}
-            />
-          ))}
-        </div>
-
+        <DynamicHomeLayout products={sampleProducts} />
         <PopularBrands brands={popularBrands} />
         <MagSection articles={sampleArticles} showMoreLink="/mag" />
       </div>
