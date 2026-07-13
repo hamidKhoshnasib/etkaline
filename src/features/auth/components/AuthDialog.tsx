@@ -64,6 +64,7 @@ function responseMessage(response: ApiResponse<unknown>, fallback: string) {
 async function authRequest<T>(url: string, init?: RequestInit) {
   const response = await fetch(url, {
     ...init,
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
   const payload = (await response.json()) as ApiResponse<T>;

@@ -7,13 +7,19 @@ const AUTH_API_BASE_URL =
 
 type AuthEndpoint = "GetCaptcha" | "Login" | "VerifyCode" | "RefreshToken" | "ResendCode";
 
-export async function requestEtkalaAuth<T>(
+export type AuthServerResponse<T> = {
+  payload: ApiResponse<T>;
+  setCookies: string[];
+};
+
+export async function requestEtkalaAuthWithCookies<T>(
   endpoint: AuthEndpoint,
   init?: RequestInit,
-): Promise<ApiResponse<T>> {
+): Promise<AuthServerResponse<T>> {
   const response = await fetch(`${AUTH_API_BASE_URL}/api/Auth/${endpoint}`, {
     ...init,
     cache: "no-store",
+    credentials: "include",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
@@ -28,7 +34,15 @@ export async function requestEtkalaAuth<T>(
     throw new Error(payload.message || payload.errors?.[0] || "ارتباط با سرویس ورود ناموفق بود.");
   }
 
-  return payload;
+  const headers = response.headers as Headers & { getSetCookie?: () => string[] };
+  return { payload, setCookies: headers.getSetCookie?.() ?? [] };
+}
+
+export async function requestEtkalaAuth<T>(
+  endpoint: AuthEndpoint,
+  init?: RequestInit,
+): Promise<ApiResponse<T>> {
+  return (await requestEtkalaAuthWithCookies<T>(endpoint, init)).payload;
 }
 
 export function verifyCode(mobile: string, code: string) {

@@ -3,6 +3,7 @@ import PopularBrands from "./PopularBrands";
 import MagSection from "./MagSection";
 import CategoryStrip from "./CategoryStrip";
 import DynamicHomeLayout from "./DynamicHomeLayout";
+import { getHomeBrands } from "../api/get-home-brands";
 
 const sampleProducts = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
@@ -13,7 +14,7 @@ const sampleProducts = Array.from({ length: 12 }, (_, i) => ({
   discount: 30,
 }));
 
-const popularBrands = [
+const fallbackBrands = [
   {
     id: 1,
     name: "Bella PRO",
@@ -112,14 +113,15 @@ const sampleArticles = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const brands = (await getHomeBrands()) as typeof fallbackBrands;
   return (
     <main>
       <HeroSwiper />
       <div className="container mx-auto mt-5 space-y-6 px-4 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
         <CategoryStrip />
         <DynamicHomeLayout products={sampleProducts} />
-        <PopularBrands brands={popularBrands} />
+        <PopularBrands brands={brands.length ? brands : fallbackBrands} />
         <MagSection articles={sampleArticles} showMoreLink="/mag" />
       </div>
     </main>

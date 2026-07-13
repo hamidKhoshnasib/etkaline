@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requestEtkalaAuth } from "@/features/auth/api/etkala-auth-server";
+import { requestEtkalaAuthWithCookies } from "@/features/auth/api/etkala-auth-server";
 import type { CaptchaValue } from "@/types/auth";
 
 const POST_ACTIONS = {
@@ -16,6 +16,15 @@ function errorResponse(error: unknown) {
   );
 }
 
+// کوکی کپچا از backend به مرورگر و در درخواست بعدی دوباره به backend عبور می‌کند.
+function jsonWithCookies(payload: unknown, setCookies: string[], init?: ResponseInit) {
+  const response = NextResponse.json(payload, init);
+  for (const cookie of setCookies) {
+    response.headers.append("Set-Cookie", cookie);
+  }
+  return response;
+}
+
 export async function GET(_request: Request, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
 
@@ -24,8 +33,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ act
   }
 
   try {
-    const payload = await requestEtkalaAuth<CaptchaValue>("GetCaptcha");
-    return NextResponse.json(payload, { headers: { "Cache-Control": "no-store" } });
+    const result = await requestEtkalaAuthWithCookies<CaptchaValue>("GetCaptcha", {
+      headers: { Cookie: _request.headers.get("cookie") ?? "" },
+    });
+    return jsonWithCookies(result.payload, result.setCookies, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error) {
     return errorResponse(error);
   }
@@ -41,11 +54,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ act
 
   try {
     const body = await request.json();
-    const payload = await requestEtkalaAuth<unknown>(endpoint, {
+    const result = await requestEtkalaAuthWithCookies<unknown>(endpoint, {
       method: "POST",
+      headers: { Cookie: request.headers.get("cookie") ?? "" },
       body: JSON.stringify(body),
     });
-    return NextResponse.json(payload);
+    return jsonWithCookies(result.payload, result.setCookies);
   } catch (error) {
     return errorResponse(error);
   }
