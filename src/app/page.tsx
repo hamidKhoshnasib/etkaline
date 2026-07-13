@@ -1,5 +1,5 @@
-import HomePage from "@/view/home/Home";
+import { ApplianceHome } from "@/features/home/appliances";
 
 export default function HomeIndex() {
-  return <HomePage />;
+  return <ApplianceHome />;
 }

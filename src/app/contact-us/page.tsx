@@ -1,5 +1,5 @@
-import ContactUsPage from "@/view/contactUs/ContactUs";
+import { ContactUs } from "@/features/contact";
 
 export default function ContactUsIndex() {
-  return <ContactUsPage />;
+  return <ContactUs />;
 }

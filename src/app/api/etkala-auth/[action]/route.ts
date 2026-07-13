@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requestEtkalaAuth } from "@/lib/etkala-auth-server";
+import { requestEtkalaAuth } from "@/features/auth/api/etkala-auth-server";
 import type { CaptchaValue } from "@/types/auth";
 
 const POST_ACTIONS = {

@@ -1,5 +1,5 @@
-import ProductsPage from "@/view/Products/Products";
+import { Products } from "@/features/catalog";
 
 export default function ProductIndex() {
-  return <ProductsPage />;
+  return <Products />;
 }

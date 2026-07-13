@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Vazirmatn, Geist_Mono } from "next/font/google";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
-import { Footer } from "@/components/layout/footer/Footer";
-import { Header } from "@/components/layout/header/Header";
+import { Footer } from "@/widgets/footer";
+import { Header } from "@/widgets/header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
+import { SITE_NAME, SITE_URL } from "@/shared/config/site";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -20,8 +21,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Etkaline",
-  description: "Etkaline",
+  metadataBase: SITE_URL,
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: "فروش آنلاین لوازم خانگی با ارسال مطمئن و پشتیبانی اتکالاین",
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: "website",
+    locale: "fa_IR",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: "فروش آنلاین لوازم خانگی با ارسال مطمئن و پشتیبانی اتکالاین",
+    url: SITE_URL,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

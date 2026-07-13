@@ -3,7 +3,7 @@
 import { Bell, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-import { AuthDialog } from "@/components/auth/AuthDialog";
+import { AuthDialog } from "@/features/auth";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();

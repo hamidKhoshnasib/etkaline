@@ -2,7 +2,6 @@
 
 import { cva, type VariantProps } from "class-variance-authority";
 import { XIcon, CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon } from "lucide-react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva("w-full rounded-xl  p-4", {
@@ -71,35 +70,5 @@ function Alert({ variant = "info", title, description, onClose, className }: Ale
 
 // ─── Toast helper ─────────────────────────────────────────────────────────────
 
-interface AlertToastOptions {
-  title?: string;
-  description?: string;
-  duration?: number;
-}
-
-const alert = {
-  success: (options: AlertToastOptions) =>
-    toast.custom(
-      (id) => <Alert {...options} variant="success" onClose={() => toast.dismiss(id)} />,
-      { duration: options.duration ?? 5000 },
-    ),
-
-  info: (options: AlertToastOptions) =>
-    toast.custom((id) => <Alert {...options} variant="info" onClose={() => toast.dismiss(id)} />, {
-      duration: options.duration ?? 5000,
-    }),
-
-  warning: (options: AlertToastOptions) =>
-    toast.custom(
-      (id) => <Alert {...options} variant="warning" onClose={() => toast.dismiss(id)} />,
-      { duration: options.duration ?? 5000 },
-    ),
-
-  error: (options: AlertToastOptions) =>
-    toast.custom((id) => <Alert {...options} variant="error" onClose={() => toast.dismiss(id)} />, {
-      duration: options.duration ?? 5000,
-    }),
-};
-
-export { Alert, alert, alertVariants };
+export { Alert, alertVariants };
 export type { AlertProps };

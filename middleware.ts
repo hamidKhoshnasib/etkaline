@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/features/auth/server";
 import { NextResponse } from "next/server";
 
 const PROTECTED = ["/dashboard", "/profile", "/orders"];

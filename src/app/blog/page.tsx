@@ -1,5 +1,5 @@
-import BlogPage from "@/view/Blog/Blog";
+import { Blog } from "@/features/blog";
 
 export default function BlogIndex() {
-  return <BlogPage />;
+  return <Blog />;
 }
