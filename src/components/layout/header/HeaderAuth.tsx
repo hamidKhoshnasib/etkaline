@@ -1,19 +1,50 @@
 "use client";
 
-import { Bell, User } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { Bell, ChevronDown, LogOut, User } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AuthDialog } from "@/features/auth";
+import { HeaderCartSummary } from "./HeaderCartSummary";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();
+  const displayName = session?.user.name?.trim() || session?.user.username;
 
   return (
     <div className="flex shrink-0 items-center gap-3">
       {status === "authenticated" ? (
-        <div className="label-large text-secondary flex h-12.5 items-center gap-2 rounded-full bg-white px-4.5 py-2.25">
-          <User size={18} strokeWidth={1.5} />
-          <span>{session.user.name || session.user.username}</span>
+        <div className="flex h-12.5 items-center overflow-hidden rounded-full bg-white">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button
+                  type="button"
+                  className="label-large text-secondary flex h-full items-center gap-2 px-4.5 py-2.25"
+                />
+              }
+            >
+              <User size={18} strokeWidth={1.5} aria-hidden="true" />
+              <span className="max-w-32 truncate">{displayName}</span>
+              <ChevronDown className="text-secondary/60 size-4" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-36 rounded-xl p-1.5">
+              <DropdownMenuItem
+                onClick={() => void signOut({ callbackUrl: "/" })}
+                className="cursor-pointer gap-2 px-3 py-2 text-sm"
+              >
+                <LogOut aria-hidden="true" />
+                خروج از حساب
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span aria-hidden="true" className="bg-secondary/15 h-6 w-px" />
+          <HeaderCartSummary />
         </div>
       ) : (
         <AuthDialog

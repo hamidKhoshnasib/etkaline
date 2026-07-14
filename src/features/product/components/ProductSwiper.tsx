@@ -29,8 +29,8 @@ export default function ProductSwiper<T extends { id: number | string }>({
     1024: { slidesPerView: 5 },
     1280: { slidesPerView: 7 },
   },
-  spaceBetween = 20,
-  slidesPerView = 2,
+  spaceBetween = 8,
+  slidesPerView = 3,
   btnVariant = "secondary-gray",
 }: ProductSwiperProps<T>) {
   const swiperRef = useRef<SwiperType | null>(null);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Vazirmatn, Geist_Mono } from "next/font/google";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/widgets/footer";
-import { Header } from "@/widgets/header";
+import { Header, MobileBottomNav } from "@/widgets/header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/shared/config/site";
@@ -53,13 +53,14 @@ export default function RootLayout({
       dir="rtl"
       className={`${vazirmatn.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <DirectionProvider direction="rtl">
           <Providers>
             <Header />
             {children}
             <Toaster />
             <Footer />
+            <MobileBottomNav />
           </Providers>
         </DirectionProvider>
       </body>

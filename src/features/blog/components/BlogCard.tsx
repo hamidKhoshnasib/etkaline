@@ -16,9 +16,9 @@ export default function BlogCard({ image, title, description, date, href = "#" }
   return (
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-[16px] border border-[#E2E8F0] bg-white transition-shadow hover:shadow-md"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#E2E8F0] bg-white transition-shadow hover:shadow-md lg:rounded-[16px]"
     >
-      <div className="h-61.5 w-71 overflow-hidden border-b border-[#E2E8F0]">
+      <div className="aspect-[1.15] w-full overflow-hidden border-b border-[#E2E8F0] lg:aspect-auto lg:h-61.5 lg:w-71">
         <Image
           src={image}
           alt={title}
@@ -28,11 +28,13 @@ export default function BlogCard({ image, title, description, date, href = "#" }
         />
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-4">
-        <p className="title-small-bold line-clamp-1">{title}</p>
-        <p className="body-medium line-clamp-1 text-[#64748B]">{description}</p>
+      <div className="flex flex-1 flex-col gap-1 p-2.5 lg:p-4">
+        <p className="lg:title-small-bold line-clamp-2 text-xs leading-5 font-bold">{title}</p>
+        <p className="lg:body-medium line-clamp-1 text-[11px] leading-4 text-[#64748B]">
+          {description}
+        </p>
 
-        <div className="mt-auto flex items-center justify-between pt-4">
+        <div className="mt-auto flex items-center justify-between pt-2.5 lg:pt-4">
           <span className="label-small text-[#94A3B8]">{date}</span>
           <ArrowLeft className="group-hover:text-primary size-5 text-[#94A3B8] transition-colors" />
         </div>

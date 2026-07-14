@@ -16,14 +16,15 @@ export default function HeroSwiper() {
   const [swiperRef, setSwiperRef] = useState<SwiperType | null>(null);
 
   return (
-    <div className="relative h-[200px] w-full sm:h-[300px] md:h-[380px] lg:h-[460px]">
+    <div className="relative h-40 w-full px-2 sm:h-48 lg:h-[460px] lg:px-0">
       <Swiper
         modules={[Autoplay]}
         onSwiper={setSwiperRef}
         onSlideChange={(s) => setActiveIndex(s.realIndex)}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
         loop={slides.length > 1}
-        slidesPerView={1.25}
+        slidesPerView={1.12}
+        breakpoints={{ 1024: { slidesPerView: 1.25 } }}
         spaceBetween={20}
         centeredSlides={true}
         className="h-full w-full"

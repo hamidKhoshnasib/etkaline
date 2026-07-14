@@ -20,11 +20,11 @@ export default function MagSection({ articles, showMoreLink = "#" }: MagSectionP
   const visible = articles.slice(0, 4);
 
   return (
-    <section className="w-full rounded-[28px] border border-[#E2E8F0] bg-white p-5">
+    <section className="w-full rounded-2xl border border-[#E2E8F0] bg-white p-3 lg:rounded-[28px] lg:p-5">
       {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between lg:mb-5">
         <div className="flex items-center gap-2">
-          <h2 className="headline-small-bold text-secondary">اتکا مگ</h2>
+          <h2 className="text-secondary lg:headline-small-bold text-base font-bold">اتکا مگ</h2>
         </div>
         <div className="text-primary flex items-center gap-4">
           <Link href={showMoreLink} className="text-[14px] text-[#64748B]">
@@ -35,7 +35,7 @@ export default function MagSection({ articles, showMoreLink = "#" }: MagSectionP
       </div>
 
       {/* 4-card grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
         {visible.map((article) => (
           <BlogCard
             key={article.id}

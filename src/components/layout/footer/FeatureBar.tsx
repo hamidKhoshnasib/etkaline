@@ -1,34 +1,46 @@
-import { Fragment } from "react";
-import GuaranteeIcon from "@/assets/icons/icons8_guarantee.svg";
-import SupportIcon from "@/assets/icons/icons8_customer_support.svg";
-import DeliveryIcon from "@/assets/icons/icons8_in_transit.svg";
-import StoreIcon from "@/assets/icons/icons8_online_store.svg";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const FEATURES = [
-  { Icon: StoreIcon, title: "امکان خرید حضوری" },
-  { Icon: GuaranteeIcon, title: "ضمانت اصل بودن کالا" },
-  { Icon: SupportIcon, title: "پشتیبانی  24/7" },
-  { Icon: DeliveryIcon, title: "امکان تحویل اکسپرس" },
+  { icon: "store", title: "امکان خرید حضوری" },
+  { icon: "guarantee", title: "ضمانت اصل بودن کالا" },
+  { icon: "support", title: "پشتیبانی  24/7" },
+  { icon: "delivery", title: "امکان تحویل اکسپرس" },
 ] as const;
 
 export function FeatureBar() {
   return (
-    <div className="absolute w-full overflow-hidden rounded-b-[28px] bg-white shadow-2xl">
+    <div className="absolute w-full overflow-hidden rounded-b-[28px] bg-white shadow-xl lg:shadow-2xl">
       <div className="container mx-auto">
-        <ul className="flex items-center justify-between p-6">
-          {FEATURES.map(({ Icon, title }, i) => (
-            <Fragment key={title}>
-              {i > 0 && (
-                <li aria-hidden="true" className="flex items-center self-stretch">
-                  <span className="bg-secondary/15 h-full w-px" />
-                </li>
-              )}
-              <li className="flex items-center gap-4">
+        <ul className="grid grid-cols-2 gap-2 p-4 lg:flex lg:items-center lg:justify-between lg:gap-0 lg:p-6">
+          {FEATURES.map(({ icon, title }, index) => {
+            const mobileOrderClass = [
+              "order-4 lg:order-none",
+              "order-3 lg:order-none",
+              "order-2 lg:order-none",
+              "order-1 lg:order-none",
+            ][index];
+
+            return (
+              <li
+                key={title}
+                className={cn(
+                  mobileOrderClass,
+                  "bg-muted flex min-h-21 flex-col items-center justify-center gap-2 rounded-2xl px-2 text-center lg:min-h-0 lg:flex-row lg:gap-4 lg:rounded-none lg:bg-transparent lg:px-0 lg:text-right",
+                )}
+              >
                 <p className="text-secondary text-sm font-bold">{title}</p>
-                <Icon className="size-12 shrink-0" aria-hidden="true" />
+                <Image
+                  src={`/api/footer-icons/${icon}`}
+                  alt=""
+                  width={48}
+                  height={48}
+                  unoptimized
+                  className="size-9 shrink-0 lg:size-12"
+                />
               </li>
-            </Fragment>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </div>

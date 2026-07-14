@@ -92,7 +92,7 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-2xl border border-[#E2E8F0] bg-white",
+        "group relative rounded-xl border border-[#E2E8F0] bg-white lg:rounded-2xl",
         "hover:border-primary transition-all",
         className,
       )}
@@ -104,6 +104,7 @@ function ProductCard({
           alt={`عکس-${title}`}
           width={180}
           height={190}
+          className="h-28 w-full object-contain p-2 lg:h-auto lg:w-auto lg:p-0"
           // className={cn(
           //   "h-48 w-full object-contain p-4 transition-opacity",
           //   outOfStock && "opacity-30",
@@ -144,8 +145,10 @@ function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="mt-3 px-2 pb-2">
-        <p className="title-small line-clamp-2 h-10 text-gray-700">{title}</p>
+      <div className="mt-2 px-1.5 pb-2 lg:mt-3 lg:px-2">
+        <p className="line-clamp-2 h-8 text-[11px] leading-4 text-gray-700 lg:h-10 lg:text-sm lg:leading-5">
+          {title}
+        </p>
 
         <div className="mt-3 w-full">
           <div className="h-12.5">
@@ -158,7 +161,9 @@ function ProductCard({
               </div>
             )}
             <div className="flex items-center justify-between">
-              <p className="title-medium-bold text-secondary">{formatProductPrice(price)}</p>
+              <p className="text-secondary text-xs font-bold lg:text-base">
+                {formatProductPrice(price)}
+              </p>
               <TomanIcon className="size-4.5" />
             </div>
           </div>

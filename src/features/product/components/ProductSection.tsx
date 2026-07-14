@@ -25,7 +25,7 @@ export default function ProductSection({
   items,
 }: ProductSectionProps) {
   return (
-    <section className="w-full rounded-[28px] border border-[#E2E8F0] p-5">
+    <section className="w-full rounded-2xl border border-[#E2E8F0] p-3 lg:rounded-[28px] lg:p-5">
       <SectionHeader title={title} description={description} showMoreLink={showMoreLink} />
 
       <ProductSwiper

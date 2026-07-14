@@ -1,54 +1,78 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FeatureBar } from "@/components/layout/footer/FeatureBar";
 import { AppSupportBar } from "@/components/layout/footer/AppSupportBar";
 import { LINK_COLUMNS, SOCIALS } from "@/components/layout/footer/footer.config";
-import EtkalineLogo from "@/assets/icons/logo.svg";
 import Enamad from "@/assets/icons/enamad-icon.svg";
 import Etehadie from "@/assets/icons/etehadie-icon.svg";
 import Samandehi from "@/assets/icons/samandehi-icon.svg";
 import Social1 from "@/assets/icons/social-1.svg";
+import { getFooterDescription } from "@/services/home/get-footer-description";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function Footer() {
+export async function Footer() {
+  const footerDescription = await getFooterDescription();
+
   return (
-    <footer className="relative">
+    <footer className="relative overflow-hidden">
       <FeatureBar />
 
-      <div className="bg-primary text-secondary pt-24.5">
-        <div className="container mx-auto pt-12">
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Company info */}
-            <div className="space-y-4.25">
-              <EtkalineLogo className="text-secondary h-8.75 w-30" />
-              <p className="body-medium line-clamp-7">
-                اتکالاین سال‌ها است که به انتخاب اول بسیاری از خریداران اینترنتی تبدیل شده است.
-                اتکالاین به عنوان بزرگ‌ترین و معتبرترین فروشگاه آنلاین ایران، شناخته‌شده‌ترین
-                فروشگاه نیز محسوب می‌شود. این فروشگاه آنلاین نه‌تنها گسترده‌ترین تنوع کالا را در
-                دسته‌بندی‌های مختلف ارائه می‌دهد، بلکه با خدمات بی‌نظیر، ارسال سریع، ضمانت اصل بودن
-                کالا و پشتیبانی حرفه‌ای، استاندارد جدیدی در خرید اینترنتی ایران تعریف کرده است.
-              </p>
+      <div className="bg-primary text-secondary pt-52 lg:pt-24.5">
+        <AppSupportBar mobileVariant="support" />
+
+        <div className="px-4 lg:container lg:mx-auto lg:px-0 lg:pt-12">
+          <div className="grid grid-cols-1 gap-0 lg:grid-cols-4 lg:gap-10">
+            <div className="order-3 mt-6 space-y-4.25 lg:order-0 lg:mt-0">
+              <Image
+                src="/api/footer-icons/logo"
+                alt="اتکالاین"
+                width={200}
+                height={47}
+                unoptimized
+                className="h-auto w-30"
+              />
+              {footerDescription && <p className="body-medium line-clamp-7">{footerDescription}</p>}
             </div>
 
-            {/* Link columns */}
             {LINK_COLUMNS.map((col) => (
-              <nav key={col.title}>
-                <h3 className="title-medium-bold mb-2.5">{col.title}</h3>
-                <ul className="space-y-2">
-                  {col.items.map((item) => (
-                    <li key={item.href}>
-                      <Link href={item.href}>{item.label}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+              <div key={col.title} className="order-2 lg:order-0">
+                <details className="group pb-3 lg:hidden">
+                  <summary className="title-medium-bold flex cursor-pointer list-none items-center justify-between">
+                    {col.title}
+                    <span
+                      aria-hidden="true"
+                      className="text-xl transition-transform group-open:rotate-180"
+                    >
+                      ⌄
+                    </span>
+                  </summary>
+                  <ul className="mt-3 space-y-2">
+                    {col.items.map((item) => (
+                      <li key={item.href}>
+                        <Link href={item.href}>{item.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+
+                <nav className="hidden lg:block">
+                  <h3 className="title-medium-bold">{col.title}</h3>
+                  <ul className="mt-2 space-y-2">
+                    {col.items.map((item) => (
+                      <li key={item.href}>
+                        <Link href={item.href}>{item.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </div>
             ))}
 
-            {/* Social & trust */}
-            <div className="space-y-7.5">
+            <div className="order-4 mt-6 mb-6 space-y-7.5 text-center lg:order-0 lg:mt-0 lg:mb-0 lg:text-right">
               <div>
                 <p className="title-medium-bold mb-4">همراه ما باشید</p>
-                <div className="flex gap-3">
+                <div className="flex justify-center gap-3 lg:justify-start">
                   {SOCIALS.map(({ href, label }) => (
                     <a
                       key={label}
@@ -61,18 +85,25 @@ export function Footer() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-4">
-                <Enamad />
-                <Etehadie />
-                <Samandehi />
+              <div className="grid grid-cols-3 gap-3 lg:flex lg:gap-4">
+                <div className="flex h-16 items-center justify-center rounded-xl bg-white lg:h-auto lg:bg-transparent">
+                  <Enamad />
+                </div>
+                <div className="flex h-16 items-center justify-center rounded-xl bg-white lg:h-auto lg:bg-transparent">
+                  <Etehadie />
+                </div>
+                <div className="flex h-16 items-center justify-center rounded-xl bg-white lg:h-auto lg:bg-transparent">
+                  <Samandehi />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <AppSupportBar />
+        <AppSupportBar mobileVariant="download" />
 
-        <p className="bg-gray-500/10 py-4 text-center text-xs text-black">
+        <p className="bg-gray-500/10 px-4 py-4 text-center text-xs text-black">
           © کلیه حقوق این سایت متعلق به شرکت فروشگاه‌های زنجیره‌ای اتکا می‌باشد.
         </p>
       </div>

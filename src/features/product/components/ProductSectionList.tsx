@@ -24,10 +24,10 @@ export default function ProductSectionList({
   items,
 }: ProductSectionListProps) {
   return (
-    <section className="w-full rounded-[28px] border border-[#E2E8F0] p-5">
+    <section className="w-full rounded-2xl border border-[#E2E8F0] p-3 lg:rounded-[28px] lg:p-5">
       <SectionHeader title={title} description={description} showMoreLink={showMoreLink} />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 xl:grid-cols-6">
         {items.map((item) => (
           <ProductCard
             key={item.id}

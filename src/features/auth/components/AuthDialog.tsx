@@ -27,7 +27,7 @@ import {
 } from "@/features/auth/model/auth";
 import type { ApiResponse, CaptchaValue } from "@/types/auth";
 
-const OTP_LENGTH = 5;
+const OTP_LENGTH = 6;
 const RESEND_SECONDS = 150;
 const OTP_DIGITS_PATTERN = "[0-9۰-۹٠-٩]*";
 
@@ -177,7 +177,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
     setError("");
 
     try {
-      const response = await authRequest<boolean>("/api/etkala-auth/login", {
+      const response = await authRequest<unknown>("/api/etkala-auth/login", {
         method: "POST",
         body: JSON.stringify({
           mobile: normalizedMobile,
@@ -186,7 +186,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
         }),
       });
 
-      if (!response.isSuccess || response.value !== true) {
+      if (!response.isSuccess) {
         throw new Error(responseMessage(response, "شماره موبایل یا عبارت امنیتی صحیح نیست."));
       }
 
@@ -413,13 +413,21 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                   maxLength={OTP_LENGTH}
                   pattern={OTP_DIGITS_PATTERN}
                   value={code}
-                  onChange={(value) => setCode(toEnglishDigits(value))}
-                  onComplete={(value) => void handleVerify(value)}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  onChange={(value) =>
+                    setCode(toEnglishDigits(value).replace(/\D/g, "").slice(0, OTP_LENGTH))
+                  }
+                  onComplete={(value) =>
+                    void handleVerify(
+                      toEnglishDigits(value).replace(/\D/g, "").slice(0, OTP_LENGTH),
+                    )
+                  }
                   disabled={loading === "verify"}
                   aria-invalid={Boolean(error)}
                   containerClassName="justify-center"
                 >
-                  <InputOTPGroup className="gap-2">
+                  <InputOTPGroup dir="ltr" className="gap-2">
                     {Array.from({ length: OTP_LENGTH }, (_, index) => (
                       <InputOTPSlot
                         key={index}

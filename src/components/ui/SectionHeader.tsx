@@ -9,11 +9,13 @@ interface SectionHeaderProps {
 
 export default function SectionHeader({ title, description, showMoreLink }: SectionHeaderProps) {
   return (
-    <div className="mb-5 flex items-start justify-between">
+    <div className="mb-3 flex items-start justify-between lg:mb-5">
       <div className="flex gap-2">
-        <GripVertical className="text-primary size-6" />
+        <GripVertical className="text-primary size-5 lg:size-6" />
         <div className="space-y-1">
-          <h3 className="title-large text-secondary">{title}</h3>
+          <h3 className="text-secondary text-base leading-6 lg:text-[1.375rem] lg:leading-7">
+            {title}
+          </h3>
           {description && <p className="title-small text-[#475569]">{description}</p>}
         </div>
       </div>

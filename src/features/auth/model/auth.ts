@@ -1,6 +1,6 @@
 import type { ApiResponse } from "@/types/auth";
 
-export const OTP_LENGTH = 5;
+export const OTP_LENGTH = 6;
 export const RESEND_SECONDS = 150;
 export const OTP_DIGITS_PATTERN = "[0-9۰-۹٠-٩]*";
 
