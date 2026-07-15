@@ -3,6 +3,7 @@ import PopularBrands from "./PopularBrands";
 import MagSection from "./MagSection";
 import CategoryStrip from "./CategoryStrip";
 import DynamicHomeLayout from "./DynamicHomeLayout";
+import { getHomeBanners } from "../api/get-home-banners";
 import { getHomeBrands } from "../api/get-home-brands";
 
 const sampleProducts = Array.from({ length: 12 }, (_, i) => ({
@@ -114,11 +115,11 @@ const sampleArticles = [
 ];
 
 export default async function HomePage() {
-  const brands = (await getHomeBrands()) as typeof _fallbackBrands;
+  const [banners, brands] = await Promise.all([getHomeBanners(), getHomeBrands()]);
 
   return (
     <main>
-      <HeroSwiper />
+      <HeroSwiper banners={banners} />
       <div className="container mx-auto mt-5 space-y-6 px-4 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
         <CategoryStrip />
         <DynamicHomeLayout products={sampleProducts} />

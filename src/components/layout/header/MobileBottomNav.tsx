@@ -8,6 +8,7 @@ import { Grid2X2, House, ShoppingCart, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { MobileCategoryMenu } from "./MobileCategoryMenu";
+import type { MenuCategory } from "./header.config";
 
 const navigationItems = [
   { href: "/", label: "خانه", Icon: House, exact: true, opensCategoryMenu: false },
@@ -22,13 +23,18 @@ const navigationItems = [
   },
 ] as const;
 
-export function MobileBottomNav() {
+interface MobileBottomNavProps {
+  categories: MenuCategory[];
+}
+
+export function MobileBottomNav({ categories }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = React.useState(false);
 
   return (
     <>
       <MobileCategoryMenu
+        categories={categories}
         isOpen={isCategoryMenuOpen}
         onClose={() => setIsCategoryMenuOpen(false)}
       />

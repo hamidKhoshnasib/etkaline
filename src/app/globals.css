@@ -164,6 +164,24 @@
 }
 
 @layer components {
+  .etkaline-pattern {
+    > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    &::before {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      content: "";
+      background-image: url("/pattern.svg");
+      background-position: center top;
+      background-repeat: repeat;
+    }
+  }
+
   .auth-dialog-banner {
     background:
       radial-gradient(circle at 55% 38%, rgb(255 199 0 / 85%) 0, transparent 17%),

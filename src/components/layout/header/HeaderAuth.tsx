@@ -1,12 +1,15 @@
 "use client";
 
 import { Bell, ChevronDown, LogOut, User } from "lucide-react";
+import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AuthDialog } from "@/features/auth";
@@ -34,16 +37,26 @@ export function HeaderAuth() {
               <ChevronDown className="text-secondary/60 size-4" aria-hidden="true" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-36 rounded-xl p-1.5">
-              <DropdownMenuItem
-                onClick={() => void signOut({ callbackUrl: "/" })}
-                className="cursor-pointer gap-2 px-3 py-2 text-sm"
-              >
-                <LogOut aria-hidden="true" />
-                خروج از حساب
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  render={<Link href="/account/profile" />}
+                  className="cursor-pointer gap-2 px-3 py-2 text-sm"
+                >
+                  <User aria-hidden="true" />
+                  پروفایل
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => void signOut({ callbackUrl: "/" })}
+                  className="cursor-pointer gap-2 px-3 py-2 text-sm"
+                >
+                  <LogOut aria-hidden="true" />
+                  خروج از حساب
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span aria-hidden="true" className="bg-secondary/15 h-6 w-px" />
+          <span aria-hidden="true" className="bg-secondary/15 h-11.5 w-px" />
           <HeaderCartSummary />
         </div>
       ) : (

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Vazirmatn, Geist_Mono } from "next/font/google";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/widgets/footer";
-import { Header, MobileBottomNav } from "@/widgets/header";
+import { Header } from "@/widgets/header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/shared/config/site";
@@ -60,7 +60,6 @@ export default function RootLayout({
             {children}
             <Toaster />
             <Footer />
-            <MobileBottomNav />
           </Providers>
         </DirectionProvider>
       </body>

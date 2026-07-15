@@ -10,7 +10,7 @@ const FEATURES = [
 
 export function FeatureBar() {
   return (
-    <div className="absolute w-full overflow-hidden rounded-b-[28px] bg-white shadow-xl lg:shadow-2xl">
+    <div className="absolute z-10 w-full overflow-hidden rounded-b-[28px] bg-white shadow-xl lg:shadow-2xl">
       <div className="container mx-auto">
         <ul className="grid grid-cols-2 gap-2 p-4 lg:flex lg:items-center lg:justify-between lg:gap-0 lg:p-6">
           {FEATURES.map(({ icon, title }, index) => {

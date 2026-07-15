@@ -3,16 +3,27 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, MapPin } from "lucide-react";
-import { categories, navLinks } from "./header.config";
+import type { MenuCategory } from "./header.config";
+import { navLinks } from "./header.config";
 import { MegaMenu } from "./MegaMenu";
 
 const [categoriesLink, ...otherNavLinks] = navLinks;
 const CategoryIcon = categoriesLink.icon;
 
-export function NavBar() {
+interface NavBarProps {
+  categories: MenuCategory[];
+}
+
+export function NavBar({ categories }: NavBarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeCategoryId, setActiveCategoryId] = useState(categories[2].id);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(
+    categories[0]?.id ?? null,
+  );
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const selectedCategoryId = categories.some((category) => category.id === activeCategoryId)
+    ? activeCategoryId
+    : (categories[0]?.id ?? null);
 
   const open = useCallback(() => {
     if (closeTimer.current) {
@@ -37,14 +48,19 @@ export function NavBar() {
               onMouseEnter={open}
               onMouseLeave={scheduleClose}
             >
-              <span
-                className={`label-large flex cursor-default items-center gap-3 transition-colors ${
+              <button
+                type="button"
+                aria-controls="desktop-category-menu"
+                aria-expanded={isOpen}
+                disabled={categories.length === 0}
+                onClick={() => setIsOpen((current) => !current)}
+                className={`label-large flex items-center gap-3 transition-colors ${
                   isOpen ? "text-primary-hover" : "text-gray-600"
-                }`}
+                } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                <CategoryIcon size={15} className="hover:text-primary-hover" />
+                <CategoryIcon className="size-[18px] shrink-0" aria-hidden="true" />
                 <span>{categoriesLink.label}</span>
-              </span>
+              </button>
               <span
                 className={`bg-primary-hover absolute inset-x-0 bottom-3 h-0.5 rounded-full transition-opacity ${
                   isOpen ? "opacity-100" : "opacity-0"
@@ -58,7 +74,7 @@ export function NavBar() {
                 href={href}
                 className="label-large hover:text-primary-hover flex items-center gap-3 text-gray-600 transition-colors"
               >
-                <Icon size={15} />
+                <Icon className="size-4" />
                 <span>{label}</span>
               </Link>
             ))}
@@ -76,7 +92,8 @@ export function NavBar() {
       {/* Mega menu */}
       {isOpen && (
         <MegaMenu
-          activeCategoryId={activeCategoryId}
+          categories={categories}
+          activeCategoryId={selectedCategoryId}
           onActiveCategoryChange={setActiveCategoryId}
           onMouseEnter={open}
           onMouseLeave={scheduleClose}

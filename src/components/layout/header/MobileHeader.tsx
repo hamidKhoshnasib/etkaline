@@ -5,18 +5,20 @@ import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 
 export function MobileHeader() {
   return (
-    <div className="bg-gradient-to-t from-[#FFB347] to-[#FFCC33] lg:hidden">
+    <div className="etkaline-pattern relative isolate !bg-gradient-to-t !from-[#FFB347] !to-[#FFCC33] lg:hidden">
       {/* ── Top row: logo + address/notification ─────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <Link href="/" aria-label="اتکالاین" className="text-secondary">
-          <EtkalineLogo className="h-[31px] w-[135px]" />
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Link href="/" aria-label="اتکالاین" className="text-secondary shrink-0">
+          <EtkalineLogo className="block h-[29.15px] w-[134.19px]" />
         </Link>
 
-        <div className="flex items-center gap-2">
-          <button className="flex h-10 items-center gap-2 rounded-full border border-[#FFD600] bg-white px-4">
-            <MapPin size={18} className="text-primary-hover" />
-            <span className="body-small whitespace-nowrap text-black">انتخاب آدرس...</span>
-            <ChevronDown size={16} className="text-black" />
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <button className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-[#FFD600] bg-white px-2.5 sm:flex-none sm:px-4">
+            <MapPin size={18} className="text-primary-hover shrink-0" />
+            <span className="body-small min-w-0 truncate text-black min-[390px]:block">
+              انتخاب آدرس...
+            </span>
+            <ChevronDown size={16} className="shrink-0 text-black" />
           </button>
 
           <button

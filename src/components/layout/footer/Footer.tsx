@@ -18,7 +18,7 @@ export async function Footer() {
     <footer className="relative overflow-hidden">
       <FeatureBar />
 
-      <div className="bg-primary text-secondary pt-52 lg:pt-24.5">
+      <div className="etkaline-pattern !bg-primary text-secondary relative isolate pt-52 lg:pt-24.5">
         <AppSupportBar mobileVariant="support" />
 
         <div className="px-4 lg:container lg:mx-auto lg:px-0 lg:pt-12">

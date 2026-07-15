@@ -61,7 +61,7 @@ export function HeaderCartSummary() {
       >
         <ShoppingCart className="size-5" strokeWidth={1.8} aria-hidden="true" />
         {itemCount > 0 && (
-          <span className="bg-primary text-primary-foreground absolute end-1 top-1 flex size-4 items-center justify-center rounded-full text-[10px] font-bold">
+          <span className="bg-primary text-primary-foreground absolute inset-s-1 top-1 flex size-4 items-center justify-center rounded-full text-[10px] font-bold">
             {itemCount > 99 ? "۹۹+" : formatPrice(itemCount)}
           </span>
         )}

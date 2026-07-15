@@ -4,10 +4,15 @@ import { HeaderSearch } from "./HeaderSearch";
 import { HeaderAuth } from "./HeaderAuth";
 import { MobileHeader } from "./MobileHeader";
 import { HomeAdvertisement } from "./HomeAdvertisement";
+import { MobileBottomNav } from "./MobileBottomNav";
+import { getMenuCategories } from "@/services/categories/get-menu-categories";
 import { getHomeAdvertisement } from "@/services/home/get-home-advertisement";
 
 export async function Header() {
-  const advertisement = await getHomeAdvertisement();
+  const [advertisement, categories] = await Promise.all([
+    getHomeAdvertisement(),
+    getMenuCategories(),
+  ]);
 
   return (
     <>
@@ -15,7 +20,7 @@ export async function Header() {
       <header className="sticky top-0 z-50">
         <MobileHeader />
 
-        <div className="bg-primary text-secondary relative hidden pb-15 lg:block">
+        <div className="etkaline-pattern !bg-primary text-secondary relative isolate hidden pb-15 lg:block">
           <div className="container mx-auto">
             <div className="flex items-center py-3">
               <HeaderLogo />
@@ -23,9 +28,10 @@ export async function Header() {
               <HeaderAuth />
             </div>
           </div>
-          <NavBar />
+          <NavBar categories={categories} />
         </div>
       </header>
+      <MobileBottomNav categories={categories} />
     </>
   );
 }
