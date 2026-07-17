@@ -1,4 +1,4 @@
-export { default as Products } from "./components/Products";
+export { default as CategoryCatalog } from "./components/CategoryCatalog";
 export { FilterSidebar } from "./components/FilterSidebar";
 export { SortBar } from "./components/SortBar";
 export { default as CategoryGridCard } from "./components/CategoryGridCard";

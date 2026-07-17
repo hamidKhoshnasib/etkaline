@@ -61,9 +61,7 @@ function parseCategory(value: unknown): ApiCategory | null {
 }
 
 function categoryHref(category: ApiCategory): string {
-  return category.urlTitle
-    ? `/categories/${encodeURIComponent(category.urlTitle)}`
-    : `/categories/${category.id}`;
+  return `/categories/${category.id}`;
 }
 
 function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
@@ -139,4 +137,27 @@ export async function getMenuCategories(): Promise<MenuCategory[]> {
   } catch {
     return [];
   }
+}
+
+function findCategoryById(categories: MenuCategory[], categoryId: number): MenuCategory | null {
+  for (const category of categories) {
+    if (category.id === categoryId) {
+      return category;
+    }
+
+    const child = findCategoryById(category.children, categoryId);
+    if (child) {
+      return child;
+    }
+  }
+
+  return null;
+}
+
+export async function getMenuCategoryById(categoryId: number): Promise<MenuCategory | null> {
+  if (!Number.isInteger(categoryId) || categoryId <= 0) {
+    return null;
+  }
+
+  return findCategoryById(await getMenuCategories(), categoryId);
 }

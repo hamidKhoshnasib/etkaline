@@ -1,5 +1,5 @@
-import { Products } from "@/features/catalog";
+import { CategoryCatalog } from "@/features/catalog";
 
-export default function ProductIndex() {
-  return <Products />;
+export default function CatalogIndex() {
+  return <CategoryCatalog />;
 }
