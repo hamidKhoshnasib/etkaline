@@ -15,9 +15,7 @@ export interface EtkalaUser {
   name: string;
   username: string;
   type: number;
-  superMarketStoreId: number;
   superMarketStoreTitle: string;
-  applianceStoreId: number;
   applianceStoreTitle: string;
   passwordIsChanged: boolean;
 }

@@ -5,9 +5,7 @@ interface SessionUserFields {
   backendId: number;
   username: string;
   type: number;
-  superMarketStoreId: number;
   superMarketStoreTitle: string;
-  applianceStoreId: number;
   applianceStoreTitle: string;
   passwordIsChanged: boolean;
 }
@@ -30,9 +28,7 @@ declare module "@auth/core/jwt" {
     backendId?: number;
     username?: string;
     type?: number;
-    superMarketStoreId?: number;
     superMarketStoreTitle?: string;
-    applianceStoreId?: number;
     applianceStoreTitle?: string;
     passwordIsChanged?: boolean;
     accessToken?: string;

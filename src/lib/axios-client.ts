@@ -3,9 +3,11 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios";
 import { getSession, signOut } from "next-auth/react";
 
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+
 export const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json", ...SITE_TYPE_HEADERS },
   timeout: 15_000,
 });
 

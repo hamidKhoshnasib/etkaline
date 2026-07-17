@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Vazirmatn, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/widgets/footer";
 import { Header } from "@/widgets/header";
@@ -8,9 +9,20 @@ import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/shared/config/site";
 import "./globals.css";
 
-const vazirmatn = Vazirmatn({
+const iranYekan = localFont({
+  src: [
+    {
+      path: "./fonts/IRANYekanXFaNum-Regular.woff",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/IRANYekanXFaNum-Bold.woff",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-sans",
-  subsets: ["arabic", "latin"],
   display: "swap",
 });
 
@@ -51,7 +63,7 @@ export default function RootLayout({
     <html
       lang="fa"
       dir="rtl"
-      className={`${vazirmatn.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${iranYekan.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <DirectionProvider direction="rtl">

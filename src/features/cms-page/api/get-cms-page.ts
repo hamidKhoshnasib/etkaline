@@ -1,5 +1,7 @@
 import "server-only";
+
 import type { CmsPage } from "@/features/cms-page/model/cms-page";
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
 
 // صفحه‌ی منتشرشده از پنل Blazor خوانده می‌شود؛ CKEditor در این پروژه نصب نمی‌شود.
 export async function getCmsPage(slug: string): Promise<CmsPage | null> {
@@ -8,6 +10,7 @@ export async function getCmsPage(slug: string): Promise<CmsPage | null> {
     return null;
   }
   const response = await fetch(`${baseUrl}/api/pages/${encodeURIComponent(slug)}`, {
+    headers: SITE_TYPE_HEADERS,
     next: { revalidate: 300, tags: [`cms-page:${slug}`] },
   });
   if (!response.ok) {

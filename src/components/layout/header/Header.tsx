@@ -6,21 +6,17 @@ import { MobileHeader } from "./MobileHeader";
 import { HomeAdvertisement } from "./HomeAdvertisement";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { getMenuCategories } from "@/services/categories/get-menu-categories";
-import { getHomeAdvertisement } from "@/services/home/get-home-advertisement";
 
 export async function Header() {
-  const [advertisement, categories] = await Promise.all([
-    getHomeAdvertisement(),
-    getMenuCategories(),
-  ]);
+  const categories = await getMenuCategories();
 
   return (
     <>
-      {advertisement && <HomeAdvertisement advertisement={advertisement} />}
+      <HomeAdvertisement />
       <header className="sticky top-0 z-50">
         <MobileHeader />
 
-        <div className="etkaline-pattern !bg-primary text-secondary relative isolate hidden pb-15 lg:block">
+        <div className="etkaline-pattern bg-primary! text-secondary relative isolate hidden pb-15 lg:block">
           <div className="container mx-auto">
             <div className="flex items-center py-3">
               <HeaderLogo />

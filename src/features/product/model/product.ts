@@ -16,7 +16,6 @@ export interface BackendStoreProductInfo {
   mainPrice: number;
   offPrice: number;
   offPrecent: number;
-  storeId: number;
   storeTitle: string;
   isOffer: boolean;
   offerEndDate: string | null;

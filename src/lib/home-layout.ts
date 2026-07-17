@@ -1,5 +1,7 @@
 import "server-only";
 
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+
 export type HomeLayoutType = 1 | 2;
 export type HomePlatformType = 1 | 2;
 
@@ -82,7 +84,7 @@ export async function getHomeLayout(
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
       next: {
         revalidate: 300,
         tags: [`home-layout-${layoutType}-${platformType}`],

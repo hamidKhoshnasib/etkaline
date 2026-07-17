@@ -1,5 +1,7 @@
 import "server-only";
 
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
@@ -110,7 +112,7 @@ function parseHomeBanners(value: unknown): HomeBanner[] {
 export async function getHomeBanners(): Promise<HomeBanner[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/Banners/GetHomeBanners`, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
       next: { revalidate: 300, tags: ["home-banners"] },
       signal: AbortSignal.timeout(15_000),
     });

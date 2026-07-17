@@ -1,6 +1,7 @@
 import "server-only";
 
 import { auth } from "@/features/auth/server";
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
 import type { ApiResponse } from "@/types/auth";
 import type {
   AddToBasketRequest,
@@ -25,6 +26,7 @@ async function basketRequest<T>(path: string, init?: RequestInit): Promise<ApiRe
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.accessToken}`,
+      ...SITE_TYPE_HEADERS,
       ...init?.headers,
     },
   });
@@ -37,8 +39,8 @@ async function basketRequest<T>(path: string, init?: RequestInit): Promise<ApiRe
   return payload;
 }
 
-export async function getOpenApplianceBasket(storeId: number) {
-  return basketRequest<ApplianceBasket>(`/api/ApplianceBaskets/GetOpenBasket/${storeId}`);
+export async function getOpenApplianceBasket() {
+  return basketRequest<ApplianceBasket>("/api/ApplianceBaskets/GetOpenBasket");
 }
 
 export async function addToApplianceBasket(input: AddToBasketRequest) {

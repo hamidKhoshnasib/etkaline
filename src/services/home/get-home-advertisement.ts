@@ -1,14 +1,13 @@
-import "server-only";
+import { axiosClient } from "@/lib/axios-client";
 
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
+export const HOME_ADVERTISEMENT_QUERY_KEY = ["home-advertisement"] as const;
 
 export interface HomeAdvertisement {
   text: string;
   link: string;
   targetType: number;
   targetTypeFa: string;
-  targetId: number;
+  targetId: number | null;
   buttonText: string;
   backgroundColor: string;
   textColor: string;
@@ -32,7 +31,7 @@ function isHomeAdvertisement(value: unknown): value is HomeAdvertisement {
     typeof advertisement.link === "string" &&
     typeof advertisement.targetType === "number" &&
     typeof advertisement.targetTypeFa === "string" &&
-    typeof advertisement.targetId === "number" &&
+    (advertisement.targetId === null || typeof advertisement.targetId === "number") &&
     typeof advertisement.buttonText === "string" &&
     typeof advertisement.backgroundColor === "string" &&
     typeof advertisement.textColor === "string" &&
@@ -41,20 +40,6 @@ function isHomeAdvertisement(value: unknown): value is HomeAdvertisement {
 }
 
 export async function getHomeAdvertisement(): Promise<HomeAdvertisement | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/Advertisements`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 300, tags: ["home-advertisement"] },
-      signal: AbortSignal.timeout(15_000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Home advertisement request failed with status ${response.status}`);
-    }
-
-    const payload = (await response.json()) as HomeAdvertisementResponse;
-    return payload.isSuccess && isHomeAdvertisement(payload.value) ? payload.value : null;
-  } catch {
-    return null;
-  }
+  const { data: payload } = await axiosClient.get<HomeAdvertisementResponse>("/api/Advertisements");
+  return payload.isSuccess && isHomeAdvertisement(payload.value) ? payload.value : null;
 }

@@ -50,7 +50,6 @@ export interface ApplianceBasket {
   customerId: number;
   customerName: string;
   customerMobile: string;
-  storeId: number;
   storeTitle: string;
   productCount: number;
   itemCount: number;

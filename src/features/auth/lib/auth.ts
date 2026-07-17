@@ -34,9 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name || user.username,
           username: user.username,
           type: user.type,
-          superMarketStoreId: user.superMarketStoreId,
           superMarketStoreTitle: user.superMarketStoreTitle,
-          applianceStoreId: user.applianceStoreId,
           applianceStoreTitle: user.applianceStoreTitle,
           passwordIsChanged: user.passwordIsChanged,
           accessToken,
@@ -51,9 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.backendId = user.backendId;
         token.username = user.username;
         token.type = user.type;
-        token.superMarketStoreId = user.superMarketStoreId;
         token.superMarketStoreTitle = user.superMarketStoreTitle;
-        token.applianceStoreId = user.applianceStoreId;
         token.applianceStoreTitle = user.applianceStoreTitle;
         token.passwordIsChanged = user.passwordIsChanged;
         token.accessToken = user.accessToken.token;
@@ -88,9 +84,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: refreshedUser.name || refreshedUser.username,
           username: refreshedUser.username,
           type: refreshedUser.type,
-          superMarketStoreId: refreshedUser.superMarketStoreId,
           superMarketStoreTitle: refreshedUser.superMarketStoreTitle,
-          applianceStoreId: refreshedUser.applianceStoreId,
           applianceStoreTitle: refreshedUser.applianceStoreTitle,
           passwordIsChanged: refreshedUser.passwordIsChanged,
           accessToken: accessToken.token,
@@ -107,9 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.backendId = token.backendId ?? 0;
       session.user.username = token.username ?? "";
       session.user.type = token.type ?? 0;
-      session.user.superMarketStoreId = token.superMarketStoreId ?? 0;
       session.user.superMarketStoreTitle = token.superMarketStoreTitle ?? "";
-      session.user.applianceStoreId = token.applianceStoreId ?? 0;
       session.user.applianceStoreTitle = token.applianceStoreTitle ?? "";
       session.user.passwordIsChanged = token.passwordIsChanged ?? false;
       session.accessToken = token.accessToken;

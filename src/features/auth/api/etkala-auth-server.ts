@@ -1,5 +1,6 @@
 import "server-only";
 
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
 import type { ApiResponse, AuthValue } from "@/types/auth";
 
 const AUTH_API_BASE_URL =
@@ -23,6 +24,7 @@ export async function requestEtkalaAuthWithCookies<T>(
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      ...SITE_TYPE_HEADERS,
       ...init?.headers,
     },
     signal: AbortSignal.timeout(15_000),

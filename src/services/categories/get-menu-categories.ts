@@ -1,12 +1,10 @@
 import "server-only";
 
 import type { MenuCategory } from "@/components/layout/header/header.config";
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
-
-const APPLIANCE_SITE_TYPE = 2;
-const DEFAULT_STORE_ID = 0;
 
 interface CategoriesResponse {
   value?: unknown;
@@ -18,7 +16,7 @@ interface CategoriesResponse {
 interface ApiCategory {
   id: number;
   title: string;
-  parentId: number;
+  parentId: number | null;
   urlTitle: string;
   order: number;
   iconName: string;
@@ -37,7 +35,7 @@ function parseCategory(value: unknown): ApiCategory | null {
   const category = value as Record<string, unknown>;
   if (
     !isInteger(category.id) ||
-    !isInteger(category.parentId) ||
+    (category.parentId !== null && !isInteger(category.parentId)) ||
     !isInteger(category.order) ||
     typeof category.title !== "string" ||
     !category.title.trim() ||
@@ -70,7 +68,7 @@ function categoryHref(category: ApiCategory): string {
 
 function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
   const nodes = new Map<number, MenuCategory>();
-  const parents = new Map<number, number>();
+  const parents = new Map<number, number | null>();
   const orders = new Map<number, number>();
 
   const addCategory = (category: ApiCategory) => {
@@ -93,7 +91,8 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
 
   const roots: MenuCategory[] = [];
   for (const [id, category] of nodes) {
-    const parent = nodes.get(parents.get(id) ?? 0);
+    const parentId = parents.get(id);
+    const parent = parentId === null || parentId === undefined ? undefined : nodes.get(parentId);
     if (parent && parent.id !== category.id) {
       parent.children.push(category);
     } else {
@@ -113,17 +112,12 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
   return roots;
 }
 
-export async function getMenuCategories(
-  siteType = APPLIANCE_SITE_TYPE,
-  storeId = DEFAULT_STORE_ID,
-): Promise<MenuCategory[]> {
+export async function getMenuCategories(): Promise<MenuCategory[]> {
   const url = new URL("/api/Categories", API_BASE_URL);
-  url.searchParams.set("SiteType", String(siteType));
-  url.searchParams.set("StoreId", String(storeId));
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
       next: { revalidate: 300, tags: ["menu-categories"] },
       signal: AbortSignal.timeout(15_000),
     });

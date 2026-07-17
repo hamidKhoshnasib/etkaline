@@ -1,9 +1,11 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 import { cookies, headers } from "next/headers";
 
+import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+
 export const axiosServer = axios.create({
   baseURL: process.env.API_BASE_URL,
-  headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json", ...SITE_TYPE_HEADERS },
   timeout: 15_000,
 });
 
