@@ -20,17 +20,17 @@ export function ProductDescription({ productName, description }: ProductDescript
   const [activeNav, setActiveNav] = useState("specs");
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-4 lg:flex-row lg:gap-10">
       {/* Sidebar nav */}
-      <div className="w-50 shrink-0 space-y-1">
+      <div className="flex w-full shrink-0 overflow-x-auto border-b lg:w-52 lg:flex-col lg:space-y-1 lg:border-b-0">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveNav(id)}
             className={cn(
-              "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors",
+              "flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-sm transition-colors lg:w-full lg:gap-2.5 lg:rounded-xl lg:px-4",
               activeNav === id
-                ? "bg-primary/10 text-primary font-medium"
+                ? "border-primary bg-primary/10 text-primary border-b-2 font-medium lg:border-b-0"
                 : "text-gray-600 hover:bg-gray-50",
             )}
           >
@@ -42,7 +42,7 @@ export function ProductDescription({ productName, description }: ProductDescript
 
       {/* Description text */}
       <div className="min-w-0 flex-1">
-        <h2 className="mb-4 text-lg font-bold text-gray-800">{productName}</h2>
+        <h2 className="mb-4 text-lg font-bold text-gray-800 lg:text-xl">{productName}</h2>
 
         <div className={cn("overflow-hidden transition-all", expanded ? "max-h-none" : "max-h-36")}>
           <p className="text-sm leading-8 text-gray-600">{description}</p>

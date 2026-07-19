@@ -1,22 +1,32 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import CartStep from "@/features/cart/components/CartStep";
 import AddressStep from "@/features/cart/checkout/AddressStep";
 import ReviewStep from "@/features/cart/checkout/ReviewStep";
 import OrderSummary from "@/features/cart/checkout/OrderSummary";
-import { CART_ITEMS, type CartItem } from "@/features/cart/fixtures/cart";
+import {
+  getMockCartItems,
+  getMockCartServerSnapshot,
+  removeMockCartItem,
+  subscribeToMockCart,
+  updateMockCartItemQuantity,
+} from "@/features/cart/lib/mock-cart-storage";
 
 export type CheckoutStep = "cart" | "address" | "review";
 
 export default function CartPage() {
   const [step, setStep] = useState<CheckoutStep>("cart");
-  const [items, setItems] = useState<CartItem[]>(CART_ITEMS);
   const [addressReady, setAddressReady] = useState(false);
+  const items = useSyncExternalStore(
+    subscribeToMockCart,
+    getMockCartItems,
+    getMockCartServerSnapshot,
+  );
 
   const handleQuantityChange = (id: number, quantity: number) =>
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
+    quantity < 1 ? removeMockCartItem(id) : updateMockCartItemQuantity(id, quantity);
 
   const handleReadyChange = useCallback((ready: boolean) => setAddressReady(ready), []);
 

@@ -12,7 +12,7 @@ interface CartItemRowProps {
 }
 
 export default function CartItemRow({ item, onQuantityChange }: CartItemRowProps) {
-  const dec = () => onQuantityChange(item.id, Math.max(1, item.quantity - 1));
+  const dec = () => onQuantityChange(item.id, item.quantity - 1);
   const inc = () => onQuantityChange(item.id, item.quantity + 1);
 
   return (

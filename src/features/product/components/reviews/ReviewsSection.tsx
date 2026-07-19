@@ -49,19 +49,18 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
   const [sort, setSort] = useState("priority");
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-8">
       {/* Rating summary panel */}
-      <div className="w-55.5 shrink-0">
-        <h3 className="mb-2 text-right text-base font-bold text-gray-800">
+      <aside className="w-full shrink-0 lg:w-52">
+        <h3 className="mb-4 text-right text-base font-bold text-gray-800">
           امتیاز و دیدگاه کاربران
         </h3>
 
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between lg:block">
           <span className="text-sm text-gray-500">میانگین امتیاز: {toPersian(averageRating)}</span>
         </div>
 
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-sm text-gray-500">از مجموع {toPersian(totalRatings)} امتیاز</span>
+        <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex">
             {Array.from({ length: 5 }).map((_, i) => (
               <StarIcon
@@ -75,11 +74,12 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
               />
             ))}
           </div>
+          <span className="text-sm text-gray-500">از مجموع {toPersian(totalRatings)} امتیاز</span>
         </div>
 
-        <p className="mb-3 text-sm text-gray-600">شما هم درباره این کالا دیدگاه ثبت کنید</p>
+        <p className="mb-3 text-sm">شما هم درباره این کالا دیدگاه ثبت کنید</p>
 
-        <button className="bg-primary mb-4 w-full rounded-xl py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
+        <button className="border-primary text-secondary hover:bg-primary/10 mb-4 w-full rounded-lg border py-2.5 text-sm font-medium transition-colors">
           ثبت دیدگاه
         </button>
 
@@ -89,13 +89,13 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
           {" / "}
           <span className="text-primary cursor-pointer hover:underline">ثبت نام شوید</span>
         </p>
-      </div>
+      </aside>
 
       {/* Reviews list */}
       <div className="min-w-0 flex-1">
         {/* Sort bar */}
-        <div className="mb-4 flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-sm text-gray-500">
+        <div className="mb-4 flex items-center gap-3 overflow-x-auto text-nowrap lg:gap-3.5">
+          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
             <SortDescIcon className="size-4" />
             <span>اولویت نمایش</span>
           </div>
@@ -118,10 +118,10 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
           </div>
         </div>
 
-        <div className="mb-6 h-px bg-gray-100" />
+        <div className="bg-border mb-5 h-px" />
 
         {/* Review cards */}
-        <div className="space-y-4">
+        <div className="space-y-4 lg:max-w-[620px]">
           {SAMPLE_REVIEWS.map((r) => (
             <ReviewCard
               key={r.id}

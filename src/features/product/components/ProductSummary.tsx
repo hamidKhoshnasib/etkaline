@@ -1,7 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import { StarIcon } from "lucide-react";
+import {
+  ProductColorPicker,
+  type ProductColor,
+  ProductGuarantees,
+} from "@/features/product/components/ProductInfoCard";
 import { cn } from "@/lib/utils";
 
 interface Spec {
@@ -14,12 +16,13 @@ interface ProductSummaryProps {
   rating: number;
   reviewCount: number;
   specs: Spec[];
+  colors: ProductColor[];
   shortDescription: string;
 }
 
 const TABS = [
-  { id: "reviews", label: "نظرات" },
   { id: "specs", label: "مشخصات تکمیلی" },
+  { id: "reviews", label: "نظرات" },
 ];
 
 function toPersian(n: number): string {
@@ -31,21 +34,20 @@ export function ProductSummary({
   rating,
   reviewCount,
   specs,
+  colors,
   shortDescription,
 }: ProductSummaryProps) {
-  const [activeTab, setActiveTab] = useState("reviews");
-
   return (
     <div className="min-w-0 flex-1">
       {/* Title */}
-      <h1 className="mb-4 text-lg leading-relaxed font-bold text-gray-800">{title}</h1>
+      <h1 className="text-secondary mb-3 text-sm leading-6 font-bold lg:mb-4 lg:text-lg lg:leading-relaxed">
+        {title}
+      </h1>
 
       {/* Rating + tabs row */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-5 flex flex-col flex-wrap gap-3 lg:mb-6">
         {/* Rating */}
         <div className="flex items-center gap-1.5">
-          <span className="text-sm text-gray-500">({toPersian(reviewCount)} نظر)</span>
-          <span className="text-sm font-semibold text-gray-700">{rating}</span>
           <div className="flex">
             {Array.from({ length: 5 }).map((_, i) => (
               <StarIcon
@@ -59,20 +61,17 @@ export function ProductSummary({
               />
             ))}
           </div>
+          <span className="text-sm font-semibold text-gray-700">{rating}</span>
+          <span className="text-sm text-gray-500">({toPersian(reviewCount)} نظر)</span>
         </div>
 
         {/* Tabs */}
-        <div className="flex overflow-hidden rounded-xl border border-gray-200">
+        <div className="flex items-center gap-2">
           {TABS.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "px-4 py-1.5 text-sm transition-colors",
-                activeTab === tab.id
-                  ? "bg-primary font-medium text-white"
-                  : "text-gray-600 hover:bg-gray-50",
-              )}
+              type="button"
+              className="bg-muted text-muted-foreground hover:bg-muted/70 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors"
             >
               {tab.label}
             </button>
@@ -80,14 +79,19 @@ export function ProductSummary({
         </div>
       </div>
 
+      <div className="mb-6 space-y-5 lg:hidden">
+        <ProductGuarantees />
+        <ProductColorPicker colors={colors} className="mb-0" />
+      </div>
+
       {/* Specs */}
-      <div className="mb-6">
-        <p className="mb-3 text-sm font-semibold text-gray-700">مشخصات محصول</p>
-        <div className="flex gap-4">
+      <div className="mb-6 lg:mb-7">
+        <p className="mb-3 text-sm font-semibold text-gray-700 lg:mb-2">مشخصات محصول</p>
+        <div className="flex gap-2 lg:gap-2.5">
           {specs.map((s) => (
             <div
               key={s.label}
-              className="flex flex-col items-center gap-1 rounded-xl border border-gray-100 px-4 py-2"
+              className="bg-muted flex flex-1 flex-col gap-1 rounded-lg px-2 py-3 lg:min-w-22 lg:flex-none lg:px-3 lg:py-2.5"
             >
               <span className="text-xs text-gray-400">{s.label}</span>
               <span className="text-sm font-semibold text-gray-700">{s.value}</span>

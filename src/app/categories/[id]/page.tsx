@@ -56,5 +56,5 @@ export default async function CategoryProductsPage({ params }: CategoryProductsP
     notFound();
   }
 
-  return <CategoryCatalog title={`محصولات ${category.title}`} />;
+  return <CategoryCatalog title={`محصولات ${category.title}`} categoryId={category.id} />;
 }

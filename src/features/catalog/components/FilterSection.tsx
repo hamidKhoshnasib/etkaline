@@ -1,34 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 interface FilterSectionProps {
   label: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function FilterSection({ label, children }: FilterSectionProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border-b border-gray-100">
+    <section className="mt-1 rounded-xl border border-slate-200">
       <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between py-4"
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between px-3 py-3"
       >
-        <span className="text-sm text-gray-700">{label}</span>
+        <span className="text-sm font-medium text-slate-700">{label}</span>
         {open ? (
-          <ChevronUpIcon className="size-5 text-gray-400" />
+          <ChevronUpIcon className="text-primary size-4" />
         ) : (
-          <ChevronDownIcon className="size-5 text-gray-400" />
+          <ChevronDownIcon className="text-primary size-4" />
         )}
       </button>
-      {open && (
-        <div className="pb-4">
-          {children ?? <p className="text-sm text-gray-400">محتوای فیلتر {label}</p>}
+
+      {open ? (
+        <div className="border-t border-slate-100 px-3 pt-2 pb-3">
+          {children ?? <p className="text-sm text-slate-400">محتوای فیلتر {label}</p>}
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }

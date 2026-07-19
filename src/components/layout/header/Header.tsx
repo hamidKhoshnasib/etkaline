@@ -17,7 +17,7 @@ export async function Header() {
         <MobileHeader />
 
         <div className="etkaline-pattern bg-primary! text-secondary relative isolate hidden pb-15 lg:block">
-          <div className="container mx-auto">
+          <div className="relative z-[70] container mx-auto">
             <div className="flex items-center py-3">
               <HeaderLogo />
               <HeaderSearch />

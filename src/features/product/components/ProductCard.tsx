@@ -15,8 +15,9 @@ interface ProductCardProps extends ProductCardData {
   onBookmark?: () => void;
   onCompare?: () => void;
   onAddToCart?: () => void;
-  variant?: "default" | "mobile";
+  variant?: "default" | "mobile" | "catalog-mobile";
   className?: string;
+  imageClassName?: string;
   Link?: string;
 }
 
@@ -60,6 +61,54 @@ function MobileProductCard({
   );
 }
 
+function CatalogMobileProductCard({
+  image,
+  title,
+  price,
+  originalPrice,
+  discount,
+  className,
+}: ProductCardProps) {
+  return (
+    <article
+      className={cn(
+        "flex h-36 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm",
+        className,
+      )}
+    >
+      <div className="relative flex w-[39%] shrink-0 items-center justify-center overflow-hidden">
+        <Image
+          src={image}
+          alt={`عکس-${title}`}
+          width={180}
+          height={190}
+          className="h-full w-full object-contain"
+        />
+        {discount ? (
+          <span className="absolute top-0 right-0 rounded-lg bg-orange-500 px-2 py-1 text-xs font-bold text-white">
+            {discount}٪
+          </span>
+        ) : null}
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col px-2 py-1">
+        <p className="text-secondary line-clamp-2 text-center text-base leading-6 font-medium">
+          {title}
+        </p>
+        <div className="mt-auto flex flex-col gap-1">
+          {originalPrice ? (
+            <s className="text-sm text-slate-400">{formatProductPrice(originalPrice)}</s>
+          ) : null}
+          <div className="text-secondary flex items-center gap-1">
+            <TomanIcon className="size-4 shrink-0" />
+            <span className="text-base font-bold">{formatProductPrice(price)}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 // ─── Default card ─────────────────────────────────────────────────────────────
 
 function ProductCard({
@@ -75,6 +124,7 @@ function ProductCard({
   // onAddToCart,
   variant = "default",
   className,
+  imageClassName,
 }: ProductCardProps) {
   if (variant === "mobile") {
     return (
@@ -89,10 +139,23 @@ function ProductCard({
     );
   }
 
+  if (variant === "catalog-mobile") {
+    return (
+      <CatalogMobileProductCard
+        image={image}
+        title={title}
+        price={price}
+        originalPrice={originalPrice}
+        discount={discount}
+        className={className}
+      />
+    );
+  }
+
   return (
     <div
       className={cn(
-        "group relative rounded-xl border border-[#E2E8F0] bg-white lg:rounded-2xl",
+        "group relative overflow-hidden rounded-xl border border-[#E2E8F0] bg-white lg:rounded-2xl",
         "hover:border-primary transition-all",
         className,
       )}
@@ -104,7 +167,10 @@ function ProductCard({
           alt={`عکس-${title}`}
           width={180}
           height={190}
-          className="h-28 w-full object-contain p-2 lg:h-auto lg:w-auto lg:p-0"
+          className={cn(
+            "h-28 w-full object-contain p-2 lg:h-auto lg:w-auto lg:p-0",
+            imageClassName,
+          )}
           // className={cn(
           //   "h-48 w-full object-contain p-4 transition-opacity",
           //   outOfStock && "opacity-30",

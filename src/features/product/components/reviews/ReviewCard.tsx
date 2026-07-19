@@ -28,17 +28,17 @@ export function ReviewCard({
   truncate = false,
 }: ReviewCardProps) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6">
+    <article className="border-border bg-card rounded-xl border p-4 lg:rounded-2xl lg:px-5 lg:py-5">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="size-12 shrink-0 overflow-hidden rounded-full bg-gray-200">
+          <div className="bg-muted size-10 shrink-0 overflow-hidden rounded-full lg:size-11">
             {avatar ? (
               <Image
                 src={avatar}
                 alt={author}
-                width={48}
-                height={48}
+                width={44}
+                height={44}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -68,7 +68,7 @@ export function ReviewCard({
       </div>
 
       {/* Body */}
-      <p className={cn("mb-4 text-sm leading-7 text-gray-600", truncate && "line-clamp-3")}>
+      <p className={cn("mb-5 text-sm leading-7 text-gray-600", truncate && "line-clamp-3")}>
         {body}
       </p>
 
@@ -91,6 +91,6 @@ export function ReviewCard({
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

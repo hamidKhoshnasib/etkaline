@@ -1,9 +1,10 @@
 "use client";
 
 import { FilterIcon, XSquareIcon } from "lucide-react";
-import { Toggle } from "./Toggle";
-import { PriceFilter } from "./PriceFilter";
+
 import { FilterSection } from "./FilterSection";
+import { PriceFilter } from "./PriceFilter";
+import { Toggle } from "./Toggle";
 
 const FILTER_SECTIONS = [
   { id: "color", label: "رنگ" },
@@ -15,45 +16,46 @@ const FILTER_SECTIONS = [
 
 interface FilterSidebarProps {
   onlyAvailable: boolean;
-  onToggleAvailable: (v: boolean) => void;
+  onToggleAvailable: (value: boolean) => void;
+  onApplyPrice: (range: { minPrice: number; maxPrice: number }) => void;
+  priceFilterResetKey: number;
   onClearFilters: () => void;
 }
 
 export function FilterSidebar({
   onlyAvailable,
   onToggleAvailable,
+  onApplyPrice,
+  priceFilterResetKey,
   onClearFilters,
 }: FilterSidebarProps) {
   return (
-    <aside className="w-67.5 shrink-0">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4">
+    <aside className="hidden w-56 shrink-0 lg:block xl:w-60">
+      <div className="flex items-center justify-between pb-5">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-700">فیلتر ها</span>
-          <FilterIcon className="size-5 text-gray-700" />
+          <span className="font-bold text-slate-700">فیلترها</span>
+          <FilterIcon className="text-primary size-5" />
         </div>
 
         <button
+          type="button"
           onClick={onClearFilters}
-          className="flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-gray-600"
+          className="flex items-center gap-1 text-[11px] text-red-500 transition-colors hover:text-red-600"
         >
-          <XSquareIcon className="size-4" />
-          <span>حذف فیلتر ها</span>
+          <XSquareIcon className="size-3.5" />
+          <span>حذف فیلترها</span>
         </button>
       </div>
 
-      {/* Only available toggle */}
-      <div className="flex items-center justify-between border-b border-gray-100 py-4">
-        <span className="text-sm text-gray-700">فقط کالاهای موجود</span>
+      <div className="mb-1 flex items-center justify-between rounded-xl border border-slate-200 px-3 py-3.5">
+        <span className="text-sm font-medium text-slate-700">فقط کالاهای موجود</span>
         <Toggle checked={onlyAvailable} onChange={onToggleAvailable} />
       </div>
 
-      {/* Price filter */}
-      <PriceFilter />
+      <PriceFilter key={priceFilterResetKey} onApply={onApplyPrice} />
 
-      {/* Other filter sections */}
-      {FILTER_SECTIONS.map((s) => (
-        <FilterSection key={s.id} label={s.label} />
+      {FILTER_SECTIONS.map((section) => (
+        <FilterSection key={section.id} label={section.label} />
       ))}
     </aside>
   );

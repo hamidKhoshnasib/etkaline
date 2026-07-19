@@ -31,6 +31,10 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = React.useState(false);
 
+  if (pathname.startsWith("/products/")) {
+    return null;
+  }
+
   return (
     <>
       <MobileCategoryMenu

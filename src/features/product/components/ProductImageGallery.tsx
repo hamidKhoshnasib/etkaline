@@ -21,24 +21,24 @@ export function ProductImageGallery({ images, title }: ProductImageGalleryProps)
   const [active, setActive] = useState(0);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-3 lg:w-[432px] lg:shrink-0 lg:gap-4">
       {/* Main image + actions */}
-      <div className="relative overflow-hidden rounded-2xl bg-gray-50">
+      <div className="relative overflow-hidden rounded-2xl bg-gray-50 lg:bg-transparent">
         <Image
           src={images[active] ?? "https://via.placeholder.com/432x350?text=Product"}
           alt={title}
           width={432}
           height={350}
-          className="h-[350px] w-full object-contain p-4"
+          className="h-72 w-full object-contain p-2 sm:h-80 lg:h-[350px] lg:p-0"
         />
 
-        {/* Action icons — left side (RTL start = right visually, but placed left in Figma) */}
-        <div className="absolute top-4 left-4 flex flex-col gap-3">
+        {/* Action icons stay on the visual right in the RTL layout. */}
+        <div className="bg-muted/80 absolute start-2 top-2 flex gap-1 rounded-full p-1 lg:start-2 lg:top-2 lg:flex-col lg:gap-2 lg:p-2">
           {ACTIONS.map(({ icon: Icon, label }) => (
             <button
               key={label}
               title={label}
-              className="hover:text-primary flex size-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm transition-colors"
+              className="hover:text-primary flex size-8 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm transition-colors lg:size-9"
             >
               <Icon className="size-5" />
             </button>
@@ -47,13 +47,13 @@ export function ProductImageGallery({ images, title }: ProductImageGalleryProps)
       </div>
 
       {/* Thumbnails */}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 lg:gap-2">
         {images.slice(0, 5).map((src, i) => (
           <button
             key={i}
             onClick={() => setActive(i)}
             className={cn(
-              "size-[70px] shrink-0 overflow-hidden rounded-xl border-2 bg-gray-50 transition-all",
+              "size-15 shrink-0 overflow-hidden rounded-md border-2 bg-gray-50 transition-all lg:size-[70px]",
               active === i ? "border-primary" : "border-transparent hover:border-gray-200",
             )}
           >

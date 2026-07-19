@@ -1,4 +1,5 @@
 import { ProductDetail } from "@/features/product";
+import { getProductDetail } from "@/features/product/api/get-product-detail";
 import type { Metadata } from "next";
 import { SITE_NAME, SITE_URL } from "@/shared/config/site";
 
@@ -20,5 +21,6 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 
 export default async function ProductDetailIndex({ params }: ProductDetailPageProps) {
   const { slug } = await params;
-  return <ProductDetail slug={slug} />;
+  const product = await getProductDetail(slug);
+  return <ProductDetail slug={slug} product={product} />;
 }

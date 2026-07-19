@@ -5,6 +5,16 @@ import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
 export type HomeLayoutType = 1 | 2;
 export type HomePlatformType = 1 | 2;
 
+export const HOME_COMPONENT_TYPE = {
+  BANNER: 1,
+  SINGLE_ROW_SLIDER: 2,
+  TWO_ROW_GRID: 3,
+  GRID_2X2: 4,
+  OFFER: 5,
+} as const;
+
+export type HomeComponentType = (typeof HOME_COMPONENT_TYPE)[keyof typeof HOME_COMPONENT_TYPE];
+
 export interface HomeLayoutItem {
   targetType: number;
   targetId: number | null;
@@ -12,7 +22,7 @@ export interface HomeLayoutItem {
   title: string;
   subTitle: string | null;
   urlTitle: string | null;
-  componentType: number;
+  componentType: HomeComponentType;
   componentTypeFa: string;
   id: number;
 }
@@ -35,8 +45,8 @@ const DEFAULT_APPLIANCE_LAYOUT: HomeLayoutItem[] = [
     title: "پیشنهاد ویژه",
     subTitle: null,
     urlTitle: null,
-    componentType: 1,
-    componentTypeFa: "اسلایدر یک سطری",
+    componentType: HOME_COMPONENT_TYPE.OFFER,
+    componentTypeFa: "پیشنهاد ویژه",
     id: 1,
   },
   {
@@ -46,7 +56,7 @@ const DEFAULT_APPLIANCE_LAYOUT: HomeLayoutItem[] = [
     title: "پرفروش ترین ها",
     subTitle: null,
     urlTitle: null,
-    componentType: 1,
+    componentType: HOME_COMPONENT_TYPE.SINGLE_ROW_SLIDER,
     componentTypeFa: "اسلایدر یک سطری",
     id: 4,
   },
@@ -57,7 +67,7 @@ const DEFAULT_APPLIANCE_LAYOUT: HomeLayoutItem[] = [
     title: "پر بازدیدترین ها",
     subTitle: null,
     urlTitle: null,
-    componentType: 3,
+    componentType: HOME_COMPONENT_TYPE.GRID_2X2,
     componentTypeFa: "گرید مربعی 2 در 2",
     id: 2,
   },
@@ -68,7 +78,7 @@ const DEFAULT_APPLIANCE_LAYOUT: HomeLayoutItem[] = [
     title: "پرفروش ترین ها",
     subTitle: null,
     urlTitle: null,
-    componentType: 2,
+    componentType: HOME_COMPONENT_TYPE.TWO_ROW_GRID,
     componentTypeFa: "گرید دو سطری",
     id: 3,
   },

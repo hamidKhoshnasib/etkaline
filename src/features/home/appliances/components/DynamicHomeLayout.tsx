@@ -4,7 +4,14 @@ import { userAgentFromString } from "next/server";
 import CategoryGridCard from "@/features/catalog/components/CategoryGridCard";
 import ProductSection from "@/features/product/components/ProductSection";
 import ProductSectionList from "@/features/product/components/ProductSectionList";
-import { getHomeLayout, type HomeLayoutItem, type HomePlatformType } from "@/lib/home-layout";
+import CategoryBanners from "./CategoryBanners";
+import FlashDeals from "./FlashDeals";
+import {
+  getHomeLayout,
+  HOME_COMPONENT_TYPE,
+  type HomeLayoutItem,
+  type HomePlatformType,
+} from "@/lib/home-layout";
 
 interface ProductItem {
   id: number | string;
@@ -23,7 +30,9 @@ function renderLayoutItem(item: HomeLayoutItem, products: ProductItem[]) {
   const description = item.subTitle ?? item.targetTitle ?? undefined;
 
   switch (item.componentType) {
-    case 1:
+    case HOME_COMPONENT_TYPE.BANNER:
+      return <CategoryBanners key={item.id} />;
+    case HOME_COMPONENT_TYPE.SINGLE_ROW_SLIDER:
       return (
         <ProductSection
           key={item.id}
@@ -33,7 +42,7 @@ function renderLayoutItem(item: HomeLayoutItem, products: ProductItem[]) {
           items={products}
         />
       );
-    case 2:
+    case HOME_COMPONENT_TYPE.TWO_ROW_GRID:
       return (
         <ProductSectionList
           key={item.id}
@@ -43,7 +52,7 @@ function renderLayoutItem(item: HomeLayoutItem, products: ProductItem[]) {
           items={products}
         />
       );
-    case 3:
+    case HOME_COMPONENT_TYPE.GRID_2X2:
       return (
         <CategoryGridCard
           key={item.id}
@@ -53,6 +62,8 @@ function renderLayoutItem(item: HomeLayoutItem, products: ProductItem[]) {
           items={products.map(({ id, image, title }) => ({ id, image, title }))}
         />
       );
+    case HOME_COMPONENT_TYPE.OFFER:
+      return <FlashDeals key={item.id} />;
     default:
       return null;
   }

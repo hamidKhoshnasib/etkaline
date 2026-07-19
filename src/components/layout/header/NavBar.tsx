@@ -37,7 +37,7 @@ export function NavBar({ categories }: NavBarProps) {
   }, []);
 
   return (
-    <div className="absolute w-full rounded-t-[32px] bg-white">
+    <div className="absolute z-40 w-full rounded-t-[32px] bg-white">
       {/* Nav row */}
       <div className="container m-auto h-15">
         <div className="flex h-full items-center justify-between">

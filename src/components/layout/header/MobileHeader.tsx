@@ -1,9 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Bell, MapPin, ChevronDown, Search } from "lucide-react";
 import EtkalineLogo from "@/assets/icons/logo.svg";
 import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 
 export function MobileHeader() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/products/") || pathname.startsWith("/categories/")) {
+    return null;
+  }
+
   return (
     <div className="etkaline-pattern relative isolate !bg-gradient-to-t !from-[#FFB347] !to-[#FFCC33] lg:hidden">
       {/* ── Top row: logo + address/notification ─────────────────────── */}

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { TruckIcon, ShieldCheckIcon, ScaleIcon, ShoppingCartIcon } from "lucide-react";
+import { ScaleIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
+import { AddToCartButton } from "@/features/product/components/AddToCartButton";
+import type { CartItem } from "@/features/cart/model/cart";
 import { cn } from "@/lib/utils";
 
-interface Color {
+export interface ProductColor {
   id: string;
   hex: string;
   label: string;
@@ -15,7 +17,8 @@ interface ProductInfoCardProps {
   price: number;
   originalPrice?: number;
   discount?: number;
-  colors?: Color[];
+  colors?: ProductColor[];
+  cartItem: CartItem;
 }
 
 function formatPrice(n: number): string {
@@ -28,74 +31,96 @@ const GUARANTEES = [
   { icon: ScaleIcon, label: "شرایط مرجوع کالا" },
 ];
 
+export function ProductGuarantees({ className }: { className?: string }) {
+  return (
+    <ul className={cn("space-y-3", className)}>
+      {GUARANTEES.map(({ icon: Icon, label }) => (
+        <li key={label} className="flex gap-2 text-sm text-gray-600">
+          <Icon className="size-5 text-gray-400" />
+          <span>{label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+interface ProductColorPickerProps {
+  colors: ProductColor[];
+  className?: string;
+}
+
+export function ProductColorPicker({ colors, className }: ProductColorPickerProps) {
+  const [selectedColor, setSelectedColor] = useState(colors[0]?.id ?? "");
+
+  if (colors.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={cn("mb-4", className)}>
+      <p className="mb-3 text-sm text-gray-600">انتخاب رنگ :</p>
+      <div className="flex gap-3">
+        {colors.map((color) => (
+          <button
+            key={color.id}
+            type="button"
+            onClick={() => setSelectedColor(color.id)}
+            title={color.label}
+            className={cn(
+              "size-10 rounded-full border-2 transition-all",
+              selectedColor === color.id
+                ? "border-primary scale-110 shadow"
+                : "border-transparent hover:border-gray-300",
+            )}
+            style={{ backgroundColor: color.hex }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ProductInfoCard({
   price,
   originalPrice,
   discount,
   colors = [],
+  cartItem,
 }: ProductInfoCardProps) {
-  const [selectedColor, setSelectedColor] = useState(colors[0]?.id ?? "");
-
   return (
-    <div className="w-full shrink-0 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="sticky top-36 w-full shrink-0 rounded-2xl border border-gray-200 bg-white p-4">
       {/* Price */}
       <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-1">
-            <TomanIcon className="size-4.5 text-gray-500" />
-            <span className="text-xl font-bold text-gray-800">{formatPrice(price)}</span>
-          </div>
-          {originalPrice && <s className="text-sm text-gray-400">{formatPrice(originalPrice)}</s>}
-        </div>
         {discount && (
-          <div className="flex size-12 items-center justify-center rounded-xl bg-red-500 text-sm font-bold text-white">
+          <div className="bg-primary-hover flex size-12 items-center justify-center rounded-md text-sm font-bold text-white">
             %{discount}
           </div>
         )}
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-1">
+            <span className="text-xl font-bold text-gray-800">{formatPrice(price)}</span>
+            <TomanIcon className="size-4.5 text-gray-500" />
+          </div>
+          {originalPrice && <s className="text-sm text-gray-400">{formatPrice(originalPrice)}</s>}
+        </div>
       </div>
 
       <div className="my-4 h-px bg-gray-100" />
 
       {/* Color picker */}
-      {colors.length > 0 && (
-        <div className="mb-4">
-          <p className="mb-3 text-sm text-gray-600">انتخاب رنگ :</p>
-          <div className="flex gap-3">
-            {colors.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedColor(c.id)}
-                title={c.label}
-                className={cn(
-                  "size-10 rounded-full border-2 transition-all",
-                  selectedColor === c.id
-                    ? "border-primary scale-110 shadow"
-                    : "border-transparent hover:border-gray-300",
-                )}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      <ProductColorPicker colors={colors} />
 
       <div className="my-4 h-px bg-gray-100" />
 
       {/* Guarantees */}
-      <ul className="mb-6 space-y-3">
-        {GUARANTEES.map(({ icon: Icon, label }) => (
-          <li key={label} className="flex items-center justify-between text-sm text-gray-600">
-            <span>{label}</span>
-            <Icon className="size-5 text-gray-400" />
-          </li>
-        ))}
-      </ul>
+      <ProductGuarantees className="mb-6" />
 
       {/* Add to cart */}
-      <button className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90">
-        <ShoppingCartIcon className="size-5" />
-        <span>افزودن به سبد خرید</span>
-      </button>
+      <AddToCartButton
+        item={cartItem}
+        className="bg-primary flex w-full items-center justify-center gap-2 rounded-[28px] py-3 text-sm font-semibold transition-opacity hover:opacity-90"
+        quantityClassName="justify-center"
+      />
     </div>
   );
 }
