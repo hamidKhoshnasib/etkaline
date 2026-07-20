@@ -36,6 +36,27 @@ export interface BackendHomeProduct {
   id: number;
 }
 
+export interface BackendLayoutProduct {
+  title: string;
+  urlTitle: string | null;
+  viewCount: number;
+  pic: string | null;
+  picUrl: string | null;
+  storeInfo: {
+    storeProductId: number;
+    storeId: number;
+    storeTitle: string;
+    mainPrice: number;
+    offPrice: number;
+    offPercent: number;
+    isOffer: boolean;
+    offerEndDate: string | null;
+    offerEndDateFa: string | null;
+  };
+  varieties: Array<{ title: string; isColor: boolean; description: string; id: number }>;
+  id: number;
+}
+
 // آیتم‌های layout همراه محصولات در پاسخ GetHomeProducts
 export interface BackendHomeProductGroup {
   layoutInfo: {
@@ -64,5 +85,19 @@ export function mapBackendProduct(product: BackendHomeProduct): Product {
     originalPrice: info.mainPrice > price ? info.mainPrice : undefined,
     discount: info.offPrecent > 0 ? info.offPrecent : undefined,
     outOfStock: !info.isExist || info.inventory <= 0,
+  };
+}
+
+export function mapBackendLayoutProduct(product: BackendLayoutProduct): Product {
+  const price =
+    product.storeInfo.offPrice > 0 ? product.storeInfo.offPrice : product.storeInfo.mainPrice;
+
+  return {
+    id: product.id,
+    title: product.title,
+    image: product.picUrl || product.pic || "/images/placeholder-product.png",
+    price,
+    originalPrice: product.storeInfo.mainPrice > price ? product.storeInfo.mainPrice : undefined,
+    discount: product.storeInfo.offPercent > 0 ? product.storeInfo.offPercent : undefined,
   };
 }

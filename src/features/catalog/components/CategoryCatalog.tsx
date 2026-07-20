@@ -18,6 +18,10 @@ import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import { ProductCardSkeleton } from "@/features/product/components/ProductCardSkeleton";
 import { getProductSearchQueryKey, searchProducts } from "@/services/products/search";
+import {
+  getSearchableCategoryProperties,
+  getSearchableCategoryPropertiesQueryKey,
+} from "@/services/categories/get-searchable-properties";
 
 import { FilterSidebar } from "./FilterSidebar";
 import { MobileFilterSheet } from "./MobileFilterSheet";
@@ -95,6 +99,7 @@ export default function CategoryCatalog({
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [priceRange, setPriceRange] = useState({ minPrice: 0, maxPrice: 0 });
   const [priceFilterResetKey, setPriceFilterResetKey] = useState(0);
+  const [selectedValueIds, setSelectedValueIds] = useState<number[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const request = {
@@ -112,12 +117,19 @@ export default function CategoryCatalog({
     justOffer: false,
     justDiscounted: false,
     currentProductId: 0,
-    valueIds: [],
+    valueIds: selectedValueIds,
   };
 
   const { data, error, isPending } = useQuery({
     queryKey: getProductSearchQueryKey(request),
     queryFn: ({ signal }) => searchProducts(request, signal),
+    retry: false,
+  });
+
+  const { data: properties = [] } = useQuery({
+    queryKey: getSearchableCategoryPropertiesQueryKey(categoryId),
+    queryFn: ({ signal }) => getSearchableCategoryProperties(categoryId, signal),
+    enabled: categoryId > 0,
     retry: false,
   });
 
@@ -140,6 +152,14 @@ export default function CategoryCatalog({
     setOnlyAvailable(false);
     setPriceRange({ minPrice: 0, maxPrice: 0 });
     setPriceFilterResetKey((value) => value + 1);
+    setSelectedValueIds([]);
+    setPage(1);
+  };
+
+  const toggleValue = (valueId: number) => {
+    setSelectedValueIds((current) =>
+      current.includes(valueId) ? current.filter((id) => id !== valueId) : [...current, valueId],
+    );
     setPage(1);
   };
 
@@ -147,16 +167,18 @@ export default function CategoryCatalog({
     onlyAvailable: boolean;
     minPrice: number;
     maxPrice: number;
+    valueIds: number[];
   }) => {
     setOnlyAvailable(filters.onlyAvailable);
     setPriceRange({ minPrice: filters.minPrice, maxPrice: filters.maxPrice });
+    setSelectedValueIds(filters.valueIds);
     setPage(1);
   };
 
   const totalPages = data?.pageCount ?? 0;
 
   return (
-    <main className="container mx-auto min-h-screen max-w-[1440px] bg-[#F8FAFC] px-4 pt-16 pb-24 lg:bg-transparent lg:px-6 lg:py-6 lg:pb-6">
+    <main className="container mx-auto min-h-screen bg-[#F8FAFC] px-4 pt-16 pb-24 lg:bg-transparent lg:px-6 lg:py-6 lg:pb-6">
       <h1 className="sr-only">{title}</h1>
 
       <MobilePageHeader
@@ -179,6 +201,8 @@ export default function CategoryCatalog({
         open={isMobileFilterOpen}
         onOpenChange={setIsMobileFilterOpen}
         onlyAvailable={onlyAvailable}
+        selectedValueIds={selectedValueIds}
+        properties={properties}
         onApply={applyMobileFilters}
       />
 
@@ -189,6 +213,9 @@ export default function CategoryCatalog({
           onApplyPrice={applyPriceRange}
           priceFilterResetKey={priceFilterResetKey}
           onClearFilters={clearFilters}
+          properties={properties}
+          selectedValueIds={selectedValueIds}
+          onToggleValue={toggleValue}
         />
 
         <div className="min-w-0 flex-1">

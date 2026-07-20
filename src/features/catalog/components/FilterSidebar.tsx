@@ -3,16 +3,11 @@
 import { FilterIcon, XSquareIcon } from "lucide-react";
 
 import { FilterSection } from "./FilterSection";
+import { FilterOptions } from "./FilterOptions";
 import { PriceFilter } from "./PriceFilter";
 import { Toggle } from "./Toggle";
 
-const FILTER_SECTIONS = [
-  { id: "color", label: "رنگ" },
-  { id: "brand", label: "برند" },
-  { id: "type", label: "نوع یخچال فریزر" },
-  { id: "capacity", label: "گنجایش کل به فوت" },
-  { id: "features", label: "امکانات اختصاصی یخچال" },
-];
+import type { SearchableProperty } from "@/services/categories/get-searchable-properties";
 
 interface FilterSidebarProps {
   onlyAvailable: boolean;
@@ -20,6 +15,9 @@ interface FilterSidebarProps {
   onApplyPrice: (range: { minPrice: number; maxPrice: number }) => void;
   priceFilterResetKey: number;
   onClearFilters: () => void;
+  properties: SearchableProperty[];
+  selectedValueIds: number[];
+  onToggleValue: (valueId: number) => void;
 }
 
 export function FilterSidebar({
@@ -28,6 +26,9 @@ export function FilterSidebar({
   onApplyPrice,
   priceFilterResetKey,
   onClearFilters,
+  properties,
+  selectedValueIds,
+  onToggleValue,
 }: FilterSidebarProps) {
   return (
     <aside className="hidden w-56 shrink-0 lg:block xl:w-60">
@@ -54,8 +55,14 @@ export function FilterSidebar({
 
       <PriceFilter key={priceFilterResetKey} onApply={onApplyPrice} />
 
-      {FILTER_SECTIONS.map((section) => (
-        <FilterSection key={section.id} label={section.label} />
+      {properties.map((property) => (
+        <FilterSection key={property.propertyId} label={property.propertyTitle}>
+          <FilterOptions
+            property={property}
+            selectedValueIds={selectedValueIds}
+            onToggle={onToggleValue}
+          />
+        </FilterSection>
       ))}
     </aside>
   );

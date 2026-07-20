@@ -6,15 +6,6 @@ import DynamicHomeLayout from "./DynamicHomeLayout";
 import { getHomeBanners } from "../api/get-home-banners";
 import { getHomeBrands } from "../api/get-home-brands";
 
-const sampleProducts = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  title: "ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M",
-  image: "https://via.placeholder.com/180x180?text=Product",
-  price: 580000000,
-  originalPrice: 828000000,
-  discount: 30,
-}));
-
 const _fallbackBrands = [
   {
     id: 1,
@@ -122,7 +113,7 @@ export default async function HomePage() {
       <HeroSwiper banners={banners} />
       <div className="container mx-auto mt-5 space-y-6 px-4 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
         <CategoryStrip />
-        <DynamicHomeLayout products={sampleProducts} />
+        <DynamicHomeLayout />
         {brands.length ? <PopularBrands brands={brands} /> : null}
         <MagSection articles={sampleArticles} showMoreLink="/mag" />
       </div>

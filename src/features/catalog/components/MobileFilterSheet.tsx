@@ -2,40 +2,58 @@
 
 import { useRef, useState, type PointerEvent } from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { ChevronDownIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 
 import { PriceFilter } from "./PriceFilter";
 import { Toggle } from "./Toggle";
+import { FilterSection } from "./FilterSection";
+import { FilterOptions } from "./FilterOptions";
 
-const FILTER_LABELS = ["رنگ", "برند", "نوع یخچال فریزر", "گنجایش کل به فوت"];
+import type { SearchableProperty } from "@/services/categories/get-searchable-properties";
 
 interface MobileFilterSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onlyAvailable: boolean;
-  onApply: (filters: { onlyAvailable: boolean; minPrice: number; maxPrice: number }) => void;
+  selectedValueIds: number[];
+  properties: SearchableProperty[];
+  onApply: (filters: {
+    onlyAvailable: boolean;
+    minPrice: number;
+    maxPrice: number;
+    valueIds: number[];
+  }) => void;
 }
 
 export function MobileFilterSheet({
   open,
   onOpenChange,
   onlyAvailable,
+  selectedValueIds,
+  properties,
   onApply,
 }: MobileFilterSheetProps) {
   const [draftAvailable, setDraftAvailable] = useState(onlyAvailable);
   const [draftPrice, setDraftPrice] = useState({ minPrice: 100_000_000, maxPrice: 1_000_000_000 });
+  const [draftValueIds, setDraftValueIds] = useState(selectedValueIds);
   const [dragOffset, setDragOffset] = useState(0);
   const dragStartY = useRef<number | null>(null);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setDraftAvailable(onlyAvailable);
+      setDraftValueIds(selectedValueIds);
     }
     setDragOffset(0);
     onOpenChange(nextOpen);
+  };
+
+  const toggleDraftValue = (valueId: number) => {
+    setDraftValueIds((current) =>
+      current.includes(valueId) ? current.filter((id) => id !== valueId) : [...current, valueId],
+    );
   };
 
   const handleDragStart = (event: PointerEvent<HTMLButtonElement>) => {
@@ -94,15 +112,14 @@ export function MobileFilterSheet({
                 onRangeChange={setDraftPrice}
               />
 
-              {FILTER_LABELS.map((label) => (
-                <button
-                  key={label}
-                  type="button"
-                  className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-5 text-base font-medium text-slate-950"
-                >
-                  <span>{label}</span>
-                  <ChevronDownIcon className="text-secondary size-6" />
-                </button>
+              {properties.map((property) => (
+                <FilterSection key={property.propertyId} label={property.propertyTitle}>
+                  <FilterOptions
+                    property={property}
+                    selectedValueIds={draftValueIds}
+                    onToggle={toggleDraftValue}
+                  />
+                </FilterSection>
               ))}
             </div>
           </div>
@@ -111,7 +128,7 @@ export function MobileFilterSheet({
             type="button"
             className="mt-4 h-12 w-full rounded-full text-base font-bold"
             onClick={() => {
-              onApply({ onlyAvailable: draftAvailable, ...draftPrice });
+              onApply({ onlyAvailable: draftAvailable, ...draftPrice, valueIds: draftValueIds });
               onOpenChange(false);
             }}
           >

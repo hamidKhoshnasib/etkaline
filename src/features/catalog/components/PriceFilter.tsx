@@ -17,7 +17,7 @@ interface PriceFilterProps {
 }
 
 function formatPrice(value: number) {
-  return `${new Intl.NumberFormat("fa-IR").format(value)} تومان`;
+  return new Intl.NumberFormat("fa-IR").format(value);
 }
 
 function parsePrice(value: string) {
@@ -113,40 +113,50 @@ export function PriceFilter({
 
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-slate-400">محدودیت قیمت از</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={minInput}
-              onChange={(event) => setMinInput(event.target.value)}
-              onBlur={() => {
-                const value = parsePrice(minInput);
-                if (value === null) {
-                  setMinInput(formatPrice(minPrice));
-                  return;
-                }
-                updateMinPrice(value);
-              }}
-              className="focus:border-primary w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition-colors outline-none"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={minInput}
+                onChange={(event) => setMinInput(event.target.value)}
+                onBlur={() => {
+                  const value = parsePrice(minInput);
+                  if (value === null) {
+                    setMinInput(formatPrice(minPrice));
+                    return;
+                  }
+                  updateMinPrice(value);
+                }}
+                className="focus:border-primary w-full rounded-lg border border-slate-200 py-2 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
+              />
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">
+                تومان
+              </span>
+            </div>
           </label>
 
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-slate-400">محدودیت قیمت تا</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={maxInput}
-              onChange={(event) => setMaxInput(event.target.value)}
-              onBlur={() => {
-                const value = parsePrice(maxInput);
-                if (value === null) {
-                  setMaxInput(formatPrice(maxPrice));
-                  return;
-                }
-                updateMaxPrice(value);
-              }}
-              className="focus:border-primary w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition-colors outline-none"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={maxInput}
+                onChange={(event) => setMaxInput(event.target.value)}
+                onBlur={() => {
+                  const value = parsePrice(maxInput);
+                  if (value === null) {
+                    setMaxInput(formatPrice(maxPrice));
+                    return;
+                  }
+                  updateMaxPrice(value);
+                }}
+                className="focus:border-primary w-full rounded-lg border border-slate-200 py-2 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
+              />
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">
+                تومان
+              </span>
+            </div>
           </label>
 
           {showApplyButton ? (

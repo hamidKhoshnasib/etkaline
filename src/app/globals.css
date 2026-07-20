@@ -1,3 +1,4 @@
+@import "swiper/css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -164,6 +165,22 @@
 }
 
 @layer components {
+  .product-swiper:not(.swiper-initialized) .swiper-slide {
+    width: calc((100% - 1rem) / 3);
+  }
+
+  @media (width >= 64rem) {
+    .product-swiper:not(.swiper-initialized) .swiper-slide {
+      width: calc((100% - 2rem) / 5);
+    }
+  }
+
+  @media (width >= 80rem) {
+    .product-swiper:not(.swiper-initialized) .swiper-slide {
+      width: calc((100% - 3rem) / 7);
+    }
+  }
+
   .etkaline-pattern {
     > * {
       position: relative;

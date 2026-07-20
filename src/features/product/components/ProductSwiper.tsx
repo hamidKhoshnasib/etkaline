@@ -8,7 +8,6 @@ import { MoveLeft, MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
-import "swiper/css";
 
 interface ProductSwiperProps<T extends { id: number | string }> {
   items: T[];
@@ -48,6 +47,7 @@ export default function ProductSwiper<T extends { id: number | string }>({
 
       <Swiper
         key={swiperKey}
+        className="product-swiper"
         modules={[Navigation]}
         onSwiper={(s) => {
           swiperRef.current = s;

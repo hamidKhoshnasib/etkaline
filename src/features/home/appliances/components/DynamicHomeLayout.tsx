@@ -4,6 +4,11 @@ import { userAgentFromString } from "next/server";
 import CategoryGridCard from "@/features/catalog/components/CategoryGridCard";
 import ProductSection from "@/features/product/components/ProductSection";
 import ProductSectionList from "@/features/product/components/ProductSectionList";
+import { getProductsByLayoutId } from "@/features/product/api/get-products-by-layout-id";
+import {
+  getBannersByLayoutId,
+  type LayoutBanner,
+} from "@/features/home/appliances/api/get-layout-banners";
 import CategoryBanners from "./CategoryBanners";
 import FlashDeals from "./FlashDeals";
 import {
@@ -13,25 +18,37 @@ import {
   type HomePlatformType,
 } from "@/lib/home-layout";
 
-interface ProductItem {
-  id: number | string;
-  title: string;
-  image: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
+function isProductLayout(item: HomeLayoutItem) {
+  return (
+    item.componentType === HOME_COMPONENT_TYPE.SINGLE_ROW_SLIDER ||
+    item.componentType === HOME_COMPONENT_TYPE.TWO_ROW_GRID ||
+    item.componentType === HOME_COMPONENT_TYPE.GRID_2X2 ||
+    item.componentType === HOME_COMPONENT_TYPE.OFFER
+  );
 }
 
-interface DynamicHomeLayoutProps {
-  products: ProductItem[];
+function isBannerLayout(item: HomeLayoutItem) {
+  return item.componentType === HOME_COMPONENT_TYPE.BANNER;
 }
 
-function renderLayoutItem(item: HomeLayoutItem, products: ProductItem[]) {
+function renderLayoutItem(
+  item: HomeLayoutItem,
+  products: Awaited<ReturnType<typeof getProductsByLayoutId>>,
+  banners: LayoutBanner[],
+) {
   const description = item.subTitle ?? item.targetTitle ?? undefined;
+
+  if (isProductLayout(item) && products.length === 0) {
+    return null;
+  }
+
+  if (isBannerLayout(item) && banners.length === 0) {
+    return null;
+  }
 
   switch (item.componentType) {
     case HOME_COMPONENT_TYPE.BANNER:
-      return <CategoryBanners key={item.id} />;
+      return <CategoryBanners key={item.id} banners={banners} />;
     case HOME_COMPONENT_TYPE.SINGLE_ROW_SLIDER:
       return (
         <ProductSection
@@ -63,18 +80,28 @@ function renderLayoutItem(item: HomeLayoutItem, products: ProductItem[]) {
         />
       );
     case HOME_COMPONENT_TYPE.OFFER:
-      return <FlashDeals key={item.id} />;
+      return <FlashDeals key={item.id} items={products} />;
     default:
       return null;
   }
 }
 
-export default async function DynamicHomeLayout({ products }: DynamicHomeLayoutProps) {
+export default async function DynamicHomeLayout() {
   const requestHeaders = await headers();
   const { device } = userAgentFromString(requestHeaders.get("user-agent") ?? undefined);
   const platformType: HomePlatformType =
     device.type === "mobile" || device.type === "tablet" ? 2 : 1;
   const layout = await getHomeLayout(2, platformType);
 
-  return layout.map((item) => renderLayoutItem(item, products));
+  const layoutItems = await Promise.all(
+    layout.map(async (item) => ({
+      item,
+      products: isProductLayout(item) ? await getProductsByLayoutId(item.id) : [],
+      banners: isBannerLayout(item) ? await getBannersByLayoutId(item.id) : [],
+    })),
+  );
+
+  return layoutItems.map(({ item, products, banners }) =>
+    renderLayoutItem(item, products, banners),
+  );
 }

@@ -1,27 +1,38 @@
 import Image from "next/image";
-import img1 from "@/assets/images/Group 16.png";
-import img2 from "@/assets/images/image 41.png";
-import img3 from "@/assets/images/image 42.png";
-import img4 from "@/assets/images/image 43.png";
-import img5 from "@/assets/images/image 45.png";
+import Link from "next/link";
 
-const banners = [
-  { src: img1, alt: "خرید انواع همزن ساده و کاسه‌دار" },
-  { src: img2, alt: "خرید انواع سرخ‌کن رژیمی و معمولی" },
-  { src: img3, alt: "خرید انواع پلوپز چندکاره و دیجیتالی" },
-  { src: img4, alt: "خرید انواع همزن ساده و کاسه‌دار" },
-  { src: img5, alt: "خرید انواع سرخ‌کن رژیمی و معمولی" },
-];
+import type { LayoutBanner } from "@/features/home/appliances/api/get-layout-banners";
 
-export default function CategoryBanners() {
+interface CategoryBannersProps {
+  banners: LayoutBanner[];
+}
+
+export default function CategoryBanners({ banners }: CategoryBannersProps) {
   return (
     <section className="w-full">
       <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-5">
-        {banners.map((banner, i) => (
-          <div key={i} className="flex-1 cursor-pointer overflow-hidden rounded-2xl">
-            <Image src={banner.src} alt={banner.alt} className="h-auto w-full object-cover" />
-          </div>
-        ))}
+        {banners.map((banner) => {
+          const image = (
+            <Image
+              src={banner.image}
+              alt={banner.title}
+              width={banner.width}
+              height={banner.height}
+              sizes="(min-width: 640px) 20vw, 50vw"
+              className="h-auto w-full object-cover"
+            />
+          );
+
+          return banner.href ? (
+            <Link key={banner.id} href={banner.href} className="flex-1 overflow-hidden rounded-2xl">
+              {image}
+            </Link>
+          ) : (
+            <div key={banner.id} className="flex-1 overflow-hidden rounded-2xl">
+              {image}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
