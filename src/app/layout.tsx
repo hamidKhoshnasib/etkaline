@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/widgets/footer";
@@ -23,12 +22,6 @@ const iranYekan = localFont({
     },
   ],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
   display: "swap",
 });
 
@@ -60,12 +53,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="fa"
-      dir="rtl"
-      className={`${iranYekan.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <html lang="fa" dir="rtl" className={`${iranYekan.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <DirectionProvider direction="rtl">
           <Providers>
             <Header />
