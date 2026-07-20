@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, MapPin } from "lucide-react";
+import { AddressPicker } from "./AddressPicker";
 import type { MenuCategory } from "./header.config";
 import { navLinks } from "./header.config";
 import { MegaMenu } from "./MegaMenu";
@@ -54,18 +55,15 @@ export function NavBar({ categories }: NavBarProps) {
                 aria-expanded={isOpen}
                 disabled={categories.length === 0}
                 onClick={() => setIsOpen((current) => !current)}
-                className={`label-large flex items-center gap-3 transition-colors ${
-                  isOpen ? "text-primary-hover" : "text-gray-600"
+                className={`label-large flex h-full items-center gap-3 border-b-2 transition-colors ${
+                  isOpen
+                    ? "border-primary-hover text-primary-hover"
+                    : "border-transparent text-gray-600"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 <CategoryIcon className="size-[18px] shrink-0" aria-hidden="true" />
                 <span>{categoriesLink.label}</span>
               </button>
-              <span
-                className={`bg-primary-hover absolute inset-x-0 bottom-3 h-0.5 rounded-full transition-opacity ${
-                  isOpen ? "opacity-100" : "opacity-0"
-                }`}
-              />
             </div>
 
             {otherNavLinks.map(({ href, label, icon: Icon }) => (
@@ -81,11 +79,18 @@ export function NavBar({ categories }: NavBarProps) {
           </nav>
 
           {/* Address picker */}
-          <button className="label-medium flex items-center gap-1.5 text-gray-700">
-            <MapPin size={18} className="text-primary-hover" />
-            <span>انتخاب آدرس...</span>
-            <ChevronDown size={14} className="ms-2" />
-          </button>
+          <AddressPicker
+            trigger={
+              <button
+                className="label-medium flex items-center gap-1.5 text-gray-700"
+                type="button"
+              >
+                <MapPin size={18} className="text-primary-hover" />
+                <span>انتخاب آدرس...</span>
+                <ChevronDown size={14} className="ms-2" />
+              </button>
+            }
+          />
         </div>
       </div>
 
