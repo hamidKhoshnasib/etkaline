@@ -7,17 +7,9 @@ export function makeQueryClient() {
         staleTime: 60 * 1000,
         retry: 0,
         refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
       },
+      mutations: { retry: 0 },
     },
   });
-}
-
-let browserQueryClient: QueryClient | undefined;
-
-export function getQueryClient() {
-  if (typeof window === "undefined") {
-    return makeQueryClient();
-  }
-  browserQueryClient ??= makeQueryClient();
-  return browserQueryClient;
 }

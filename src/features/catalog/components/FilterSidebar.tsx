@@ -7,7 +7,7 @@ import { FilterOptions } from "./FilterOptions";
 import { PriceFilter } from "./PriceFilter";
 import { Toggle } from "./Toggle";
 
-import type { SearchableProperty } from "@/services/categories/get-searchable-properties";
+import type { SearchableProperty } from "@/features/catalog/api/use-catalog-queries";
 
 interface FilterSidebarProps {
   onlyAvailable: boolean;

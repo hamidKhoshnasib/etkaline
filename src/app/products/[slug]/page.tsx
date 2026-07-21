@@ -1,7 +1,7 @@
 import { ProductDetail } from "@/features/product";
 import { getProductDetail } from "@/features/product/api/get-product-detail";
 import type { Metadata } from "next";
-import { SITE_NAME, SITE_URL } from "@/shared/config/site";
+import { SITE_NAME, SITE_URL } from "@/config/site";
 
 type ProductDetailPageProps = {
   params: Promise<{ slug: string }>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { SectionHeader } from "@/shared/ui/molecules";
+import SectionHeader from "@/components/ui/SectionHeader";
 import ProductSwiper from "@/features/product/components/ProductSwiper";
 import { ProductCard, type ProductCardProps } from "@/features/product/components/ProductCard";
 

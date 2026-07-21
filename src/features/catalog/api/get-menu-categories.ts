@@ -1,23 +1,18 @@
 import "server-only";
 
-import type { MenuCategory } from "@/components/layout/header/header.config";
+import type { MenuCategory } from "@/features/catalog/model/menu-category";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 interface CategoriesResponse {
   value?: unknown;
   isSuccess?: boolean;
-  errors?: string[];
-  message?: string;
 }
 
 interface ApiCategory {
   id: number;
   title: string;
   parentId: number | null;
-  urlTitle: string;
   order: number;
   iconName: string;
   subCategories: ApiCategory[];
@@ -39,7 +34,6 @@ function parseCategory(value: unknown): ApiCategory | null {
     !isInteger(category.order) ||
     typeof category.title !== "string" ||
     !category.title.trim() ||
-    typeof category.urlTitle !== "string" ||
     typeof category.iconName !== "string"
   ) {
     return null;
@@ -49,7 +43,6 @@ function parseCategory(value: unknown): ApiCategory | null {
     id: category.id,
     title: category.title.trim(),
     parentId: category.parentId,
-    urlTitle: category.urlTitle.trim(),
     order: category.order,
     iconName: category.iconName,
     subCategories: Array.isArray(category.subCategories)
@@ -58,10 +51,6 @@ function parseCategory(value: unknown): ApiCategory | null {
           .filter((subCategory): subCategory is ApiCategory => subCategory !== null)
       : [],
   };
-}
-
-function categoryHref(category: ApiCategory): string {
-  return `/categories/${category.id}`;
 }
 
 function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
@@ -74,14 +63,13 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
       nodes.set(category.id, {
         id: category.id,
         title: category.title,
-        href: categoryHref(category),
+        href: `/categories/${category.id}`,
         iconName: category.iconName,
         children: [],
       });
       parents.set(category.id, category.parentId);
       orders.set(category.id, category.order);
     }
-
     category.subCategories.forEach(addCategory);
   };
 
@@ -111,15 +99,12 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
 }
 
 export async function getMenuCategories(): Promise<MenuCategory[]> {
-  const url = new URL("/api/Categories", API_BASE_URL);
-
   try {
-    const response = await fetch(url, {
+    const response = await fetch(new URL("/api/Categories", getServerApiBaseUrl()), {
       headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
       next: { revalidate: 300, tags: ["menu-categories"] },
       signal: AbortSignal.timeout(15_000),
     });
-
     if (!response.ok) {
       return [];
     }
@@ -144,13 +129,11 @@ function findCategoryById(categories: MenuCategory[], categoryId: number): MenuC
     if (category.id === categoryId) {
       return category;
     }
-
     const child = findCategoryById(category.children, categoryId);
     if (child) {
       return child;
     }
   }
-
   return null;
 }
 
@@ -158,6 +141,5 @@ export async function getMenuCategoryById(categoryId: number): Promise<MenuCateg
   if (!Number.isInteger(categoryId) || categoryId <= 0) {
     return null;
   }
-
   return findCategoryById(await getMenuCategories(), categoryId);
 }

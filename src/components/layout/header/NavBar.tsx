@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, MapPin } from "lucide-react";
 import { AddressPicker } from "./AddressPicker";
-import type { MenuCategory } from "./header.config";
+import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import { navLinks } from "./header.config";
 import { MegaMenu } from "./MegaMenu";
 

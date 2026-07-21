@@ -1,14 +1,14 @@
 "use client";
 
-import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 import { getSession, signOut } from "next-auth/react";
 
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { API_DEFAULT_HEADERS, API_TIMEOUT_MS, getClientApiBaseUrl } from "@/lib/api-config";
 
 export const axiosClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir",
-  headers: { "Content-Type": "application/json", ...SITE_TYPE_HEADERS },
-  timeout: 15_000,
+  baseURL: getClientApiBaseUrl(),
+  headers: API_DEFAULT_HEADERS,
+  timeout: API_TIMEOUT_MS,
 });
 
 axiosClient.interceptors.request.use(async (config) => {
@@ -39,7 +39,7 @@ axiosClient.interceptors.response.use(
 export type ApiError = AxiosError<{ message: string }>;
 
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof AxiosError) {
+  if (axios.isAxiosError(error)) {
     return (error.response?.data as { message?: string })?.message ?? error.message;
   }
   return "خطای ناشناخته‌ای رخ داد";

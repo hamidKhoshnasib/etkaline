@@ -1,6 +1,10 @@
-import { axiosClient } from "@/lib/axios-client";
+"use client";
 
-export const HOME_ADVERTISEMENT_QUERY_KEY = ["home-advertisement"] as const;
+import { useApiQuery } from "@/hooks/use-api-query";
+import { createFeatureQueryKey } from "@/lib/query-cache/create-feature-query-key";
+
+const GET_ADVERTISEMENT = "/api/Advertisements";
+const homeQueryKey = createFeatureQueryKey("home", "appliance");
 
 export interface HomeAdvertisement {
   text: string;
@@ -14,16 +18,10 @@ export interface HomeAdvertisement {
   id: number;
 }
 
-interface HomeAdvertisementResponse {
-  value?: unknown;
-  isSuccess?: boolean;
-}
-
-function isHomeAdvertisement(value: unknown): value is HomeAdvertisement {
+function isAdvertisement(value: unknown): value is HomeAdvertisement {
   if (!value || typeof value !== "object") {
     return false;
   }
-
   const advertisement = value as Record<string, unknown>;
   return (
     typeof advertisement.text === "string" &&
@@ -39,7 +37,21 @@ function isHomeAdvertisement(value: unknown): value is HomeAdvertisement {
   );
 }
 
-export async function getHomeAdvertisement(): Promise<HomeAdvertisement | null> {
-  const { data: payload } = await axiosClient.get<HomeAdvertisementResponse>("/api/Advertisements");
-  return payload.isSuccess && isHomeAdvertisement(payload.value) ? payload.value : null;
+function parseAdvertisement(raw: unknown): HomeAdvertisement | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const response = raw as Record<string, unknown>;
+  return response.isSuccess === true && isAdvertisement(response.value) ? response.value : null;
+}
+
+export function useHomeAdvertisement(enabled: boolean) {
+  return useApiQuery<unknown, HomeAdvertisement | null>({
+    url: GET_ADVERTISEMENT,
+    queryKey: homeQueryKey("advertisement"),
+    select: parseAdvertisement,
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
 }

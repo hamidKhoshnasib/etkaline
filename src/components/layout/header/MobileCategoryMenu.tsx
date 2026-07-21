@@ -7,7 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { CategoryMenuIcon } from "./CategoryMenuIcon";
-import type { MenuCategory } from "./header.config";
+import type { MenuCategory } from "@/features/catalog/model/menu-category";
 
 interface MobileCategoryMenuProps {
   categories: MenuCategory[];

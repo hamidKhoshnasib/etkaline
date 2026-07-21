@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_URL } from "@/shared/config/site";
+import { SITE_URL } from "@/config/site";
 
 const publicRoutes = ["/", "/products", "/blog", "/contact-us"] as const;
 

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Fragment, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, FilterIcon } from "lucide-react";
 
 import {
@@ -17,11 +16,10 @@ import { Pagination } from "@/components/ui/Pagination";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import { ProductCardSkeleton } from "@/features/product/components/ProductCardSkeleton";
-import { getProductSearchQueryKey, searchProducts } from "@/services/products/search";
 import {
-  getSearchableCategoryProperties,
-  getSearchableCategoryPropertiesQueryKey,
-} from "@/services/categories/get-searchable-properties";
+  useProductSearch,
+  useSearchableCategoryProperties,
+} from "@/features/catalog/api/use-catalog-queries";
 
 import { FilterSidebar } from "./FilterSidebar";
 import { MobileFilterSheet } from "./MobileFilterSheet";
@@ -120,18 +118,8 @@ export default function CategoryCatalog({
     valueIds: selectedValueIds,
   };
 
-  const { data, error, isPending } = useQuery({
-    queryKey: getProductSearchQueryKey(request),
-    queryFn: ({ signal }) => searchProducts(request, signal),
-    retry: false,
-  });
-
-  const { data: properties = [] } = useQuery({
-    queryKey: getSearchableCategoryPropertiesQueryKey(categoryId),
-    queryFn: ({ signal }) => getSearchableCategoryProperties(categoryId, signal),
-    enabled: categoryId > 0,
-    retry: false,
-  });
+  const { data, error, isPending } = useProductSearch(request);
+  const { data: properties = [] } = useSearchableCategoryProperties(categoryId);
 
   const updateSort = (nextSort: string) => {
     setSort(nextSort);

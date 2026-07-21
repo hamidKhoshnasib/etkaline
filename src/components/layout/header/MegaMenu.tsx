@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
 import { CategoryMenuIcon } from "./CategoryMenuIcon";
-import type { MenuCategory } from "./header.config";
+import type { MenuCategory } from "@/features/catalog/model/menu-category";
 
 interface MegaMenuProps {
   categories: MenuCategory[];

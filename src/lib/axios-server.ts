@@ -1,12 +1,12 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 import { cookies, headers } from "next/headers";
 
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { API_DEFAULT_HEADERS, API_TIMEOUT_MS, getServerApiBaseUrl } from "@/lib/api-config";
 
 export const axiosServer = axios.create({
-  baseURL: process.env.API_BASE_URL,
-  headers: { "Content-Type": "application/json", ...SITE_TYPE_HEADERS },
-  timeout: 15_000,
+  baseURL: getServerApiBaseUrl(),
+  headers: API_DEFAULT_HEADERS,
+  timeout: API_TIMEOUT_MS,
 });
 
 axiosServer.interceptors.request.use(async (config) => {

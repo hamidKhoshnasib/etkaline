@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
-import { Footer } from "@/widgets/footer";
-import { Header } from "@/widgets/header";
+import { Footer } from "@/components/layout/footer/Footer";
+import { Header } from "@/components/layout/header/Header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
-import { SITE_NAME, SITE_URL } from "@/shared/config/site";
+import { SITE_NAME, SITE_URL } from "@/config/site";
 import "./globals.css";
 
 const iranYekan = localFont({
   src: [
     {
-      path: "./fonts/IRANYekanXFaNum-Regular.woff",
+      path: "../assets/fonts/IRANYekanXFaNum-Regular.woff",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./fonts/IRANYekanXFaNum-Bold.woff",
+      path: "../assets/fonts/IRANYekanXFaNum-Bold.woff",
       weight: "700",
       style: "normal",
     },

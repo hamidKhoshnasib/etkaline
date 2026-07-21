@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowUpLeft, Menu, Search, X } from "lucide-react";
 import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 import { Spinner } from "@/components/ui/spinner";
+import { useSearchbar } from "@/features/search/api/use-searchbar";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { getSearchbarQueryKey, getSearchbarResults } from "@/services/products/searchbar";
 
 const recentSearches = [
   "ماشین لباسشویی",
@@ -29,13 +28,10 @@ export function HeaderSearch() {
   const debouncedQuery = useDebouncedValue(normalizedQuery);
   const hasSearchQuery = normalizedQuery.length >= 2;
   const isCurrentQuery = debouncedQuery === normalizedQuery;
-  const { data, error, isFetching } = useQuery({
-    queryKey: getSearchbarQueryKey(debouncedQuery),
-    queryFn: ({ signal }) => getSearchbarResults(debouncedQuery, signal),
-    enabled: isOpen && hasSearchQuery && isCurrentQuery,
-    staleTime: 30_000,
-    retry: false,
-  });
+  const { data, error, isFetching } = useSearchbar(
+    debouncedQuery,
+    isOpen && hasSearchQuery && isCurrentQuery,
+  );
 
   const showResults = isOpen && normalizedQuery.length > 0;
   const isSearching = hasSearchQuery && (isFetching || !isCurrentQuery);

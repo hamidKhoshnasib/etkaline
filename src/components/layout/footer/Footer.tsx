@@ -7,7 +7,7 @@ import Enamad from "@/assets/icons/enamad-icon.svg";
 import Etehadie from "@/assets/icons/etehadie-icon.svg";
 import Samandehi from "@/assets/icons/samandehi-icon.svg";
 import Social1 from "@/assets/icons/social-1.svg";
-import { getFooterDescription } from "@/services/home/get-footer-description";
+import { getFooterDescription } from "@/features/home/appliances/api/get-footer-description";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 

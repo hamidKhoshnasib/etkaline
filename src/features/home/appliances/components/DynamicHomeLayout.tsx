@@ -9,14 +9,14 @@ import {
   getBannersByLayoutId,
   type LayoutBanner,
 } from "@/features/home/appliances/api/get-layout-banners";
-import CategoryBanners from "./CategoryBanners";
-import FlashDeals from "./FlashDeals";
 import {
   getHomeLayout,
   HOME_COMPONENT_TYPE,
   type HomeLayoutItem,
   type HomePlatformType,
-} from "@/lib/home-layout";
+} from "@/features/home/appliances/api/get-home-layout";
+import CategoryBanners from "./CategoryBanners";
+import FlashDeals from "./FlashDeals";
 
 function isProductLayout(item: HomeLayoutItem) {
   return (

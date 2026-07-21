@@ -18,7 +18,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Spinner } from "@/shared/ui/atoms";
+import { Spinner } from "@/components/ui/spinner";
 import {
   isValidMobile as validateMobile,
   isValidOtp as validateOtp,

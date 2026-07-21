@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
 
 export type HomeLayoutType = 1 | 2;
@@ -33,9 +34,6 @@ interface HomeLayoutResponse {
   errors: string[];
   message: string;
 }
-
-const HOME_API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 const DEFAULT_APPLIANCE_LAYOUT: HomeLayoutItem[] = [
   {
@@ -88,17 +86,14 @@ export async function getHomeLayout(
   layoutType: HomeLayoutType,
   platformType: HomePlatformType,
 ): Promise<HomeLayoutItem[]> {
-  const url = new URL("/api/Home/GetLayout", HOME_API_BASE_URL);
+  const url = new URL("/api/Home/GetLayout", getServerApiBaseUrl());
   url.searchParams.set("LayoutType", String(layoutType));
   url.searchParams.set("PlatformType", String(platformType));
 
   try {
     const response = await fetch(url, {
       headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: {
-        revalidate: 300,
-        tags: [`home-layout-${layoutType}-${platformType}`],
-      },
+      next: { revalidate: 300, tags: [`home-layout-${layoutType}-${platformType}`] },
       signal: AbortSignal.timeout(15_000),
     });
 

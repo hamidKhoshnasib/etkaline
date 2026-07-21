@@ -8,7 +8,7 @@ import { Grid2X2, House, ShoppingCart, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { MobileCategoryMenu } from "./MobileCategoryMenu";
-import type { MenuCategory } from "./header.config";
+import type { MenuCategory } from "@/features/catalog/model/menu-category";
 
 const navigationItems = [
   { href: "/", label: "خانه", Icon: House, exact: true, opensCategoryMenu: false },

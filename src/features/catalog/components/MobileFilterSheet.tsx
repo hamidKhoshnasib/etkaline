@@ -11,7 +11,7 @@ import { Toggle } from "./Toggle";
 import { FilterSection } from "./FilterSection";
 import { FilterOptions } from "./FilterOptions";
 
-import type { SearchableProperty } from "@/services/categories/get-searchable-properties";
+import type { SearchableProperty } from "@/features/catalog/api/use-catalog-queries";
 
 interface MobileFilterSheetProps {
   open: boolean;

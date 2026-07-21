@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/atoms";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProductCardSkeleton() {
   return (

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CategoryCatalog } from "@/features/catalog";
-import { SITE_NAME, SITE_URL } from "@/shared/config/site";
-import { getMenuCategoryById } from "@/services/categories/get-menu-categories";
+import { getMenuCategoryById } from "@/features/catalog/api/get-menu-categories";
+import { SITE_NAME, SITE_URL } from "@/config/site";
 
 interface CategoryProductsPageProps {
   params: Promise<{ id: string }>;

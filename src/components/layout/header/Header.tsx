@@ -5,7 +5,7 @@ import { HeaderAuth } from "./HeaderAuth";
 import { MobileHeader } from "./MobileHeader";
 import { HomeAdvertisement } from "./HomeAdvertisement";
 import { MobileBottomNav } from "./MobileBottomNav";
-import { getMenuCategories } from "@/services/categories/get-menu-categories";
+import { getMenuCategories } from "@/features/catalog/api/get-menu-categories";
 
 export async function Header() {
   const categories = await getMenuCategories();

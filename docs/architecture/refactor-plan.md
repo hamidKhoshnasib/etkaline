@@ -8,7 +8,7 @@
 | Last updated  | 2026-07-13                                               |
 | Current scope | Home-appliance storefront, customer account, CMS content |
 | Out of scope  | Supermarket implementation and migration                 |
-| Architecture  | Feature-based with Atomic Design limited to shared UI    |
+| Architecture  | Feature-based with common UI primitives                  |
 | Migration     | Incremental; no big-bang rewrite                         |
 
 This is a living document. Update its decisions, checklists, risks, and progress after every approved
@@ -65,9 +65,9 @@ phase. A proposed decision is not approved until the user explicitly confirms it
 
 <!-- تمام تصمیم‌های ساختاری باید از این اصول پیروی کنند. -->
 
-1. Feature ownership is primary; Atomic Design is secondary.
+1. Feature ownership is primary; common UI primitives remain domain-neutral.
 2. Server Components are the default; Client Components are the smallest interactive leaves.
-3. Routes compose features and widgets but do not own feature business logic.
+3. Routes compose features and layout components but do not own feature business logic.
 4. Shared code is domain-neutral and useful to more than one feature.
 5. Feature internals are private and exposed through a deliberate public API.
 6. Business components never live beside shadcn primitives.
@@ -126,22 +126,12 @@ src/
 │   ├── cms-page/
 │   ├── blog/
 │   └── home/appliances/
-├── widgets/
-│   ├── header/
-│   ├── footer/
-│   ├── product-grid/
-│   ├── product-section/
-│   ├── cart-summary/
-│   └── account-sidebar/
-└── shared/
-    ├── ui/
-    │   ├── atoms/
-    │   └── molecules/
-    ├── api/
-    ├── lib/
-    ├── config/
-    ├── types/
-    └── assets/
+├── components/
+│   ├── ui/
+│   └── layout/
+├── config/
+├── lib/
+└── assets/
 ```
 
 ## 6. Feature contract
@@ -176,32 +166,31 @@ features/product/
 
 Do not create a folder merely to satisfy the template.
 
-## 7. Atomic Design mapping
+## 7. Shared UI boundaries
 
-<!-- Atomic Design فقط برای UI مشترک استفاده می‌شود تا فیچرها دوباره مخلوط نشوند. -->
+<!-- Shared UI primitives stay domain-neutral while domain UI remains feature-owned. -->
 
-| Level               | Location                        | Examples                                                        |
-| ------------------- | ------------------------------- | --------------------------------------------------------------- |
-| Atoms               | `shared/ui/atoms`               | Button, Input, Label, Dialog, Skeleton, Spinner, Separator      |
-| Molecules           | `shared/ui/molecules`           | FormField, Pagination, EmptyState, ConfirmDialog, SectionHeader |
-| Organism equivalent | `widgets` or feature components | Header, Footer, ProductGrid, CartSummary                        |
-| Pages               | `app` route composition         | Appliance home, product, account, CMS                           |
+| Responsibility      | Location                | Examples                                             |
+| ------------------- | ----------------------- | ---------------------------------------------------- |
+| Shared UI primitive | `components/ui`         | Button, Input, Dialog, Skeleton, Spinner, Pagination |
+| Shared layout       | `components/layout`     | Header, Footer, navigation                           |
+| Domain UI           | `features/<feature>`    | ProductCard, CartItemRow, OrderSummary, BlogCard     |
+| Pages               | `app` route composition | Appliance home, product, account, CMS                |
 
-`ProductCard`, `CartItemRow`, `OrderSummary`, and `BlogCard` belong to their features even when they
-visually resemble an Atomic level.
+Shared primitives must not contain domain data or feature-specific behavior.
 
 ## 8. Dependency rules
 
 <!-- جهت وابستگی باید یک‌طرفه و قابل پیش‌بینی باشد. -->
 
 ```text
-app → widgets → features → shared
+app → layout/features → lib/config
 ```
 
-- `shared` imports no feature, widget, or route code.
-- Features may import `shared` but not route files.
-- Widgets may compose feature public APIs and shared UI.
-- Routes may compose widgets and features.
+- `lib` and `config` import no feature, layout, or route code.
+- Features may import `lib`, `config`, and `components/ui` but not route files.
+- Layout components may compose feature public APIs and UI primitives.
+- Routes may compose layout components and features.
 - Features do not import another feature's private files.
 - Data/model files do not import presentation prop types.
 - Children do not import orchestration types from parent entry components.
@@ -316,17 +305,17 @@ Priority: Critical
 - [ ] Run baseline lint, type-check, format-check, and build.
 - [ ] Confirm naming, ownership, and phase approval workflow.
 
-### Phase 1 — Shared foundation and Atomic UI
+### Phase 1 — Shared foundation and component UI
 
 <!-- primitiveها یکپارچه و کامپوننت‌های تجاری از Shared خارج می‌شوند. -->
 
 Priority: Critical
 
-- [x] Create shared folders only as real files migrate.
+- [x] Create destination folders only as real files migrate.
 - [x] Establish the shadcn atom destination and alias.
 - [x] Choose one Button API and migrate `Btn.tsx` consumers. (`Btn.tsx` removed after production consumers moved to `Button`.)
 - [x] Separate Alert presentation from toast services.
-- [x] Move domain-neutral Pagination, SectionHeader, Spinner, and Skeleton behind shared UI boundaries.
+- [x] Keep domain-neutral Pagination, SectionHeader, Spinner, and Skeleton in components/ui.
 - [x] Move Header and Footer composition to widgets.
 - [x] Move Product and Blog components out of the primitive directory.
 - [x] Remove `/view` after approved replacements exist.
@@ -478,43 +467,47 @@ Update this document
 
 <!-- تصمیم‌های پیشنهادی تا زمان تأیید صریح کاربر نهایی نیستند. -->
 
-| ID    | Decision                                           | Status            | Notes                                      |
-| ----- | -------------------------------------------------- | ----------------- | ------------------------------------------ |
-| D-001 | Feature-based architecture is primary              | Proposed          | Atomic Design stays in shared UI           |
-| D-002 | Widgets are the organism-equivalent layer          | Proposed          | Avoid a mixed global organisms folder      |
-| D-003 | Move appliance URLs under `/appliances`            | Awaiting approval | Avoid future supermarket URL conflict      |
-| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Awaiting approval | Must not be permanent                      |
-| D-005 | Exclude supermarket implementation                 | Confirmed         | Reserve future paths only in documentation |
-| D-006 | Keep CKEditor in the separate Blazor admin         | Confirmed         | Frontend renders safe published HTML       |
-| D-007 | Require feature-specific Skeletons                 | Confirmed         | Match final RTL responsive geometry        |
-| D-008 | Migrate incrementally with a passing build         | Proposed          | No big-bang rewrite                        |
+| ID    | Decision                                           | Status            | Notes                                                                 |
+| ----- | -------------------------------------------------- | ----------------- | --------------------------------------------------------------------- |
+| D-001 | Feature-based architecture is primary              | Confirmed         | Common primitives live in components/ui; no separate UI wrapper layer |
+| D-002 | Widgets are the organism-equivalent layer          | Rejected          | Header and Footer remain under components/layout; no widgets layer    |
+| D-003 | Move appliance URLs under `/appliances`            | Awaiting approval | Avoid future supermarket URL conflict                                 |
+| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Awaiting approval | Must not be permanent                                                 |
+| D-005 | Exclude supermarket implementation                 | Confirmed         | Reserve future paths only in documentation                            |
+| D-006 | Keep CKEditor in the separate Blazor admin         | Confirmed         | Frontend renders safe published HTML                                  |
+| D-007 | Require feature-specific Skeletons                 | Confirmed         | Match final RTL responsive geometry                                   |
+| D-008 | Migrate incrementally with a passing build         | Proposed          | No big-bang rewrite                                                   |
 
 ## 16. Progress log
 
 <!-- بعد از هر فاز، تاریخ، نتیجه تست و تصمیم‌های جدید در این جدول ثبت می‌شود. -->
 
-| Date       | Phase    | Result                               | Verification                                                                      | Notes                                                                                                                                                                      |
-| ---------- | -------- | ------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-07-13 | Planning | Plan created                         | Prettier and diff checks passed                                                   | No implementation started                                                                                                                                                  |
-| 2026-07-13 | Phase 0  | Baseline recorded                    | lint PASS; type-check PASS; format-check FAIL; build FAIL                         | 153 source files, 85 TSX, 45 client boundaries; formatting debt is pre-existing; build cannot fetch Google Fonts in the current environment                                |
-| 2026-07-13 | Phase 1  | Shared boundary started              | lint PASS; type-check PASS; diff check PASS                                       | Added `Skeleton`, shared Atomic UI barrels, feature barrels, and Header/Footer widgets; legacy imports remain compatible                                                   |
-| 2026-07-13 | Phase 3  | Loading states started               | lint PASS; type-check PASS; diff check PASS                                       | Added Product and Cart Skeleton compositions plus route-level loading boundaries; API and URL behavior unchanged                                                           |
-| 2026-07-13 | Phase 8  | SEO foundation started               | lint PASS; type-check PASS; diff check PASS; build FAIL (pre-existing font fetch) | Added validated `metadataBase`, global Persian metadata, robots rules, and a public sitemap; dynamic product/CMS SEO remains pending                                       |
-| 2026-07-13 | Phase 1  | Core UI migration completed          | lint PASS; type-check PASS; diff check PASS                                       | Unified Button API, separated Alert toast service, removed `/view` showcase and legacy `Btn`, and moved Product/Blog UI out of `components/ui`                             |
-| 2026-07-13 | Phase 2  | Auth ownership migration completed   | lint PASS; type-check PASS; diff check PASS                                       | Moved AuthDialog, backend auth client, Auth.js config, and auth validation model into `features/auth`; route handlers and middleware use the feature public API            |
-| 2026-07-13 | Phase 3  | Catalog query migration started      | lint PASS; type-check PASS                                                        | Added shared Product model, price formatter, and URL-backed catalog query parsing; product API mapping is now available and route-level fetching remains pending           |
-| 2026-07-13 | Phase 3  | Home product API mapping added       | lint PASS; type-check PASS                                                        | Added Swagger-backed `GetHomeProducts` server client, backend-to-UI product mapper, cache tags, and temporary fallback behavior for unavailable API responses              |
-| 2026-07-13 | Phase 3  | Dynamic product route boundary added | lint PASS; type-check PASS                                                        | Route now awaits Next.js 16 `params`, passes `slug` into the feature view, and emits canonical/Open Graph metadata; detail API mapping remains pending contract validation |
-| 2026-07-13 | Phase 4  | Cart data ownership split started    | lint PASS; type-check PASS                                                        | Moved cart fixture data into `features/cart/fixtures`, added cart domain models and RTL formatting utilities, and updated cart view imports                                |
-| 2026-07-13 | Phase 4  | Checkout calculations extracted      | lint PASS; type-check PASS                                                        | Added checkout step transition and total calculation utilities; UI orchestration remains in the Cart page until checkout is separated                                      |
-| 2026-07-13 | Phase 4  | Checkout UI boundary extracted       | lint PASS; type-check PASS                                                        | Moved AddressStep, ReviewStep, OrderSummary, and Price into `features/cart/checkout` with a public barrel                                                                  |
-| 2026-07-13 | Phase 4  | Checkout flow hook added             | lint PASS; type-check PASS                                                        | Cart state and transitions now live in `useCheckoutFlow`; payment submission orchestration remains pending                                                                 |
-| 2026-07-13 | Phase 4  | Payment selection state added        | lint PASS; type-check PASS                                                        | Added `usePaymentSelection` with gateway/wallet state and wallet balance validation; backend payment contract remains pending                                              |
-| 2026-07-13 | Phase 4  | Basket API contract modeled          | lint PASS; type-check PASS                                                        | Added typed Appliance Basket and AddToBasket contracts from Swagger; request client remains pending authentication and endpoint flow validation                            |
-| 2026-07-13 | Phase 4  | Figma cart item alignment            | lint PASS; type-check PASS                                                        | Activated Figma integration, read the `Product - cart` node, and aligned CartItemRow surface, border, radius, image size, and RTL quantity controls                        |
-| 2026-07-13 | Phase 4  | Server basket data-access added      | lint PASS; type-check PASS                                                        | Added authenticated server-only access for `GetOpenBasket` and `AddToBasket`; client mutation wiring and remaining basket endpoints are still pending                      |
-| 2026-07-13 | Phase 4  | Checkout skeletons delivered         | lint PASS; type-check PASS                                                        | Added RTL-aware Checkout and OrderSummary skeleton compositions for address/review loading states                                                                          |
-| 2026-07-13 | Phase 4  | Basket mutation contracts completed  | lint PASS; type-check PASS                                                        | Added authenticated server-only update-count and delete operations; totals and checkout payment contract still require backend endpoint confirmation                       |
-| 2026-07-13 | Phase 5  | Protected account shell delivered    | lint PASS; type-check PASS                                                        | Added authenticated account layout, navigation, noindex metadata, initial profile/address/order boundaries, and account skeleton                                           |
-| 2026-07-13 | Phase 6  | CMS renderer boundary delivered      | lint PASS; type-check PASS                                                        | Added validated published-page fetch, defensive HTML sanitization, metadata/canonical generation, and `/content/[...slug]` route with real not-found behavior              |
-| 2026-07-13 | Phase 7  | Blog and Contact loading states delivered | lint PASS; type-check PASS                                                   | Added route-level RTL-aware Skeleton boundaries for content pages                                              |
+| Date       | Phase        | Result                                    | Verification                                                                      | Notes                                                                                                                                                                      |
+| ---------- | ------------ | ----------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-07-13 | Planning     | Plan created                              | Prettier and diff checks passed                                                   | No implementation started                                                                                                                                                  |
+| 2026-07-13 | Phase 0      | Baseline recorded                         | lint PASS; type-check PASS; format-check FAIL; build FAIL                         | 153 source files, 85 TSX, 45 client boundaries; formatting debt is pre-existing; build cannot fetch Google Fonts in the current environment                                |
+| 2026-07-13 | Phase 1      | Common UI boundary started                | lint PASS; type-check PASS; diff check PASS                                       | Added common UI primitives and feature barrels; legacy imports remained compatible                                                                                         |
+| 2026-07-13 | Phase 3      | Loading states started                    | lint PASS; type-check PASS; diff check PASS                                       | Added Product and Cart Skeleton compositions plus route-level loading boundaries; API and URL behavior unchanged                                                           |
+| 2026-07-13 | Phase 8      | SEO foundation started                    | lint PASS; type-check PASS; diff check PASS; build FAIL (pre-existing font fetch) | Added validated `metadataBase`, global Persian metadata, robots rules, and a public sitemap; dynamic product/CMS SEO remains pending                                       |
+| 2026-07-13 | Phase 1      | Core UI migration completed               | lint PASS; type-check PASS; diff check PASS                                       | Unified Button API, separated Alert toast service, removed `/view` showcase and legacy `Btn`, and moved Product/Blog UI out of `components/ui`                             |
+| 2026-07-13 | Phase 2      | Auth ownership migration completed        | lint PASS; type-check PASS; diff check PASS                                       | Moved AuthDialog, backend auth client, Auth.js config, and auth validation model into `features/auth`; route handlers and middleware use the feature public API            |
+| 2026-07-13 | Phase 3      | Catalog query migration started           | lint PASS; type-check PASS                                                        | Added one Product model, price formatter, and URL-backed catalog query parsing; product API mapping is now available and route-level fetching remains pending              |
+| 2026-07-13 | Phase 3      | Home product API mapping added            | lint PASS; type-check PASS                                                        | Added Swagger-backed `GetHomeProducts` server client, backend-to-UI product mapper, cache tags, and temporary fallback behavior for unavailable API responses              |
+| 2026-07-13 | Phase 3      | Dynamic product route boundary added      | lint PASS; type-check PASS                                                        | Route now awaits Next.js 16 `params`, passes `slug` into the feature view, and emits canonical/Open Graph metadata; detail API mapping remains pending contract validation |
+| 2026-07-13 | Phase 4      | Cart data ownership split started         | lint PASS; type-check PASS                                                        | Moved cart fixture data into `features/cart/fixtures`, added cart domain models and RTL formatting utilities, and updated cart view imports                                |
+| 2026-07-13 | Phase 4      | Checkout calculations extracted           | lint PASS; type-check PASS                                                        | Added checkout step transition and total calculation utilities; UI orchestration remains in the Cart page until checkout is separated                                      |
+| 2026-07-13 | Phase 4      | Checkout UI boundary extracted            | lint PASS; type-check PASS                                                        | Moved AddressStep, ReviewStep, OrderSummary, and Price into `features/cart/checkout` with a public barrel                                                                  |
+| 2026-07-13 | Phase 4      | Checkout flow hook added                  | lint PASS; type-check PASS                                                        | Cart state and transitions now live in `useCheckoutFlow`; payment submission orchestration remains pending                                                                 |
+| 2026-07-13 | Phase 4      | Payment selection state added             | lint PASS; type-check PASS                                                        | Added `usePaymentSelection` with gateway/wallet state and wallet balance validation; backend payment contract remains pending                                              |
+| 2026-07-13 | Phase 4      | Basket API contract modeled               | lint PASS; type-check PASS                                                        | Added typed Appliance Basket and AddToBasket contracts from Swagger; request client remains pending authentication and endpoint flow validation                            |
+| 2026-07-13 | Phase 4      | Figma cart item alignment                 | lint PASS; type-check PASS                                                        | Activated Figma integration, read the `Product - cart` node, and aligned CartItemRow surface, border, radius, image size, and RTL quantity controls                        |
+| 2026-07-13 | Phase 4      | Server basket data-access added           | lint PASS; type-check PASS                                                        | Added authenticated server-only access for `GetOpenBasket` and `AddToBasket`; client mutation wiring and remaining basket endpoints are still pending                      |
+| 2026-07-13 | Phase 4      | Checkout skeletons delivered              | lint PASS; type-check PASS                                                        | Added RTL-aware Checkout and OrderSummary skeleton compositions for address/review loading states                                                                          |
+| 2026-07-13 | Phase 4      | Basket mutation contracts completed       | lint PASS; type-check PASS                                                        | Added authenticated server-only update-count and delete operations; totals and checkout payment contract still require backend endpoint confirmation                       |
+| 2026-07-13 | Phase 5      | Protected account shell delivered         | lint PASS; type-check PASS                                                        | Added authenticated account layout, navigation, noindex metadata, initial profile/address/order boundaries, and account skeleton                                           |
+| 2026-07-13 | Phase 6      | CMS renderer boundary delivered           | lint PASS; type-check PASS                                                        | Added validated published-page fetch, defensive HTML sanitization, metadata/canonical generation, and `/content/[...slug]` route with real not-found behavior              |
+| 2026-07-13 | Phase 7      | Blog and Contact loading states delivered | lint PASS; type-check PASS                                                        | Added route-level RTL-aware Skeleton boundaries for content pages                                                                                                          |
+| 2026-07-21 | Phase 3      | Feature API ownership consolidated        | lint PASS; type-check PASS; build PASS                                            | Moved category navigation, footer description, and appliance home layout access from global services/lib into feature-owned API boundaries; UI and API contracts unchanged |
+| 2026-07-21 | Architecture | Removed widgets wrappers                  | Pending verification                                                              | Root layout imports Header and Footer directly from components/layout; widgets had no ownership beyond re-exports                                                          |
+| 2026-07-21 | Architecture | Removed UI wrapper barrels                | Pending verification                                                              | Deleted obsolete UI wrapper barrels; components/ui is the sole common UI boundary                                                                                          |
+| 2026-07-21 | Architecture | Removed src/shared                        | Pending verification                                                              | Site configuration moved to config and its redundant utility barrel was removed                                                                                            |

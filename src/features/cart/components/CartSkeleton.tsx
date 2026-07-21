@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/atoms";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function CartSkeleton({ count = 3 }: { count?: number }) {
   return (

@@ -14,14 +14,6 @@ export interface NavLink {
   icon: NavIcon;
 }
 
-export interface MenuCategory {
-  id: number;
-  title: string;
-  href: string;
-  iconName: string;
-  children: MenuCategory[];
-}
-
 export const navLinks: NavLink[] = [
   { href: "/categories", label: "دسته‌بندی کالاها", icon: CategoryIcon },
   { href: "/discounts", label: "تخفیف‌دارها", icon: ReceiptIcon },

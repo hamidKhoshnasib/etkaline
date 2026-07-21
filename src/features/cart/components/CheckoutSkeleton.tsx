@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/atoms";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // skeleton مشترک مراحل آدرس و مرور سفارش با جهت RTL
 export function CheckoutSkeleton() {

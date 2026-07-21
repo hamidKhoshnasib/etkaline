@@ -3,14 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  getHomeAdvertisement,
-  HOME_ADVERTISEMENT_QUERY_KEY,
-} from "@/services/home/get-home-advertisement";
+import { useHomeAdvertisement } from "@/features/home/appliances/api/use-home-advertisement";
 
 function getSafeHref(link: string): string | null {
   const trimmedLink = link.trim();
@@ -34,12 +30,7 @@ function getSafeColor(color: string): string | undefined {
 export function HomeAdvertisement() {
   const [isVisible, setIsVisible] = React.useState(true);
   const pathname = usePathname();
-  const { data: advertisement } = useQuery({
-    queryKey: HOME_ADVERTISEMENT_QUERY_KEY,
-    queryFn: getHomeAdvertisement,
-    enabled: pathname === "/",
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: advertisement } = useHomeAdvertisement(pathname === "/");
 
   if (!isVisible || pathname !== "/" || !advertisement) {
     return null;

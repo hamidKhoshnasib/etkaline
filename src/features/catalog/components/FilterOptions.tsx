@@ -1,4 +1,4 @@
-import type { SearchableProperty } from "@/services/categories/get-searchable-properties";
+import type { SearchableProperty } from "@/features/catalog/api/use-catalog-queries";
 
 interface FilterOptionsProps {
   property: SearchableProperty;
