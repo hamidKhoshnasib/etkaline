@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 
 interface CategoryGridItem {
   id: number | string;
@@ -23,7 +23,6 @@ export default function CategoryGridCard({
   items,
 }: CategoryGridCardProps) {
   const previewItems = items.slice(0, 4);
-
   return (
     <div className="flex flex-col gap-2 rounded-[20px] border border-[#E2E8F0] bg-white p-2.5">
       {/* Header */}
@@ -49,7 +48,7 @@ export default function CategoryGridCard({
               i % 2 === 0 && "border-l border-[#CBD5E1]",
             )}
           >
-            <Image
+            <AppImage
               width={43}
               height={54}
               src={item.image}
