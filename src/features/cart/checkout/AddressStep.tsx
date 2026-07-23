@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { CalendarClock, Map, MapPin, Package, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Price from "./Price";
@@ -71,7 +71,7 @@ function DeliveryGroup({
               key={it.id}
               className="relative size-16 overflow-hidden rounded-xl border border-[#E2E8F0] bg-gray-50"
             >
-              <Image
+              <AppImage
                 src={it.image}
                 alt=""
                 width={64}

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { cn } from "@/lib/utils";
 
 const FEATURES = [
@@ -30,7 +30,7 @@ export function FeatureBar() {
                 )}
               >
                 <p className="text-secondary text-sm font-bold">{title}</p>
-                <Image
+                <AppImage
                   src={`/api/footer-icons/${icon}`}
                   alt=""
                   width={48}

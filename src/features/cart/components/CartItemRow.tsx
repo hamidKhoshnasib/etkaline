@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { Minus, Plus, Palette, ShieldCheck, Trash2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Price from "@/features/cart/checkout/Price";
@@ -19,7 +19,7 @@ export default function CartItemRow({ item, onQuantityChange }: CartItemRowProps
     <div className="flex gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-4">
       {/* Image */}
       <div className="size-24 shrink-0 overflow-hidden rounded-xl bg-gray-50">
-        <Image
+        <AppImage
           src={item.image}
           alt={item.title}
           width={96}

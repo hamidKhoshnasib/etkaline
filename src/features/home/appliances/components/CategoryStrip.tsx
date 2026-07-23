@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 
 const categories: { id: number; image: string; label: string; href: string }[] = [
   { id: 1, image: "/api/category-icons/c1", label: "ایرفرایر", href: "/categories/fridge" },
@@ -24,7 +24,7 @@ export default function CategoryStrip() {
           href={href}
           className="flex w-16 shrink-0 snap-start flex-col items-center gap-1.5 lg:w-auto lg:gap-2"
         >
-          <Image
+          <AppImage
             src={image}
             alt=""
             width={56}

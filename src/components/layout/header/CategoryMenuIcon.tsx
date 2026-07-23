@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { Package } from "lucide-react";
 
 interface CategoryMenuIconProps {
@@ -18,7 +18,7 @@ export function CategoryMenuIcon({ iconName, className }: CategoryMenuIconProps)
   }
 
   return (
-    <Image
+    <AppImage
       src={`/api/category-icons/${encodeURIComponent(normalizedIconName)}`}
       alt=""
       aria-hidden="true"

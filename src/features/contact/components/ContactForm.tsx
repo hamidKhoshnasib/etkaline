@@ -1,29 +1,65 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+
+const initialForm = {
+  name: "",
+  email: "",
+  phone: "",
+  subject: "",
+  message: "",
+};
 
 export default function ContactForm() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
+  const [form, setForm] = useState(initialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: wire up to API
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/contact-us", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: form.name,
+          email: form.email,
+          tel: form.phone,
+          subject: form.subject,
+          text: form.message,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as { message?: unknown } | null;
+
+      if (!response.ok) {
+        throw new Error(
+          typeof payload?.message === "string" ? payload.message : "ارسال پیام با خطا مواجه شد.",
+        );
+      }
+
+      setForm(initialForm);
+      toast.success("پیام شما با موفقیت ارسال شد.");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "ارسال پیام با خطا مواجه شد.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-busy={isSubmitting}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="name" className="label-large-bold text-foreground">
@@ -36,6 +72,8 @@ export default function ContactForm() {
             onChange={handleChange}
             placeholder="نام و نام خانوادگی خود را وارد کنید"
             className="h-11"
+            required
+            maxLength={150}
           />
         </div>
 
@@ -51,6 +89,8 @@ export default function ContactForm() {
             onChange={handleChange}
             placeholder="ایمیل خود را وارد کنید"
             className="h-11"
+            required
+            maxLength={254}
           />
         </div>
 
@@ -66,6 +106,8 @@ export default function ContactForm() {
             onChange={handleChange}
             placeholder="شماره تماس خود را وارد کنید"
             className="h-11"
+            required
+            maxLength={32}
           />
         </div>
 
@@ -80,6 +122,8 @@ export default function ContactForm() {
             onChange={handleChange}
             placeholder="موضوع پیام خود را وارد کنید"
             className="h-11"
+            required
+            maxLength={200}
           />
         </div>
       </div>
@@ -96,14 +140,20 @@ export default function ContactForm() {
           placeholder="متن پیام خود را بنویسید..."
           rows={6}
           className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm transition-colors outline-none focus-visible:ring-3"
+          required
+          maxLength={5000}
         />
       </div>
 
+      <FieldError>{submitError}</FieldError>
+
       <Button
         type="submit"
+        disabled={isSubmitting}
         className="bg-primary text-primary-foreground hover:bg-primary-hover h-11 w-full text-base font-bold"
       >
-        ارسال
+        {isSubmitting && <Spinner data-icon="inline-start" className="size-4" />}
+        {isSubmitting ? "در حال ارسال" : "ارسال"}
       </Button>
     </form>
   );

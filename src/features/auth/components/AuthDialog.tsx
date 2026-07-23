@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import EtkalineLogo from "@/assets/icons/logo.svg";
 import { Button } from "@/components/ui/button";
+import { AppImage } from "@/components/ui/image";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
+import { WELCOME_DIALOG_EVENT, type LastLoginInfo } from "./WelcomeDialog";
 import {
   isValidMobile as validateMobile,
   isValidOtp as validateOtp,
@@ -35,6 +37,24 @@ type AuthStep = "login" | "verify";
 
 interface AuthDialogProps {
   trigger: React.ReactElement;
+}
+
+interface LastLoginResponse {
+  value?: LastLoginInfo;
+}
+
+async function showWelcomeDialog() {
+  try {
+    const response = await fetch("/api/profile/last-login", { cache: "no-store" });
+    const payload = (await response.json()) as LastLoginResponse;
+    if (!response.ok || !payload.value?.loginDateFa) {
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent(WELCOME_DIALOG_EVENT, { detail: payload.value }));
+  } catch {
+    // A welcome message must never interrupt a completed sign-in.
+  }
 }
 
 const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
@@ -85,6 +105,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
   const [secondsLeft, setSecondsLeft] = React.useState(RESEND_SECONDS);
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState<AuthLoadingState>(null);
+  const otpInputRef = React.useRef<HTMLInputElement>(null);
 
   const normalizedMobile = normalizeMobileValue(mobile);
   const mobileIsValid = validateMobile(mobile);
@@ -145,6 +166,12 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
     );
     return () => window.clearInterval(timer);
   }, [open, secondsLeft, step]);
+
+  React.useEffect(() => {
+    if (step === "verify" && error && !loading) {
+      otpInputRef.current?.focus();
+    }
+  }, [error, loading, step]);
 
   function resetDialog() {
     setStep("login");
@@ -216,11 +243,12 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
         redirect: false,
       });
 
-      if (!result?.ok) {
+      if (!result?.ok || result.error) {
         throw new Error("کد تأیید واردشده صحیح نیست یا منقضی شده است.");
       }
 
       toast.success("با موفقیت وارد حساب کاربری شدید.");
+      void showWelcomeDialog();
       const search = new URLSearchParams(window.location.search);
       const callbackUrl = search.get("callbackUrl");
       handleOpenChange(false);
@@ -280,7 +308,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
       <DialogTrigger render={trigger} />
       <DialogContent
         showCloseButton={false}
-        className="inset-x-0 start-0 top-auto bottom-0 h-[min(580px,calc(100dvh-1rem))] max-h-none max-w-none translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-y-auto rounded-t-[28px] rounded-b-none p-0 sm:start-1/2 sm:top-1/2 sm:bottom-auto sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-[370px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] rtl:translate-x-0 rtl:sm:translate-x-1/2"
+        className="inset-x-0 start-0 top-auto bottom-0 h-[min(580px,calc(100dvh-1rem))] max-h-none max-w-none translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-x-hidden overflow-y-auto rounded-t-[28px] rounded-b-none p-0 sm:start-1/2 sm:top-1/2 sm:bottom-auto sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-[440px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] rtl:translate-x-0 rtl:sm:translate-x-1/2"
       >
         <div className="auth-dialog-banner flex h-30 shrink-0 items-center justify-center rounded-t-[28px] text-white sm:h-40 sm:rounded-t-[32px]">
           <div className="flex flex-col items-center gap-1 drop-shadow-lg">
@@ -347,15 +375,16 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                     <div className="flex h-12 overflow-hidden rounded-xl border bg-white">
                       <div className="flex min-w-0 flex-1 items-center justify-center">
                         {captchaValue ? (
-                          // Captcha may be returned as either a base64 data string or a remote URL.
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <AppImage
                             src={normalizeCaptchaImage(captchaValue.img)}
                             alt="تصویر عبارت امنیتی"
+                            width={180}
+                            height={44}
+                            unoptimized
                             className="max-h-11 max-w-full object-contain"
                           />
                         ) : (
-                          <Spinner className="text-muted-foreground" />
+                          <Spinner className="text-muted-foreground size-5" />
                         )}
                       </div>
                       <Button
@@ -366,6 +395,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                         disabled={loading === "captcha"}
                         onClick={() => void loadCaptcha()}
                         className="h-full rounded-none border-s"
+                        aria-busy={loading === "captcha"}
                       >
                         <RefreshCw />
                       </Button>
@@ -392,12 +422,13 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
 
               <Button
                 type="submit"
-                variant="secondary"
+                variant="default"
                 size="lg"
-                className="mt-auto h-12 rounded-full"
+                className="mt-auto h-12 rounded-full disabled:bg-[#E2E8F0] disabled:text-slate-400"
                 disabled={!mobileIsValid || !captcha.trim() || !captchaValue || Boolean(loading)}
+                aria-busy={loading === "login"}
               >
-                {loading === "login" && <Spinner data-icon="inline-start" />}
+                {loading === "login" && <Spinner data-icon="inline-start" className="size-4" />}
                 ادامه
               </Button>
             </form>
@@ -408,6 +439,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                   کد تأیید
                 </FieldLabel>
                 <InputOTP
+                  ref={otpInputRef}
                   id="auth-code"
                   dir="ltr"
                   maxLength={OTP_LENGTH}
@@ -425,14 +457,15 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                   }
                   disabled={loading === "verify"}
                   aria-invalid={Boolean(error)}
-                  containerClassName="justify-center"
+                  className="max-w-full"
+                  containerClassName="max-w-full justify-center"
                 >
-                  <InputOTPGroup dir="ltr" className="gap-2">
+                  <InputOTPGroup dir="ltr" className="max-w-full gap-1 sm:gap-2">
                     {Array.from({ length: OTP_LENGTH }, (_, index) => (
                       <InputOTPSlot
                         key={index}
                         index={index}
-                        className="size-12 rounded-xl border text-base font-bold"
+                        className="size-11 rounded-lg border text-base font-bold text-black first:rounded-lg last:rounded-lg data-[active=true]:border-[#F57F17] data-[active=true]:ring-[#F57F17]/30 sm:size-12"
                       />
                     ))}
                   </InputOTPGroup>
@@ -453,8 +486,11 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
               </Button>
 
               {loading === "verify" && (
-                <div className="text-muted-foreground mt-3 flex items-center gap-2 text-sm">
-                  <Spinner />
+                <div
+                  className="text-muted-foreground bg-muted mt-3 flex items-center gap-2 rounded-full px-3 py-2 text-sm"
+                  aria-live="polite"
+                >
+                  <Spinner className="size-4" />
                   در حال بررسی کد...
                 </div>
               )}
@@ -467,9 +503,10 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                 className="mt-auto h-12 w-full rounded-full"
                 disabled={secondsLeft > 0 || Boolean(loading)}
                 onClick={() => void handleResend()}
+                aria-busy={loading === "resend"}
               >
                 {loading === "resend" ? (
-                  <Spinner data-icon="inline-start" />
+                  <Spinner data-icon="inline-start" className="size-4" />
                 ) : secondsLeft === 0 ? (
                   <RefreshCw data-icon="inline-start" />
                 ) : null}

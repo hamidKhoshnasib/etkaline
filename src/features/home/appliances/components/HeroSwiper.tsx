@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import Link from "next/link";
 import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -41,7 +41,7 @@ export default function HeroSwiper({ banners }: HeroSwiperProps) {
       >
         {banners.map((banner, index) => {
           const image = (
-            <Image
+            <AppImage
               src={banner.image}
               alt={banner.title}
               fill

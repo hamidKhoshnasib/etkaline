@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { ShareIcon, HeartIcon, GitCompareIcon, PresentationIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ export function ProductImageGallery({ images, title }: ProductImageGalleryProps)
     <div className="flex w-full flex-col gap-3 lg:w-[432px] lg:shrink-0 lg:gap-4">
       {/* Main image + actions */}
       <div className="relative overflow-hidden rounded-2xl bg-gray-50 lg:bg-transparent">
-        <Image
+        <AppImage
           src={images[active] ?? "https://via.placeholder.com/432x350?text=Product"}
           alt={title}
           width={432}
@@ -57,7 +57,7 @@ export function ProductImageGallery({ images, title }: ProductImageGalleryProps)
               active === i ? "border-primary" : "border-transparent hover:border-gray-200",
             )}
           >
-            <Image
+            <AppImage
               src={src}
               alt={`${title} - ${i + 1}`}
               width={70}

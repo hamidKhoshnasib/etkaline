@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { ChevronLeft } from "lucide-react";
 
 interface BlogPromoBannerProps {
@@ -38,7 +38,7 @@ export default function BlogPromoBanner({
 
         {/* Visual */}
         <div className="relative h-40 w-full max-w-[460px] shrink-0">
-          <Image src={image} alt={title} fill className="object-contain object-bottom" />
+          <AppImage src={image} alt={title} fill className="object-contain object-bottom" />
         </div>
       </div>
     </section>

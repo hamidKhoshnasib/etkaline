@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 
 interface Brand {
   id: number | string;
@@ -18,7 +18,7 @@ function BrandCard({ name, image, href = "#" }: Brand) {
       href={href}
       className="flex h-12 w-full shrink-0 items-center justify-center rounded-xl border border-[#CBD5E1] sm:h-26.25 sm:w-[102.5px]"
     >
-      <Image src={image} alt={name} width={103} height={105} className="object-contain" />
+      <AppImage src={image} alt={name} width={103} height={105} className="object-contain" />
     </Link>
   );
 }

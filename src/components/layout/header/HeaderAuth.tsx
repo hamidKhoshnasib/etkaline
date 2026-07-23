@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AuthDialog } from "@/features/auth";
+import { AuthDialog, WelcomeDialog } from "@/features/auth";
 import { HeaderCartSummary } from "./HeaderCartSummary";
 
 export function HeaderAuth() {
@@ -21,6 +21,7 @@ export function HeaderAuth() {
 
   return (
     <div className="flex shrink-0 items-center gap-3">
+      <WelcomeDialog />
       {status === "authenticated" ? (
         <div className="flex h-12.5 items-center overflow-hidden rounded-full bg-white">
           <DropdownMenu>

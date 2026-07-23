@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { ArrowLeft } from "lucide-react";
 
 interface BlogCardProps {
@@ -19,7 +19,7 @@ export default function BlogCard({ image, title, description, date, href = "#" }
       className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#E2E8F0] bg-white transition-shadow hover:shadow-md lg:rounded-[16px]"
     >
       <div className="aspect-[1.15] w-full overflow-hidden border-b border-[#E2E8F0] lg:aspect-auto lg:h-61.5 lg:w-71">
-        <Image
+        <AppImage
           src={image}
           alt={title}
           width={284}

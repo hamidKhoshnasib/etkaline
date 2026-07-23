@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useState, type ReactElement } from "react";
+import { cloneElement, useId, useState, type MouseEventHandler, type ReactElement } from "react";
 import { MapPin, MoveRight, Pencil, Plus, Search, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -50,10 +51,11 @@ const nearbyStores = [
 ];
 
 interface AddressPickerProps {
-  trigger: ReactElement;
+  trigger: ReactElement<{ onClick?: MouseEventHandler<HTMLElement> }>;
 }
 
 export function AddressPicker({ trigger }: AddressPickerProps) {
+  const { status } = useSession();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<AddressStep>("addresses");
   const [selectedAddress, setSelectedAddress] = useState(addresses[0].id);
@@ -67,6 +69,18 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
     }
   }
 
+  const guardedTrigger = cloneElement(trigger, {
+    onClick: (event) => {
+      trigger.props.onClick?.(event);
+      if (event.defaultPrevented || status !== "unauthenticated") {
+        return;
+      }
+
+      event.preventDefault();
+      window.dispatchEvent(new Event("etkala:open-auth"));
+    },
+  });
+
   const stepTitle = {
     addresses: "آدرس‌های شما",
     location: "انتخاب موقعیت مکانی",
@@ -76,7 +90,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={trigger} />
+      {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={trigger} />}
       <DialogContent
         showCloseButton={false}
         className={`max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-[28px] p-0 ${

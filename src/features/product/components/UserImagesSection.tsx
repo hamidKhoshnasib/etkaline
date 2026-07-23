@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 
 interface UserImagesSectionProps {
   images: string[];
@@ -11,7 +11,7 @@ export function UserImagesSection({ images }: UserImagesSectionProps) {
       <div className="flex gap-3 overflow-x-auto pb-2">
         {images.map((src, i) => (
           <div key={i} className="size-[84px] shrink-0 overflow-hidden rounded-2xl bg-gray-100">
-            <Image
+            <AppImage
               src={src}
               alt={`تصویر کاربر ${i + 1}`}
               width={84}

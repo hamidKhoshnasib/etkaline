@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Grid2X2, House, ShoppingCart, UserRound } from "lucide-react";
 
@@ -29,6 +30,7 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ categories }: MobileBottomNavProps) {
   const pathname = usePathname();
+  const { status } = useSession();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = React.useState(false);
 
   if (pathname.startsWith("/products/")) {
@@ -81,7 +83,13 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
                   <Link
                     href={href}
                     aria-current={isActive ? "page" : undefined}
-                    onClick={() => setIsCategoryMenuOpen(false)}
+                    onClick={(event) => {
+                      setIsCategoryMenuOpen(false);
+                      if (href.startsWith("/account/") && status === "unauthenticated") {
+                        event.preventDefault();
+                        window.dispatchEvent(new Event("etkala:open-auth"));
+                      }
+                    }}
                     className={itemClassName}
                   >
                     <Icon className="size-5" aria-hidden="true" />

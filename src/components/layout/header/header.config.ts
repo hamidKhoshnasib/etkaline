@@ -19,5 +19,5 @@ export const navLinks: NavLink[] = [
   { href: "/discounts", label: "تخفیف‌دارها", icon: ReceiptIcon },
   { href: "/blog", label: "بلاگ", icon: NewsIcon },
   { href: "/about", label: "درباره ما", icon: ELogo },
-  { href: "/contact", label: "تماس با ما", icon: PhoneIcon },
+  { href: "/contact-us", label: "تماس با ما", icon: PhoneIcon },
 ];

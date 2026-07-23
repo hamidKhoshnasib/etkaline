@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import ShowMoreButton from "./ShowMoreButton";
 
 interface FeaturedBlogProps {
@@ -19,7 +19,7 @@ export default function FeaturedBlog({
   return (
     <article className="overflow-hidden rounded-[16px] border border-[#D1D4D4] bg-white">
       <div className="relative aspect-[912/416] w-full border-b border-[#D1D4D4]">
-        <Image src={image} alt={title} fill className="object-cover" />
+        <AppImage src={image} alt={title} fill className="object-cover" />
       </div>
 
       <div className="flex flex-col items-end gap-2 p-6 text-right">

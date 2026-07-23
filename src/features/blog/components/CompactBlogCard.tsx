@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { Clock, Eye, Play } from "lucide-react";
 
 interface CompactBlogCardProps {
@@ -42,7 +42,7 @@ export default function CompactBlogCard({
       </div>
 
       <div className="relative h-19 w-[81px] shrink-0 overflow-hidden rounded-lg">
-        <Image src={image} alt={title} fill className="object-cover" />
+        <AppImage src={image} alt={title} fill className="object-cover" />
         {hasVideo && (
           <span className="absolute inset-0 grid place-items-center bg-black/20">
             <Play className="size-5 fill-white text-white" />

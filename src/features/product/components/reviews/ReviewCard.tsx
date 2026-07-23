@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import { MessageSquareShareIcon, StarIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export function ReviewCard({
         <div className="flex items-center gap-3">
           <div className="bg-muted size-10 shrink-0 overflow-hidden rounded-full lg:size-11">
             {avatar ? (
-              <Image
+              <AppImage
                 src={avatar}
                 alt={author}
                 width={44}

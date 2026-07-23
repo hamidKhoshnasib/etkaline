@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AppImage } from "@/components/ui/image";
 import Link from "next/link";
 
 import type { LayoutBanner } from "@/features/home/appliances/api/get-layout-banners";
@@ -13,7 +13,7 @@ export default function CategoryBanners({ banners }: CategoryBannersProps) {
       <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-5">
         {banners.map((banner) => {
           const image = (
-            <Image
+            <AppImage
               src={banner.image}
               alt={banner.title}
               width={banner.width}

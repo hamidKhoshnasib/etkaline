@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductCardData } from "@/features/product/model/product";
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
-import { Image } from "next/dist/client/image-component";
+import { AppImage } from "@/components/ui/image";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,8 +54,13 @@ function MobileProductCard({
       </div>
 
       <div className="h-full w-24 shrink-0 overflow-hidden rounded-xl bg-gray-50">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={title} className="h-full w-full object-contain p-1" />
+        <AppImage
+          src={image}
+          alt={title}
+          width={96}
+          height={112}
+          className="h-full w-full object-contain p-1"
+        />
       </div>
     </div>
   );
@@ -77,7 +82,7 @@ function CatalogMobileProductCard({
       )}
     >
       <div className="relative flex w-[39%] shrink-0 items-center justify-center overflow-hidden">
-        <Image
+        <AppImage
           src={image}
           alt={`عکس-${title}`}
           width={180}
@@ -162,7 +167,7 @@ function ProductCard({
     >
       {/* Image area */}
       <div className="relative overflow-hidden bg-gray-50">
-        <Image
+        <AppImage
           src={image}
           alt={`عکس-${title}`}
           width={180}

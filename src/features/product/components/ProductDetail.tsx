@@ -23,9 +23,6 @@ import type { CartItem } from "@/features/cart/model/cart";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 
-const PRODUCT_IMAGE_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
-
 function ProductBreadcrumbSeparator() {
   return (
     <BreadcrumbSeparator className="[&>svg]:size-3.5!">
@@ -97,15 +94,6 @@ const PRODUCT: ProductViewModel = {
   breadcrumbs: PRODUCT_BREADCRUMBS,
 };
 
-function toProductImageUrl(imageUrl: string): string | null {
-  try {
-    const url = new URL(imageUrl, PRODUCT_IMAGE_BASE_URL);
-    return url.protocol === "https:" && url.hostname === "test12.etkala.ir" ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
 function createProductViewModel(product: ProductDetailData): ProductViewModel {
   const store = product.storeInfos.find((item) => item.isOffer) ?? product.storeInfos[0];
   const price = store && store.offPrice > 0 ? store.offPrice : (store?.mainPrice ?? PRODUCT.price);
@@ -124,10 +112,7 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
   });
   const images = [...product.pictures]
     .sort((first, second) => Number(second.isMain) - Number(first.isMain))
-    .flatMap((picture) => {
-      const imageUrl = toProductImageUrl(picture.picUrl);
-      return imageUrl ? [imageUrl] : [];
-    });
+    .map((picture) => picture.picUrl);
   const breadcrumbs = [
     { label: "خانه", href: "/" },
     ...(product.category?.categoryParents.map((parent) => ({
