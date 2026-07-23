@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/components/layout/footer/Footer";
+import { RouteAwareFooter } from "@/components/layout/footer/RouteAwareFooter";
 import { Header } from "@/components/layout/header/Header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
@@ -60,7 +61,9 @@ export default function RootLayout({
             <Header />
             {children}
             <Toaster />
-            <Footer />
+            <RouteAwareFooter>
+              <Footer />
+            </RouteAwareFooter>
           </Providers>
         </DirectionProvider>
       </body>

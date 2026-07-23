@@ -48,13 +48,20 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
         aria-label="ناوبری اصلی موبایل"
         className="bg-background fixed inset-x-0 bottom-0 z-40 rounded-t-2xl border-t shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden"
       >
-        <ul className="flex h-18 items-stretch pb-[env(safe-area-inset-bottom)]">
+        <ul
+          className={cn(
+            "flex items-stretch pb-[env(safe-area-inset-bottom)]",
+            pathname.startsWith("/account") ? "h-[90px]" : "h-18",
+          )}
+        >
           {navigationItems.map(({ href, label, Icon, exact, opensCategoryMenu }) => {
             const isActive = opensCategoryMenu
               ? isCategoryMenuOpen || pathname.startsWith(href)
-              : exact
-                ? pathname === href
-                : pathname.startsWith(href);
+              : href === "/account/profile"
+                ? pathname.startsWith("/account")
+                : exact
+                  ? pathname === href
+                  : pathname.startsWith(href);
             const itemClassName = cn(
               "relative flex flex-1 flex-col items-center justify-center gap-1 px-2 text-xs font-semibold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
               isActive ? "text-auth-accent" : "text-muted-foreground",

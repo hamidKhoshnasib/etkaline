@@ -1,2 +1,11 @@
 export { AccountNav } from "./components/AccountNav";
 export { AccountPanelSkeleton } from "./components/AccountPanelSkeleton";
+export { AccountSidebar } from "./components/AccountSidebar";
+export { AddressesView } from "./components/AddressesView";
+export { MessagesView } from "./components/MessagesView";
+export { WishlistView } from "./components/WishlistView";
+export { OrderStats } from "./components/OrderStats";
+export { OrderDetailView } from "./components/OrderDetailView";
+export { OrdersDashboard } from "./components/OrdersDashboard";
+export { OrdersSkeleton } from "./components/OrdersSkeleton";
+export { getMockOrder, MOCK_ORDERS } from "./model/mock-orders";

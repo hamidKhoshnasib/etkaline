@@ -55,7 +55,7 @@ export default function CategoryGridCard({
               alt={item.title}
               className="line-clamp-1 h-13.5 w-10.75 object-contain"
             />
-            <p className="label-large w-full truncate">{item.title}</p>
+            <p className="label-large w-full truncate flex justify-center">{item.title}</p>
           </Link>
         ))}
       </div>

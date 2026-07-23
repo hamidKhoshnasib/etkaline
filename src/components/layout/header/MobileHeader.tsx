@@ -9,7 +9,11 @@ import { AddressPicker } from "./AddressPicker";
 
 export function MobileHeader() {
   const pathname = usePathname();
-  if (pathname.startsWith("/products/") || pathname.startsWith("/categories/")) {
+  if (
+    pathname.startsWith("/products/") ||
+    pathname.startsWith("/categories/") ||
+    pathname.startsWith("/account")
+  ) {
     return null;
   }
 
