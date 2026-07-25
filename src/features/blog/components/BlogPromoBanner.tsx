@@ -7,6 +7,8 @@ interface BlogPromoBannerProps {
   subtitle?: string;
   image?: string;
   href?: string;
+  width?: number;
+  height?: number;
 }
 
 export default function BlogPromoBanner({
@@ -14,6 +16,8 @@ export default function BlogPromoBanner({
   subtitle = "چیدمان به سبک اتکالاین",
   image = "https://via.placeholder.com/600x420?text=Kitchen",
   href = "#",
+  width = 600,
+  height = 420,
 }: BlogPromoBannerProps) {
   return (
     <section className="relative overflow-hidden rounded-[24px] bg-gradient-to-b from-[#5C6466] to-[#2B2F30]">
@@ -38,7 +42,14 @@ export default function BlogPromoBanner({
 
         {/* Visual */}
         <div className="relative h-40 w-full max-w-[460px] shrink-0">
-          <AppImage src={image} alt={title} fill className="object-contain object-bottom" />
+          <AppImage
+            src={image}
+            alt={title}
+            width={width}
+            height={height}
+            sizes="(max-width: 1023px) 100vw, 460px"
+            className="h-full w-full object-contain object-bottom"
+          />
         </div>
       </div>
     </section>

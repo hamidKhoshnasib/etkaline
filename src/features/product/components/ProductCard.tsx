@@ -2,11 +2,14 @@
 
 import { BookmarkIcon, FrownIcon } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import * as React from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import ProductCardLeftActionIcon from "@/assets/icons/product-card-left-action.svg";
 import { AppImage } from "@/components/ui/image";
+import { useToggleFavorite } from "@/features/product/api/favorites";
 import { formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductCardData } from "@/features/product/model/product";
 import { cn } from "@/lib/utils";
@@ -26,7 +29,7 @@ interface ProductCardProps extends ProductCardData {
 interface ProductCardLinkProps {
   id?: number | string;
   title: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 function ProductCardLink({ id, title, children }: ProductCardLinkProps) {
@@ -157,6 +160,64 @@ function ProductCard({
   className,
   imageClassName,
 }: ProductCardProps) {
+  const { status } = useSession();
+  const { isPending, mutateAsync } = useToggleFavorite();
+  const [bookmarked, setBookmarked] = React.useState(isBookmarked);
+  const bookmarkAfterLoginRef = React.useRef(false);
+  const productId = typeof id === "number" ? id : Number(id);
+  const hasValidProductId = Number.isSafeInteger(productId) && productId > 0;
+
+  const updateBookmark = React.useCallback(async () => {
+    if (!hasValidProductId || isPending) {
+      return;
+    }
+
+    try {
+      const nextBookmarked = await mutateAsync({ productId, isBookmarked: bookmarked });
+      setBookmarked(nextBookmarked);
+      onBookmark?.();
+      toast.success(nextBookmarked ? "به علاقه‌مندی‌ها اضافه شد." : "از علاقه‌مندی‌ها حذف شد.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تغییر علاقه‌مندی ناموفق بود.");
+    }
+  }, [bookmarked, hasValidProductId, isPending, mutateAsync, onBookmark, productId]);
+
+  React.useEffect(() => {
+    function updateBookmarkAfterLogin() {
+      if (!bookmarkAfterLoginRef.current) {
+        return;
+      }
+
+      bookmarkAfterLoginRef.current = false;
+      void updateBookmark();
+    }
+
+    function clearBookmarkAfterLogin() {
+      bookmarkAfterLoginRef.current = false;
+    }
+
+    window.addEventListener("etkala:authenticated", updateBookmarkAfterLogin);
+    window.addEventListener("etkala:auth-dismissed", clearBookmarkAfterLogin);
+    return () => {
+      window.removeEventListener("etkala:authenticated", updateBookmarkAfterLogin);
+      window.removeEventListener("etkala:auth-dismissed", clearBookmarkAfterLogin);
+    };
+  }, [updateBookmark]);
+
+  function handleBookmark() {
+    if (!hasValidProductId || isPending) {
+      return;
+    }
+
+    if (status !== "authenticated") {
+      bookmarkAfterLoginRef.current = true;
+      window.dispatchEvent(new Event("etkala:open-auth"));
+      return;
+    }
+
+    void updateBookmark();
+  }
+
   if (variant === "mobile") {
     return (
       <MobileProductCard {...{ id, image, title, price, originalPrice, discount, className }} />
@@ -239,16 +300,19 @@ function ProductCard({
 
           <button
             type="button"
-            onClick={onBookmark}
-            aria-label="افزودن به علاقه‌مندی‌ها"
+            onClick={handleBookmark}
+            aria-pressed={bookmarked}
+            aria-busy={isPending}
+            disabled={isPending || !hasValidProductId}
+            aria-label={bookmarked ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
             className={cn(
               "absolute top-2 right-2 rounded-full bg-white p-1.5 shadow-sm transition-all",
-              isBookmarked
-                ? "text-primary"
-                : "hover:text-primary text-gray-400 opacity-0 group-hover:opacity-100",
+              bookmarked
+                ? "text-primary hover:text-primary-hover"
+                : "hover:text-primary text-gray-400 opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
             )}
           >
-            <BookmarkIcon className={cn("size-4", isBookmarked && "fill-primary")} />
+            <BookmarkIcon className={cn("size-4", bookmarked && "fill-primary")} />
           </button>
         </>
       )}

@@ -5,8 +5,11 @@ import PopularReadsCard from "./PopularReadsCard";
 import BlogPromoBanner from "./BlogPromoBanner";
 import FeaturedBlog from "./FeaturedBlog";
 import { categories, gridPosts, popularPosts, featuredPost } from "./data";
+import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const blogBanners = await getBlogBanners();
+
   return (
     <main className="container mx-auto space-y-6 py-6">
       {/* ── Latest posts grid + sidebar ─────────────────────────────── */}
@@ -34,7 +37,17 @@ export default function BlogPage() {
       </section>
 
       {/* ── Promotional banner ──────────────────────────────────────── */}
-      <BlogPromoBanner href="/blog" />
+      {blogBanners.map((banner) => (
+        <BlogPromoBanner
+          key={banner.id}
+          title={banner.title}
+          subtitle={banner.content}
+          image={banner.image}
+          href={banner.href}
+          width={banner.width}
+          height={banner.height}
+        />
+      ))}
 
       {/* ── Featured article + sidebar ──────────────────────────────── */}
       <section className="flex flex-col gap-6 lg:flex-row">

@@ -190,6 +190,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
       void loadCaptcha();
     }
     if (!nextOpen) {
+      window.dispatchEvent(new Event("etkala:auth-dismissed"));
       resetDialog();
     }
   }
@@ -247,6 +248,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
         throw new Error("کد تأیید واردشده صحیح نیست یا منقضی شده است.");
       }
 
+      window.dispatchEvent(new Event("etkala:authenticated"));
       toast.success("با موفقیت وارد حساب کاربری شدید.");
       void showWelcomeDialog();
       const search = new URLSearchParams(window.location.search);
