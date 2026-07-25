@@ -21,10 +21,3 @@ export const LINK_COLUMNS = [
     ],
   },
 ] as const;
-
-export const SOCIALS = [
-  { href: "#", label: "اینستاگرام" },
-  { href: "#", label: "تلگرام" },
-  { href: "#", label: "یوتیوب" },
-  { href: "#", label: "توییتر" },
-] as const;

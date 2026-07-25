@@ -32,6 +32,7 @@ export default function ProductSection({
         items={items}
         renderSlide={(item) => (
           <ProductCard
+            id={item.id}
             title={item.title}
             image={item.image}
             price={item.price}

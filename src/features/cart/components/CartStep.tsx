@@ -36,6 +36,7 @@ export default function CartStep({ items, onQuantityChange }: CartStepProps) {
           breakpoints={{ 640: { slidesPerView: 3 }, 1024: { slidesPerView: 4 } }}
           renderSlide={(product) => (
             <ProductCard
+              id={product.id}
               title={product.title}
               image={product.image}
               price={product.price}

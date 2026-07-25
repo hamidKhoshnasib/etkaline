@@ -30,6 +30,7 @@ export default function FlashDeals({ items }: FlashDealsProps) {
           items={items}
           renderSlide={(product) => (
             <ProductCard
+              id={product.id}
               title={product.title}
               image={product.image}
               price={product.price}

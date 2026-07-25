@@ -2,17 +2,21 @@ import Link from "next/link";
 import { AppImage } from "@/components/ui/image";
 import { FeatureBar } from "@/components/layout/footer/FeatureBar";
 import { AppSupportBar } from "@/components/layout/footer/AppSupportBar";
-import { LINK_COLUMNS, SOCIALS } from "@/components/layout/footer/footer.config";
+import { LINK_COLUMNS } from "@/components/layout/footer/footer.config";
 import Enamad from "@/assets/icons/enamad-icon.svg";
 import Etehadie from "@/assets/icons/etehadie-icon.svg";
 import Samandehi from "@/assets/icons/samandehi-icon.svg";
-import Social1 from "@/assets/icons/social-1.svg";
 import { getFooterDescription } from "@/features/home/appliances/api/get-footer-description";
+import { getSocialNetworks } from "@/features/social/api/get-social-networks";
+import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export async function Footer() {
-  const footerDescription = await getFooterDescription();
+  const [footerDescription, socialNetworks] = await Promise.all([
+    getFooterDescription(),
+    getSocialNetworks(),
+  ]);
 
   return (
     <footer className="relative overflow-hidden">
@@ -72,18 +76,10 @@ export async function Footer() {
             <div className="order-4 mt-6 mb-6 space-y-7.5 text-center lg:order-0 lg:mt-0 lg:mb-0 lg:text-right">
               <div>
                 <p className="title-medium-bold mb-4">همراه ما باشید</p>
-                <div className="flex justify-center gap-3 lg:justify-start">
-                  {SOCIALS.map(({ href, label }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      aria-label={label}
-                      className="group hover:bg-secondary flex h-8 w-8 items-center justify-center rounded-md bg-gray-200 transition-all"
-                    >
-                      <Social1 className="transition-all duration-300 group-hover:text-white" />
-                    </a>
-                  ))}
-                </div>
+                <SocialNetworkLinks
+                  socialNetworks={socialNetworks}
+                  className="flex justify-center gap-3 lg:justify-start"
+                />
               </div>
               <div className="grid grid-cols-3 gap-3 lg:flex lg:gap-4">
                 <div className="flex h-16 items-center justify-center rounded-xl bg-white lg:h-auto lg:bg-transparent">

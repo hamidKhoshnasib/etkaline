@@ -41,7 +41,8 @@ export default function CategoryGridCard({
         {previewItems.map((item, i) => (
           <Link
             key={item.id}
-            href={showMoreLink}
+            href={`/products/${encodeURIComponent(String(item.id))}`}
+            aria-label={`مشاهده ${item.title}`}
             className={cn(
               "flex h-34 flex-col items-center justify-center gap-1.5 p-2",
               i < 2 && "border-b border-[#CBD5E1]",

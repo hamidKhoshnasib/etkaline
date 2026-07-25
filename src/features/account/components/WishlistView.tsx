@@ -21,6 +21,7 @@ function WishlistProducts() {
       {MOCK_WISHLIST_PRODUCTS.map((product) => (
         <ProductCard
           key={product.id}
+          id={product.id}
           image={product.image}
           title={product.title}
           price={product.price}

@@ -31,6 +31,7 @@ export default function ProductSectionList({
         {items.map((item) => (
           <ProductCard
             key={item.id}
+            id={item.id}
             title={item.title}
             image={item.image}
             price={item.price}

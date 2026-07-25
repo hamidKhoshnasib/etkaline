@@ -3,13 +3,16 @@ import Link from "next/link";
 import { Headset, Mail, MapPin } from "lucide-react";
 import contactUsBanner from "@/assets/images/contactUs.jpg";
 import House from "@/assets/icons/home-house-favorite.svg";
-import { SOCIALS } from "@/components/layout/footer/footer.config";
-import Social1 from "@/assets/icons/social-1.svg";
 import ContactForm from "@/features/contact/components/ContactForm";
 import { getContactDetails } from "@/features/contact/api/get-contact-us";
+import { getSocialNetworks } from "@/features/social/api/get-social-networks";
+import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
 
 export default async function ContactUsPage() {
-  const contactDetails = await getContactDetails();
+  const [contactDetails, socialNetworks] = await Promise.all([
+    getContactDetails(),
+    getSocialNetworks(),
+  ]);
   const contactItems = [
     contactDetails?.tel && {
       icon: Headset,
@@ -117,18 +120,7 @@ export default async function ContactUsPage() {
           </div>
           <div className="mt-4 px-8.5">
             <p className="text-secondary mb-4 font-bold">همراه ما باشید!</p>
-            <div className="flex gap-3">
-              {SOCIALS.map(({ href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="group hover:bg-primary-hover flex h-8 w-8 items-center justify-center rounded-md bg-gray-200 transition-all"
-                >
-                  <Social1 className="text-[#667085] transition-all duration-300 group-hover:text-white" />
-                </a>
-              ))}
-            </div>
+            <SocialNetworkLinks socialNetworks={socialNetworks} className="flex gap-3" />
           </div>
         </div>
       </div>
