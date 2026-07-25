@@ -1,10 +1,11 @@
 "use client";
 
-import { BookmarkIcon, FrownIcon, ScaleIcon } from "lucide-react";
+import { BookmarkIcon, FrownIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
+import ProductCardLeftActionIcon from "@/assets/icons/product-card-left-action.svg";
 import { AppImage } from "@/components/ui/image";
 import { formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductCardData } from "@/features/product/model/product";
@@ -205,7 +206,7 @@ function ProductCard({
           </p>
 
           <div className="mt-3 w-full">
-            <div className="h-12.5">
+            <div className="flex h-12.5 flex-col">
               {discount && originalPrice && (
                 <div className="flex items-center justify-between gap-1.5">
                   <span className="bg-primary-hover rounded-lg px-1 py-0.5 text-[12px] text-white">
@@ -214,7 +215,7 @@ function ProductCard({
                   <s className="text-[12px] text-gray-400">{formatProductPrice(originalPrice)}</s>
                 </div>
               )}
-              <div className="flex items-center justify-between">
+              <div className="mt-auto flex items-center justify-between">
                 <p className="text-secondary text-xs font-bold lg:text-base">
                   {formatProductPrice(price)}
                 </p>
@@ -233,7 +234,7 @@ function ProductCard({
             aria-label="مقایسه محصول"
             className="hover:text-primary absolute top-2 left-2 rounded-full bg-white p-1.5 text-gray-400 opacity-0 shadow-sm transition-all group-hover:opacity-100"
           >
-            <ScaleIcon className="size-4" />
+            <ProductCardLeftActionIcon className="size-4" />
           </button>
 
           <button

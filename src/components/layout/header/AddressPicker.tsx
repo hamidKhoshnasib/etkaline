@@ -3,6 +3,9 @@
 import { cloneElement, useId, useState, type MouseEventHandler, type ReactElement } from "react";
 import { MapPin, MoveRight, Pencil, Plus, Search, X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,57 +18,105 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useCreateAddress,
+  useSetDefaultAddress,
+  useUpdateAddress,
+} from "@/features/address/api/use-address-mutations";
+import type {
+  Address,
+  AddressAuthValue,
+  AddressPayload,
+  ApiResult,
+} from "@/features/address/api/use-addresses";
+import { useAddresses } from "@/features/address/api/use-addresses";
+import { useProvinces } from "@/features/address/api/use-provinces";
+import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
 
 type AddressStep = "addresses" | "location" | "details" | "store";
 
-const addresses = [
-  {
-    id: "home",
-    title: "خانه",
-    address: "بازار، خیابان پانزده خرداد، پاساژ بن، قائم مقام",
-    postalCode: "۶۷۷۴۵۷۴۷۶",
-    recipient: "محمدرضا چاقی",
-    phone: "۰۹۳۵۰۳۴۱۹۵۰",
-  },
-  {
-    id: "office",
-    title: "محل کار",
-    address: "تهران، میدان ونک، خیابان ملاصدرا، پلاک ۲۴",
-    postalCode: "۱۴۳۵۷۶۴۸۹",
-    recipient: "محمدرضا چاقی",
-    phone: "۰۹۳۵۰۳۴۱۹۵۰",
-  },
-  {
-    id: "warehouse",
-    title: "انبار",
-    address: "تهران، بازار بزرگ، کوچه مروی، پلاک ۱۸",
-    postalCode: "۱۱۳۴۵۷۶۸۹",
-    recipient: "محمدرضا چاقی",
-    phone: "۰۹۳۵۰۳۴۱۹۵۰",
-  },
-];
-
-const nearbyStores = [
-  { id: "central", name: "فروشگاه مرکزی اتکالاین", address: "لورم ایپسوم متن ساختگی" },
-  { id: "vanak", name: "فروشگاه اتکالاین ونک", address: "لورم ایپسوم متن ساختگی" },
-];
+const AddressMap = dynamic(() => import("./AddressMap").then((module) => module.AddressMap), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full rounded-2xl" />,
+});
 
 interface AddressPickerProps {
   trigger: ReactElement<{ onClick?: MouseEventHandler<HTMLElement> }>;
 }
 
+function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
+  if (typeof response.message === "string" && response.message.trim()) {
+    return response.message;
+  }
+  if (Array.isArray(response.errors) && typeof response.errors[0] === "string") {
+    return response.errors[0];
+  }
+  return fallback;
+}
+
 export function AddressPicker({ trigger }: AddressPickerProps) {
-  const { status } = useSession();
+  const { data: session, status, update } = useSession();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<AddressStep>("addresses");
-  const [selectedAddress, setSelectedAddress] = useState(addresses[0].id);
-  const [selectedStore, setSelectedStore] = useState(nearbyStores[0].id);
+  const [selectedAddress, setSelectedAddress] = useState("");
+  const [selectedStore, setSelectedStore] = useState("");
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [cityId, setCityId] = useState(0);
+  const [coordinates, setCoordinates] = useState({ latitude: "", longitude: "" });
   const formId = useId();
+  const createAddress = useCreateAddress();
+  const updateAddress = useUpdateAddress();
+  const requiresAddress =
+    status === "authenticated" &&
+    (!session.user.applianceStoreId || !session.user.superMarketStoreId);
+  const activeStep = requiresAddress && step === "addresses" ? "location" : step;
 
   function handleOpenChange(nextOpen: boolean) {
+    if (requiresAddress && !nextOpen) {
+      return;
+    }
+
     setOpen(nextOpen);
     if (!nextOpen) {
       setStep("addresses");
+    }
+  }
+
+  async function refreshAddressSession(value: AddressAuthValue) {
+    await update({ user: value.user, accessToken: value.accessToken });
+    await queryClient.invalidateQueries({ queryKey: ["address"] });
+  }
+
+  async function handleSaveAddress(payload: AddressPayload) {
+    try {
+      if (editingAddress) {
+        const id = Number(editingAddress.id);
+        if (!Number.isInteger(id)) {
+          throw new Error("شناسه آدرس معتبر نیست.");
+        }
+
+        const response = await updateAddress.mutateAsync({ ...payload, id });
+        if (response.isSuccess !== true) {
+          throw new Error(getResponseMessage(response, "ویرایش آدرس ناموفق بود."));
+        }
+        toast.success("آدرس با موفقیت ویرایش شد.");
+      } else {
+        const response = await createAddress.mutateAsync(payload);
+        if (response.isSuccess !== true || !response.value) {
+          throw new Error(getResponseMessage(response, "ثبت آدرس ناموفق بود."));
+        }
+        await refreshAddressSession(response.value);
+        toast.success("آدرس با موفقیت ثبت شد.");
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["address"] });
+      setEditingAddress(null);
+      setStep("addresses");
+      setOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "ثبت آدرس ناموفق بود.");
     }
   }
 
@@ -86,24 +137,24 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
     location: "انتخاب موقعیت مکانی",
     details: "اطلاعات تکمیلی آدرس",
     store: "انتخاب فروشگاه",
-  }[step];
+  }[activeStep];
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open || requiresAddress} onOpenChange={handleOpenChange}>
       {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={trigger} />}
       <DialogContent
         showCloseButton={false}
         className={`max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-[28px] p-0 ${
-          step === "addresses" ? "sm:max-w-[30rem]" : "sm:max-w-[38rem]"
+          activeStep === "addresses" ? "sm:max-w-[30rem]" : "sm:max-w-[38rem]"
         }`}
       >
         <DialogHeader
           className={`relative flex-row items-center justify-between border-b px-6 ${
-            step === "addresses" ? "h-[89px]" : "py-5"
+            activeStep === "addresses" ? "h-[89px]" : "py-5"
           }`}
         >
           <div className="flex items-center gap-3">
-            {step !== "addresses" && (
+            {activeStep !== "addresses" && (
               <Button
                 aria-label="بازگشت به مرحله قبل"
                 className="text-secondary"
@@ -111,7 +162,11 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
                 variant="ghost"
                 onClick={() =>
                   setStep(
-                    step === "store" ? "details" : step === "details" ? "location" : "addresses",
+                    activeStep === "store"
+                      ? "details"
+                      : activeStep === "details"
+                        ? "location"
+                        : "addresses",
                   )
                 }
               >
@@ -120,7 +175,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
             )}
             <DialogTitle
               className={`title-medium-bold text-secondary ${
-                step === "addresses" ? "" : "absolute left-1/2 -translate-x-1/2"
+                activeStep === "addresses" ? "" : "absolute left-1/2 -translate-x-1/2"
               }`}
             >
               {stepTitle}
@@ -130,46 +185,73 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
             مراحل انتخاب موقعیت، ثبت جزئیات و انتخاب فروشگاه نزدیک
           </DialogDescription>
           <div className="flex items-center gap-2">
-            {step === "addresses" ? (
+            {activeStep === "addresses" && (
               <Button
-                className="h-11 min-w-[163px] rounded-full px-5"
-                onClick={() => setStep("location")}
+                className="h-11 min-w-40.75 rounded-full px-5"
+                onClick={() => {
+                  setEditingAddress(null);
+                  setCityId(0);
+                  setCoordinates({ latitude: "", longitude: "" });
+                  setStep("location");
+                }}
                 variant="outline-primary"
               >
                 <Plus data-icon="inline-start" />
                 افزودن آدرس جدید
               </Button>
-            ) : (
-              <span className="label-small text-muted-foreground">
-                مرحله {step === "location" ? "۱" : step === "details" ? "۲" : "۳"} از ۳
-              </span>
             )}
-            <Button
-              aria-label="بستن انتخاب آدرس"
-              className={step === "addresses" ? "sr-only" : "text-muted-foreground"}
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => setOpen(false)}
-            >
-              <X data-icon="inline-end" />
-            </Button>
+            {!requiresAddress && (
+              <Button
+                aria-label="بستن انتخاب آدرس"
+                className={activeStep === "addresses" ? "sr-only" : "text-muted-foreground"}
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
+                <X data-icon="inline-end" />
+              </Button>
+            )}
           </div>
         </DialogHeader>
 
-        <div key={step} className="animate-in fade-in slide-in-from-right-4 duration-200">
-          {step === "addresses" && (
+        <div key={activeStep} className="animate-in fade-in slide-in-from-right-4 duration-200">
+          {activeStep === "addresses" && (
             <AddressListStep
               selectedAddress={selectedAddress}
-              onEditAddress={() => setStep("details")}
-              onSelectAddress={setSelectedAddress}
+              onEditAddress={(address) => {
+                setEditingAddress(address);
+                setCityId(address.cityId ?? 0);
+                setCoordinates({ latitude: address.latitude, longitude: address.longitude });
+                setStep("details");
+              }}
+              onSelectAddress={async (address, value) => {
+                await refreshAddressSession(value);
+                setSelectedAddress(address.id);
+              }}
               onConfirm={() => setOpen(false)}
             />
           )}
-          {step === "location" && <LocationStep onContinue={() => setStep("details")} />}
-          {step === "details" && (
-            <DetailsStep formId={formId} onContinue={() => setStep("store")} />
+          {activeStep === "location" && (
+            <LocationStep
+              coordinates={coordinates}
+              onContinue={(nextCityId) => {
+                setCityId(nextCityId);
+                setStep("details");
+              }}
+              onCoordinatesChange={setCoordinates}
+            />
           )}
-          {step === "store" && (
+          {activeStep === "details" && (
+            <DetailsStep
+              address={editingAddress}
+              cityId={cityId}
+              coordinates={coordinates}
+              formId={formId}
+              isPending={createAddress.isPending || updateAddress.isPending}
+              onSave={handleSaveAddress}
+            />
+          )}
+          {activeStep === "store" && (
             <StoreStep
               selectedStore={selectedStore}
               onSelectStore={setSelectedStore}
@@ -189,15 +271,43 @@ function AddressListStep({
   onConfirm,
 }: {
   selectedAddress: string;
-  onEditAddress: () => void;
-  onSelectAddress: (addressId: string) => void;
+  onEditAddress: (address: Address) => void;
+  onSelectAddress: (address: Address, value: AddressAuthValue) => Promise<void>;
   onConfirm: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const { data: addresses = [], isError, isPending } = useAddresses();
+  const setDefaultAddress = useSetDefaultAddress();
   const normalizedSearch = searchTerm.trim();
   const visibleAddresses = addresses.filter((address) =>
     `${address.title} ${address.address}`.includes(normalizedSearch),
   );
+  const activeAddressId =
+    selectedAddress || addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || "";
+
+  async function handleSelectAddress(address: Address) {
+    const addressId = Number(address.id);
+    if (!Number.isInteger(addressId)) {
+      toast.error("شناسه آدرس معتبر نیست.");
+      return;
+    }
+
+    if (address.id === activeAddressId) {
+      return;
+    }
+
+    try {
+      const response = await setDefaultAddress.mutateAsync({ addressId });
+      if (response.isSuccess !== true || !response.value) {
+        throw new Error(getResponseMessage(response, "انتخاب آدرس ناموفق بود."));
+      }
+
+      await onSelectAddress(address, response.value);
+      toast.success("آدرس پیش‌فرض تغییر کرد.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "انتخاب آدرس ناموفق بود.");
+    }
+  }
 
   return (
     <div className="px-6 pt-[18px] pb-6">
@@ -213,60 +323,81 @@ function AddressListStep({
       </label>
 
       <div className="mt-4 flex flex-col gap-2">
-        {visibleAddresses.map((address) => {
-          const isSelected = address.id === selectedAddress;
-          return (
-            <div
-              className={`h-36 rounded-2xl border p-4 transition-colors ${
-                isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60"
-              }`}
-              key={address.id}
-            >
-              <div className="flex items-start gap-3">
-                <MapPin className="text-primary-hover size-5 shrink-0" aria-hidden="true" />
-                <button
-                  aria-pressed={isSelected}
-                  className="focus-visible:ring-ring/50 min-w-0 flex-1 text-start focus-visible:ring-3 focus-visible:outline-none"
-                  onClick={() => onSelectAddress(address.id)}
-                  type="button"
-                >
-                  <span className="body-medium-bold text-primary-hover block text-start">
-                    {address.title}
-                  </span>
-                  <span className="body-small text-foreground mt-1 block text-start">
-                    {address.address}
-                  </span>
-                  <span className="body-small text-foreground block text-start">
-                    کد پستی: {address.postalCode}
-                  </span>
-                  <span className="body-small text-foreground block text-start">
-                    گیرنده: {address.recipient}
-                  </span>
-                  <span className="body-small text-foreground block text-start">
-                    {address.phone}
-                  </span>
-                </button>
-                <Button
-                  aria-label={`ویرایش آدرس ${address.title}`}
-                  className="text-muted-foreground"
-                  size="icon-sm"
-                  variant="ghost"
-                  onClick={onEditAddress}
-                >
-                  <Pencil data-icon="inline-end" />
-                </Button>
+        {isPending && (
+          <div aria-busy="true" className="flex flex-col gap-2">
+            <Skeleton className="h-36 rounded-2xl" />
+            <Skeleton className="h-36 rounded-2xl" />
+          </div>
+        )}
+        {!isPending &&
+          !isError &&
+          visibleAddresses.map((address) => {
+            const isSelected = address.id === activeAddressId;
+            return (
+              <div
+                className={`h-36 rounded-2xl border p-4 transition-colors ${
+                  isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60"
+                }`}
+                key={address.id}
+              >
+                <div className="flex items-start gap-3">
+                  <MapPin className="text-primary-hover size-5 shrink-0" aria-hidden="true" />
+                  <button
+                    aria-pressed={isSelected}
+                    className="focus-visible:ring-ring/50 min-w-0 flex-1 text-start focus-visible:ring-3 focus-visible:outline-none"
+                    onClick={() => void handleSelectAddress(address)}
+                    type="button"
+                  >
+                    <span className="body-medium-bold text-primary-hover block text-start">
+                      {address.title}
+                    </span>
+                    <span className="body-small text-foreground mt-1 block text-start">
+                      {address.address}
+                    </span>
+                    {address.postalCode && (
+                      <span className="body-small text-foreground block text-start">
+                        کد پستی: {address.postalCode}
+                      </span>
+                    )}
+                    {address.recipient && (
+                      <span className="body-small text-foreground block text-start">
+                        گیرنده: {address.recipient}
+                      </span>
+                    )}
+                    {address.phone && (
+                      <span className="body-small text-foreground block text-start">
+                        {address.phone}
+                      </span>
+                    )}
+                  </button>
+                  <Button
+                    aria-label={`ویرایش آدرس ${address.title}`}
+                    className="text-muted-foreground"
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => onEditAddress(address)}
+                  >
+                    <Pencil data-icon="inline-end" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
-      {visibleAddresses.length === 0 && (
+      {isError && (
+        <p className="body-small text-destructive py-8 text-center" role="alert">
+          دریافت آدرس‌ها ممکن نشد. دوباره تلاش کنید.
+        </p>
+      )}
+
+      {!isPending && !isError && visibleAddresses.length === 0 && (
         <p className="body-small text-muted-foreground py-8 text-center">آدرسی یافت نشد.</p>
       )}
 
       <Button
         className="mt-10 h-[59px] w-full rounded-full text-base font-bold"
+        disabled={!activeAddressId || isPending || isError}
         onClick={onConfirm}
         size="xl"
       >
@@ -276,24 +407,50 @@ function AddressListStep({
   );
 }
 
-function LocationStep({ onContinue }: { onContinue: () => void }) {
+function LocationStep({
+  coordinates,
+  onContinue,
+  onCoordinatesChange,
+}: {
+  coordinates: { latitude: string; longitude: string };
+  onContinue: (cityId: number) => void;
+  onCoordinatesChange: (coordinates: { latitude: string; longitude: string }) => void;
+}) {
+  const [selectedProvinceId, setSelectedProvinceId] = useState("");
+  const { data: provinces = [], isError, isPending } = useProvinces();
+
   return (
     <div className="p-5">
-      <div className="bg-muted relative h-72 overflow-hidden rounded-2xl border sm:h-88">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 [background-image:linear-gradient(25deg,transparent_44%,rgb(255_255_255/.85)_45%,rgb(255_255_255/.85)_48%,transparent_49%),linear-gradient(108deg,transparent_43%,rgb(255_255_255/.9)_44%,rgb(255_255_255/.9)_47%,transparent_48%),radial-gradient(circle_at_22%_68%,#d9f99d_0_7%,transparent_7.5%),radial-gradient(circle_at_73%_26%,#bbf7d0_0_8%,transparent_8.5%)] opacity-70"
+      <div className="bg-muted relative isolate h-72 overflow-hidden rounded-2xl border sm:h-88">
+        <AddressMap
+          key={`${coordinates.latitude}-${coordinates.longitude}`}
+          latitude={coordinates.latitude}
+          longitude={coordinates.longitude}
+          onSelect={onCoordinatesChange}
         />
-        <div className="absolute inset-x-4 top-4 flex gap-2">
-          <label className="sr-only" htmlFor="province">
-            استان
+        <div className="absolute inset-x-4 top-4 z-[1100] flex gap-2">
+          <label className="sr-only" htmlFor="city">
+            شهر
           </label>
           <select
             className="bg-background text-secondary focus-visible:ring-ring/50 h-11 rounded-lg border px-3 text-sm outline-none focus-visible:ring-3"
-            defaultValue="tehran"
-            id="province"
+            disabled={isPending || isError}
+            id="city"
+            value={selectedProvinceId}
+            onChange={(event) => setSelectedProvinceId(event.target.value)}
           >
-            <option value="tehran">تهران</option>
+            <option value="" disabled>
+              {isPending
+                ? "در حال دریافت استان‌ها"
+                : isError
+                  ? "دریافت استان‌ها ناموفق بود"
+                  : "شهر را انتخاب کنید"}
+            </option>
+            {provinces.map((province) => (
+              <option key={province.id} value={province.id}>
+                {province.title}
+              </option>
+            ))}
           </select>
           <label className="relative flex min-w-0 flex-1">
             <span className="sr-only">جست‌وجوی مکان</span>
@@ -301,15 +458,16 @@ function LocationStep({ onContinue }: { onContinue: () => void }) {
             <Input className="bg-background h-11 pe-10" placeholder="جست‌وجوی مکان" />
           </label>
         </div>
-        <MapPin className="fill-primary text-secondary absolute start-[42%] top-[52%] size-10 drop-shadow" />
-        <MapPin className="fill-primary text-secondary absolute end-[18%] top-[30%] size-8 drop-shadow" />
-        <div className="bg-background/90 text-muted-foreground absolute inset-x-0 bottom-0 px-4 py-3 text-center text-xs">
-          موقعیت موردنظر را روی نقشه انتخاب کنید
+        <div className="bg-background/90 text-muted-foreground absolute inset-x-0 bottom-0 z-[1100] px-4 py-3 text-center text-xs">
+          {coordinates.latitude && coordinates.longitude
+            ? "موقعیت انتخاب شد؛ برای تغییر، نقطهٔ دیگری روی نقشه انتخاب کنید."
+            : "موقعیت موردنظر را روی نقشه انتخاب کنید"}
         </div>
       </div>
       <Button
         className="mt-5 h-14 w-full rounded-full text-base font-bold"
-        onClick={onContinue}
+        disabled={!selectedProvinceId || !coordinates.latitude || !coordinates.longitude}
+        onClick={() => onContinue(Number(selectedProvinceId))}
         size="xl"
       >
         ادامه
@@ -318,12 +476,54 @@ function LocationStep({ onContinue }: { onContinue: () => void }) {
   );
 }
 
-function DetailsStep({ formId, onContinue }: { formId: string; onContinue: () => void }) {
-  const [isAlternateReceiver, setIsAlternateReceiver] = useState(true);
+function DetailsStep({
+  address,
+  cityId,
+  coordinates,
+  formId,
+  isPending,
+  onSave,
+}: {
+  address: Address | null;
+  cityId: number;
+  coordinates: { latitude: string; longitude: string };
+  formId: string;
+  isPending: boolean;
+  onSave: (payload: AddressPayload) => Promise<void>;
+}) {
+  const [isAlternateReceiver, setIsAlternateReceiver] = useState(
+    address?.hasOtherReceiver ?? false,
+  );
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onContinue();
+    if (!cityId) {
+      toast.error("ابتدا شهر را انتخاب کنید.");
+      return;
+    }
+    if (!coordinates.latitude || !coordinates.longitude) {
+      toast.error("موقعیت آدرس را روی نقشه انتخاب کنید.");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const value = (name: string) => String(formData.get(name) ?? "").trim();
+
+    await onSave({
+      title: value("title"),
+      fullAddress: value("fullAddress"),
+      longitude: coordinates.longitude,
+      latitude: coordinates.latitude,
+      plaque: value("plaque"),
+      unit: value("unit"),
+      postalCode: value("postalCode"),
+      hasOtherReceiver: isAlternateReceiver,
+      receiverFirstName: value("receiverFirstName"),
+      receiverLastName: value("receiverLastName"),
+      receiverPhone: value("receiverPhone"),
+      isDefault: address?.isDefault ?? true,
+      cityId,
+    });
   }
 
   return (
@@ -331,34 +531,53 @@ function DetailsStep({ formId, onContinue }: { formId: string; onContinue: () =>
       <FieldGroup className="gap-4">
         <Field>
           <FieldLabel htmlFor={`${formId}-title`}>عنوان آدرس</FieldLabel>
-          <Input className="h-12" defaultValue="خانه" id={`${formId}-title`} required />
+          <Input
+            className="h-12"
+            defaultValue={address?.title ?? ""}
+            id={`${formId}-title`}
+            name="title"
+            required
+          />
         </Field>
         <Field>
           <FieldLabel htmlFor={`${formId}-address`}>آدرس</FieldLabel>
           <Input
             className="h-12"
-            defaultValue="تهران، میدان ونک، خیابان ملاصدرا"
+            defaultValue={address?.address ?? ""}
             id={`${formId}-address`}
+            name="fullAddress"
             required
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor={`${formId}-plaque`}>پلاک</FieldLabel>
-            <Input className="h-12" defaultValue="۱۲" id={`${formId}-plaque`} required />
+            <Input
+              className="h-12"
+              defaultValue={address?.plaque ?? ""}
+              id={`${formId}-plaque`}
+              name="plaque"
+              required
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor={`${formId}-unit`}>واحد</FieldLabel>
-            <Input className="h-12" defaultValue="۴" id={`${formId}-unit`} />
+            <Input
+              className="h-12"
+              defaultValue={address?.unit ?? ""}
+              id={`${formId}-unit`}
+              name="unit"
+            />
           </Field>
         </div>
         <Field>
           <FieldLabel htmlFor={`${formId}-postal-code`}>کد پستی</FieldLabel>
           <Input
             className="h-12"
-            defaultValue="۱۹۹۴۸۱۴۵۶۷"
+            defaultValue={address?.postalCode ?? ""}
             id={`${formId}-postal-code`}
             inputMode="numeric"
+            name="postalCode"
             required
           />
         </Field>
@@ -374,32 +593,48 @@ function DetailsStep({ formId, onContinue }: { formId: string; onContinue: () =>
             شخص دیگری تحویل می‌گیرد
           </FieldLabel>
         </Field>
-        {isAlternateReceiver && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor={`${formId}-receiver-name`}>نام و نام خانوادگی</FieldLabel>
-              <Input
-                className="h-12"
-                defaultValue="محمدرضا چاقی"
-                id={`${formId}-receiver-name`}
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor={`${formId}-receiver-mobile`}>موبایل</FieldLabel>
-              <Input
-                className="h-12"
-                defaultValue="۰۹۳۵۰۳۴۱۹۵۰"
-                id={`${formId}-receiver-mobile`}
-                inputMode="tel"
-                required
-              />
-            </Field>
-          </div>
-        )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field>
+            <FieldLabel htmlFor={`${formId}-receiver-first-name`}>نام</FieldLabel>
+            <Input
+              className="h-12"
+              defaultValue={address?.receiverFirstName ?? ""}
+              id={`${formId}-receiver-first-name`}
+              name="receiverFirstName"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${formId}-receiver-last-name`}>نام خانوادگی</FieldLabel>
+            <Input
+              className="h-12"
+              defaultValue={address?.receiverLastName ?? ""}
+              id={`${formId}-receiver-last-name`}
+              name="receiverLastName"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${formId}-receiver-mobile`}>موبایل</FieldLabel>
+            <Input
+              className="h-12"
+              defaultValue={address?.phone ?? ""}
+              id={`${formId}-receiver-mobile`}
+              inputMode="tel"
+              name="receiverPhone"
+              required
+            />
+          </Field>
+        </div>
       </FieldGroup>
-      <Button className="mt-6 h-14 w-full rounded-full text-base font-bold" size="xl" type="submit">
-        ادامه
+      <Button
+        aria-busy={isPending}
+        className="mt-6 h-14 w-full rounded-full text-base font-bold"
+        disabled={isPending}
+        size="xl"
+        type="submit"
+      >
+        {address ? "ذخیره تغییرات" : "ثبت آدرس"}
       </Button>
     </form>
   );
@@ -414,35 +649,62 @@ function StoreStep({
   onSelectStore: (storeId: string) => void;
   onComplete: () => void;
 }) {
+  const { data: stores = [], isError, isPending } = useNearApplianceStores();
+  const activeStoreId = selectedStore || stores[0]?.id || "";
+
   return (
     <div className="p-5">
       <p className="body-medium-bold text-secondary mb-5 text-center">
         یکی از فروشگاه‌های نزدیک اطراف خود را انتخاب نمایید:
       </p>
       <div className="flex flex-col gap-3">
-        {nearbyStores.map((store) => {
-          const isSelected = store.id === selectedStore;
-          return (
-            <button
-              aria-pressed={isSelected}
-              className={`focus-visible:ring-ring/50 flex h-20 w-full items-center gap-4 rounded-2xl border p-4 text-start transition-colors focus-visible:ring-3 focus-visible:outline-none ${
-                isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60 hover:bg-muted"
-              }`}
-              key={store.id}
-              onClick={() => onSelectStore(store.id)}
-              type="button"
-            >
-              <MapPin className="fill-primary text-secondary size-10 shrink-0" />
-              <span className="min-w-0 flex-1">
-                <span className="body-medium-bold text-secondary block">{store.name}</span>
-                <span className="body-small text-muted-foreground mt-1 block">{store.address}</span>
-              </span>
-            </button>
-          );
-        })}
+        {isPending && (
+          <div aria-busy="true" className="flex flex-col gap-3">
+            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+          </div>
+        )}
+        {!isPending &&
+          !isError &&
+          stores.map((store) => {
+            const isSelected = store.id === activeStoreId;
+            return (
+              <button
+                aria-pressed={isSelected}
+                className={`focus-visible:ring-ring/50 flex h-20 w-full items-center gap-4 rounded-2xl border p-4 text-start transition-colors focus-visible:ring-3 focus-visible:outline-none ${
+                  isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60 hover:bg-muted"
+                }`}
+                key={store.id}
+                onClick={() => onSelectStore(store.id)}
+                type="button"
+              >
+                <MapPin className="fill-primary text-secondary size-10 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="body-medium-bold text-secondary block">{store.title}</span>
+                  <span className="body-small text-muted-foreground mt-1 block">
+                    {store.address}
+                  </span>
+                  {store.tel && (
+                    <span className="body-small text-muted-foreground mt-1 block">{store.tel}</span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
       </div>
+      {isError && (
+        <p className="body-small text-destructive py-8 text-center" role="alert">
+          دریافت فروشگاه‌های نزدیک ممکن نشد. دوباره تلاش کنید.
+        </p>
+      )}
+      {!isPending && !isError && stores.length === 0 && (
+        <p className="body-small text-muted-foreground py-8 text-center">
+          فروشگاه نزدیکی یافت نشد.
+        </p>
+      )}
       <Button
         className="mt-10 h-14 w-full rounded-full text-base font-bold"
+        disabled={!activeStoreId || isPending || isError}
         onClick={onComplete}
         size="xl"
       >
