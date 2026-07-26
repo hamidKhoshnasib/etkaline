@@ -19,6 +19,7 @@ interface ProductInfoCardProps {
   discount?: number;
   colors?: ProductColor[];
   cartItem: CartItem;
+  storeProductId: number | null;
 }
 
 function formatPrice(n: number): string {
@@ -86,6 +87,7 @@ export function ProductInfoCard({
   discount,
   colors = [],
   cartItem,
+  storeProductId,
 }: ProductInfoCardProps) {
   return (
     <div className="sticky top-36 w-full shrink-0 rounded-2xl border border-gray-200 bg-white p-4">
@@ -118,6 +120,7 @@ export function ProductInfoCard({
       {/* Add to cart */}
       <AddToCartButton
         item={cartItem}
+        storeProductId={storeProductId}
         className="bg-primary flex w-full items-center justify-center gap-2 rounded-[28px] py-3 text-sm font-semibold transition-opacity hover:opacity-90"
         quantityClassName="justify-center"
       />

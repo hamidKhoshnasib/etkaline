@@ -68,10 +68,8 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
   const formId = useId();
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
-  const requiresAddress =
-    status === "authenticated" &&
-    (!session.user.applianceStoreId || !session.user.superMarketStoreId);
-  const activeStep = requiresAddress && step === "addresses" ? "location" : step;
+  const requiresAddress = status === "authenticated" && !session.user.applianceStoreId;
+  const activeStep = step;
 
   function handleOpenChange(nextOpen: boolean) {
     if (requiresAddress && !nextOpen) {

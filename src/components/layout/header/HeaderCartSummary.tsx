@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
-import { Plus, Refrigerator, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus, Refrigerator, ShoppingCart, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,42 +10,43 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type CartPreviewItem = {
-  id: number;
-  name: string;
-  color: string;
-  quantity: number;
-  price: number;
-};
-
-const INITIAL_ITEMS: CartPreviewItem[] = Array.from({ length: 12 }, (_, index) => ({
-  id: index + 1,
-  name: "یخچال فریزر سامسونگ ۳۶ اینچ ۲۸ فوت مکعبی درب فرانسوی با یخساز RF۲۸۷۲۰۲۵K",
-  color: "سفید",
-  quantity: 1,
-  price: 17_500_000,
-}));
+import { useDeleteBasketItem, useOpenBasket, useUpdateBasketQuantity } from "@/features/cart";
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat("fa-IR").format(value);
 }
 
 export function HeaderCartSummary() {
-  const [items, setItems] = React.useState(INITIAL_ITEMS);
-  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
+  const { data: basket, isError, isPending } = useOpenBasket();
+  const { isPending: isUpdatingQuantity, mutateAsync: updateQuantity } = useUpdateBasketQuantity();
+  const { isPending: isDeletingItem, mutateAsync: deleteItem } = useDeleteBasketItem();
+  const items = basket?.basketItems ?? [];
+  const itemCount = basket?.itemCount ?? 0;
+  const totalPrice = basket?.totalOffPrice ?? 0;
+  const isChangingBasket = isUpdatingQuantity || isDeletingItem;
 
-  function changeQuantity(itemId: number, amount: number) {
-    setItems((current) =>
-      current.map((item) =>
-        item.id === itemId ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item,
-      ),
-    );
+  async function changeQuantity(storeProductId: number, quantity: number) {
+    if (!basket || isChangingBasket) {
+      return;
+    }
+
+    try {
+      await updateQuantity({ storeProductId, quantity, basketId: basket.id });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تغییر تعداد کالا ناموفق بود.");
+    }
   }
 
-  function removeItem(itemId: number) {
-    setItems((current) => current.filter((item) => item.id !== itemId));
+  async function removeItem(storeProductId: number) {
+    if (!basket || isChangingBasket) {
+      return;
+    }
+
+    try {
+      await deleteItem({ storeProductId, basketId: basket.id });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "حذف کالا از سبد خرید ناموفق بود.");
+    }
   }
 
   return (
@@ -78,62 +79,89 @@ export function HeaderCartSummary() {
         </div>
 
         <div className="max-h-[min(470px,calc(100dvh-15rem))] space-y-2 overflow-y-auto bg-white px-4 py-3">
-          {items.map((item) => (
-            <article key={item.id} className="bg-muted/70 rounded-2xl p-3">
-              <div className="flex gap-3">
-                <div className="flex size-15 shrink-0 items-center justify-center rounded-lg border bg-white">
-                  <Refrigerator
-                    className="text-secondary/70 size-10"
-                    strokeWidth={1.25}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-secondary line-clamp-2 text-sm leading-6 font-medium">
-                    {item.name}
-                  </h3>
-                  <div className="text-secondary/70 mt-1 flex items-center gap-3 text-xs">
-                    <span>رنگ: {item.color}</span>
-                    <span>گارانتی اتکالاین</span>
-                  </div>
-                </div>
-              </div>
+          {isPending ? (
+            <p className="text-muted-foreground py-10 text-center" aria-busy="true">
+              در حال دریافت سبد خرید...
+            </p>
+          ) : null}
 
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-secondary text-sm font-bold">
-                  {formatPrice(item.price)} تومان
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="min-w-4 text-center text-sm font-bold">
-                    {formatPrice(item.quantity)}
-                  </span>
-                  <Button
-                    type="button"
-                    size="icon"
-                    aria-label={`افزایش تعداد ${item.name}`}
-                    onClick={() => changeQuantity(item.id, 1)}
-                    className="bg-primary text-secondary hover:bg-primary/85 size-9 rounded-full"
-                  >
-                    <Plus />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    aria-label={`حذف ${item.name} از سبد خرید`}
-                    onClick={() => removeItem(item.id)}
-                    className="text-primary border-primary/30 hover:bg-primary/10 hover:text-primary size-9 rounded-full"
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              </div>
-            </article>
-          ))}
+          {isError ? (
+            <p className="text-destructive py-10 text-center">دریافت سبد خرید ناموفق بود.</p>
+          ) : null}
 
-          {items.length === 0 && (
+          {!isPending && !isError
+            ? items.map((item) => {
+                const price = item.offPrice > 0 ? item.offPrice : item.mainPrice;
+
+                return (
+                  <article key={item.id} className="bg-muted/70 rounded-2xl p-3">
+                    <div className="flex gap-3">
+                      <div className="flex size-15 shrink-0 items-center justify-center rounded-lg border bg-white">
+                        <Refrigerator
+                          className="text-secondary/70 size-10"
+                          strokeWidth={1.25}
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-secondary line-clamp-2 text-sm leading-6 font-medium">
+                          {item.productTitle}
+                        </h3>
+                        <p className="text-secondary/70 mt-1 text-xs">
+                          {item.valueTitle || "بدون مشخصات"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-secondary text-sm font-bold">
+                        {formatPrice(price)} تومان
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="icon"
+                          aria-label={`افزایش تعداد ${item.productTitle}`}
+                          aria-busy={isChangingBasket}
+                          disabled={isChangingBasket}
+                          onClick={() =>
+                            void changeQuantity(item.storeProductId, item.productCount + 1)
+                          }
+                          className="bg-primary text-secondary hover:bg-primary/85 size-8 rounded-full"
+                        >
+                          <Plus />
+                        </Button>
+                        <span className="min-w-4 text-center text-xs font-bold">
+                          {formatPrice(item.productCount)}
+                        </span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          aria-label={
+                            item.productCount === 1 ? "حذف کالا از سبد خرید" : "کاهش تعداد"
+                          }
+                          aria-busy={isChangingBasket}
+                          disabled={isChangingBasket}
+                          onClick={() =>
+                            item.productCount === 1
+                              ? void removeItem(item.storeProductId)
+                              : void changeQuantity(item.storeProductId, item.productCount - 1)
+                          }
+                          className="size-8 rounded-full"
+                        >
+                          {item.productCount === 1 ? <Trash2 /> : <Minus />}
+                        </Button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
+            : null}
+
+          {!isPending && !isError && items.length === 0 ? (
             <p className="text-muted-foreground py-10 text-center">سبد خرید شما خالی است.</p>
-          )}
+          ) : null}
         </div>
 
         <footer className="flex items-center justify-between border-t bg-white px-6 py-4">
@@ -145,7 +173,7 @@ export function HeaderCartSummary() {
           </div>
           <Button
             render={<Link href="/cart" />}
-            disabled={items.length === 0}
+            disabled={isPending || isError || items.length === 0}
             className="bg-primary text-secondary hover:bg-primary/85 h-11 rounded-full px-5"
           >
             تکمیل خرید

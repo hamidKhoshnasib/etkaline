@@ -18,7 +18,9 @@ import {
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OrderStats } from "@/features/account/components/OrderStats";
+import { useProfile } from "@/features/account/api/use-profile";
 import { cn } from "@/lib/utils";
 
 interface AccountLink {
@@ -74,7 +76,9 @@ function SidebarItem({
 
 export function AccountSidebar() {
   const pathname = usePathname();
+  const { data: profile, isLoading } = useProfile();
   const isProfileHome = pathname === "/account/profile" || pathname === "/account";
+  const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
 
   return (
     <div
@@ -86,8 +90,21 @@ export function AccountSidebar() {
       <Card className="gap-0 rounded-none border-x-0 border-t-0 py-0 shadow-none lg:gap-4 lg:rounded-2xl lg:border">
         <CardHeader className="grid min-h-27 grid-cols-[1fr_auto] items-center gap-2 px-5 py-6 lg:min-h-0 lg:px-6 lg:pt-6 lg:pb-4">
           <div>
-            <p className="text-secondary font-bold">سلام محمدرضا!</p>
-            <p className="text-muted-foreground mt-2 text-sm">به فروشگاه اتکالاین خوش آمدید.</p>
+            {isLoading ? (
+              <div className="space-y-2" aria-label="در حال دریافت اطلاعات پروفایل">
+                <Skeleton className="h-5 w-28" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            ) : (
+              <>
+                <p className="text-secondary font-bold">
+                  {fullName ? `سلام ${fullName}!` : "حساب کاربری"}
+                </p>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  {profile?.mobile || "به فروشگاه اتکالاین خوش آمدید."}
+                </p>
+              </>
+            )}
           </div>
           <Link
             href="/account/profile"

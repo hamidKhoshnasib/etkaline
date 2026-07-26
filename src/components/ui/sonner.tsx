@@ -6,7 +6,7 @@ import {
   CircleCheckIcon,
   InfoIcon,
   TriangleAlertIcon,
-  OctagonXIcon,
+  CircleXIcon,
   Loader2Icon,
 } from "lucide-react";
 
@@ -17,16 +17,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      dir="rtl"
+      position="bottom-right"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
+        info: <InfoIcon className="size-4.5" />,
+        warning: <TriangleAlertIcon className="size-4.5" />,
+        error: <CircleXIcon className="size-4.5" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
       style={
         {
-          "--width": "776px",
+          "--width": "min(26rem, calc(100vw - 2rem))",
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
@@ -35,7 +37,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "etkaline-toast",
         },
       }}
       {...props}

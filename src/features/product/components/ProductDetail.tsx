@@ -38,6 +38,7 @@ interface ProductBreadcrumbEntry {
 
 interface ProductViewModel {
   id: number;
+  storeProductId: number | null;
   title: string;
   price: number;
   originalPrice?: number;
@@ -62,6 +63,7 @@ const PRODUCT_BREADCRUMBS: ProductBreadcrumbEntry[] = [
 
 const PRODUCT: ProductViewModel = {
   id: 6,
+  storeProductId: null,
   title:
     "یخچال فریزر سامسونگ ۳۶ اینچ ۲۸ فوت مکعبی درب فرانسوی با یخساز (RF28R7201SR/AA) - استیل ضد زنگ",
   price: 330000000,
@@ -132,6 +134,7 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
 
   return {
     id: product.productId || PRODUCT.id,
+    storeProductId: store?.storeProductId ?? null,
     title: product.title,
     price,
     originalPrice,
@@ -215,13 +218,20 @@ interface MobilePurchaseFooterProps {
   price: number;
   originalPrice: number;
   cartItem: CartItem;
+  storeProductId: number | null;
 }
 
-function MobilePurchaseFooter({ price, originalPrice, cartItem }: MobilePurchaseFooterProps) {
+function MobilePurchaseFooter({
+  price,
+  originalPrice,
+  cartItem,
+  storeProductId,
+}: MobilePurchaseFooterProps) {
   return (
     <footer className="bg-background fixed inset-x-0 bottom-0 z-50 flex h-[82px] items-center justify-between gap-3 rounded-t-2xl border-t px-4 shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden">
       <AddToCartButton
         item={cartItem}
+        storeProductId={storeProductId}
         showIcon
         className="bg-primary text-secondary flex h-11 items-center gap-2 rounded-full px-5 text-sm font-bold"
         quantityClassName="gap-4"
@@ -285,6 +295,7 @@ export default function ProductDetail({
             discount={product.discount}
             colors={product.colors}
             cartItem={cartItem}
+            storeProductId={product.storeProductId}
           />
         </div>
       </div>
@@ -292,6 +303,7 @@ export default function ProductDetail({
         price={product.price}
         originalPrice={product.originalPrice ?? product.price}
         cartItem={cartItem}
+        storeProductId={product.storeProductId}
       />
     </main>
   );

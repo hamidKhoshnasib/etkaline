@@ -8,4 +8,5 @@ export { OrderStats } from "./components/OrderStats";
 export { OrderDetailView } from "./components/OrderDetailView";
 export { OrdersDashboard } from "./components/OrdersDashboard";
 export { OrdersSkeleton } from "./components/OrdersSkeleton";
+export { useProfile, type Profile } from "./api/use-profile";
 export { getMockOrder, MOCK_ORDERS } from "./model/mock-orders";
