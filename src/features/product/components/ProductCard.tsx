@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 interface ProductCardProps extends ProductCardData {
   id?: number | string;
+  productUrl?: string;
   isBookmarked?: boolean;
   outOfStock?: boolean;
   onBookmark?: () => void;
@@ -28,18 +29,21 @@ interface ProductCardProps extends ProductCardData {
 
 interface ProductCardLinkProps {
   id?: number | string;
+  productUrl?: string;
   title: string;
   children: React.ReactNode;
 }
 
-function ProductCardLink({ id, title, children }: ProductCardLinkProps) {
-  if (id === undefined) {
+function ProductCardLink({ id, productUrl, title, children }: ProductCardLinkProps) {
+  const href =
+    productUrl ?? (id === undefined ? null : `/products/${encodeURIComponent(String(id))}`);
+  if (!href) {
     return children;
   }
 
   return (
     <Link
-      href={`/products/${encodeURIComponent(String(id))}`}
+      href={href}
       aria-label={`مشاهده ${title}`}
       className="focus-visible:outline-primary block focus-visible:outline-2 focus-visible:outline-offset-2"
     >
@@ -50,6 +54,7 @@ function ProductCardLink({ id, title, children }: ProductCardLinkProps) {
 
 function MobileProductCard({
   id,
+  productUrl,
   image,
   title,
   price,
@@ -58,7 +63,7 @@ function MobileProductCard({
   className,
 }: ProductCardProps) {
   return (
-    <ProductCardLink id={id} title={title}>
+    <ProductCardLink id={id} productUrl={productUrl} title={title}>
       <div
         className={cn(
           "flex h-28 gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm",
@@ -96,6 +101,7 @@ function MobileProductCard({
 
 function CatalogMobileProductCard({
   id,
+  productUrl,
   image,
   title,
   price,
@@ -104,7 +110,7 @@ function CatalogMobileProductCard({
   className,
 }: ProductCardProps) {
   return (
-    <ProductCardLink id={id} title={title}>
+    <ProductCardLink id={id} productUrl={productUrl} title={title}>
       <article
         className={cn(
           "flex h-36 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm",
@@ -147,6 +153,7 @@ function CatalogMobileProductCard({
 
 function ProductCard({
   id,
+  productUrl,
   image,
   title,
   price,
@@ -220,14 +227,16 @@ function ProductCard({
 
   if (variant === "mobile") {
     return (
-      <MobileProductCard {...{ id, image, title, price, originalPrice, discount, className }} />
+      <MobileProductCard
+        {...{ id, productUrl, image, title, price, originalPrice, discount, className }}
+      />
     );
   }
 
   if (variant === "catalog-mobile") {
     return (
       <CatalogMobileProductCard
-        {...{ id, image, title, price, originalPrice, discount, className }}
+        {...{ id, productUrl, image, title, price, originalPrice, discount, className }}
       />
     );
   }
@@ -240,7 +249,7 @@ function ProductCard({
         className,
       )}
     >
-      <ProductCardLink id={id} title={title}>
+      <ProductCardLink id={id} productUrl={productUrl} title={title}>
         <div className="relative overflow-hidden bg-gray-50">
           <AppImage
             src={image}

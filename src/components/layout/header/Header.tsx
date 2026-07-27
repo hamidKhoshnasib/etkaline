@@ -6,9 +6,10 @@ import { MobileHeader } from "./MobileHeader";
 import { HomeAdvertisement } from "./HomeAdvertisement";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { getMenuCategories } from "@/features/catalog/api/get-menu-categories";
+import { getExtraPages } from "@/features/extra-pages/api/get-extra-pages";
 
 export async function Header() {
-  const categories = await getMenuCategories();
+  const [categories, extraPages] = await Promise.all([getMenuCategories(), getExtraPages()]);
 
   return (
     <>
@@ -24,7 +25,7 @@ export async function Header() {
               <HeaderAuth />
             </div>
           </div>
-          <NavBar categories={categories} />
+          <NavBar categories={categories} extraPages={extraPages.headerItems} />
         </div>
       </header>
       <MobileBottomNav categories={categories} />

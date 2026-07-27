@@ -64,13 +64,13 @@ export function MessagesView() {
             >
               <TabsTrigger
                 value="all"
-                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 data-active:font-bold"
+                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 after:bottom-[-1px] data-active:font-bold"
               >
                 همه پیام‌ها
               </TabsTrigger>
               <TabsTrigger
                 value="discounts"
-                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 data-active:font-bold"
+                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 after:bottom-[-1px] data-active:font-bold"
               >
                 تخفیف‌ها
               </TabsTrigger>

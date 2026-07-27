@@ -5,7 +5,7 @@ import {
   type BackendLayoutProduct,
   type Product,
 } from "@/features/product/model/product";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -33,11 +33,8 @@ export async function getProductsByLayoutId(layoutId: number, count = 12): Promi
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: {
-        revalidate: 300,
-        tags: [`home-layout-products-${layoutId}`],
-      },
+      headers: await getServerApiHeaders(),
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
 

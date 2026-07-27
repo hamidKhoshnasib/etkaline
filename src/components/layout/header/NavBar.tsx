@@ -5,6 +5,9 @@ import Link from "next/link";
 import { ChevronDown, MapPin } from "lucide-react";
 import { AddressPicker } from "./AddressPicker";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
+import { useAddresses } from "@/features/address/api/use-addresses";
+import type { ExtraPageLink } from "@/features/extra-pages/api/get-extra-pages";
+import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href";
 import { navLinks } from "./header.config";
 import { MegaMenu } from "./MegaMenu";
 
@@ -13,9 +16,11 @@ const CategoryIcon = categoriesLink.icon;
 
 interface NavBarProps {
   categories: MenuCategory[];
+  extraPages: ExtraPageLink[];
 }
 
-export function NavBar({ categories }: NavBarProps) {
+export function NavBar({ categories, extraPages }: NavBarProps) {
+  const { data: addresses = [] } = useAddresses();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(
     categories[0]?.id ?? null,
@@ -25,6 +30,8 @@ export function NavBar({ categories }: NavBarProps) {
   const selectedCategoryId = categories.some((category) => category.id === activeCategoryId)
     ? activeCategoryId
     : (categories[0]?.id ?? null);
+  const selectedAddressTitle =
+    addresses.find((address) => address.isDefault)?.title ?? "انتخاب آدرس";
 
   const open = useCallback(() => {
     if (closeTimer.current) {
@@ -70,10 +77,19 @@ export function NavBar({ categories }: NavBarProps) {
               <Link
                 key={href}
                 href={href}
-                className="label-large hover:text-primary-hover flex items-center gap-3 text-gray-600 transition-colors"
+                className="label-large hover:text-primary-hover hover:border-primary-hover flex h-full items-center gap-3 border-b-2 border-transparent text-gray-600 transition-colors"
               >
                 <Icon className="size-4" />
                 <span>{label}</span>
+              </Link>
+            ))}
+            {extraPages.map((page) => (
+              <Link
+                key={page.id}
+                href={getExtraPageHref(page.id)}
+                className="label-large hover:text-primary-hover hover:border-primary-hover flex h-full items-center border-b-2 border-transparent text-gray-600 transition-colors"
+              >
+                {page.title}
               </Link>
             ))}
           </nav>
@@ -86,7 +102,7 @@ export function NavBar({ categories }: NavBarProps) {
                 type="button"
               >
                 <MapPin size={18} className="text-primary-hover" />
-                <span>انتخاب آدرس...</span>
+                <span>{selectedAddressTitle}</span>
                 <ChevronDown size={14} className="ms-2" />
               </button>
             }

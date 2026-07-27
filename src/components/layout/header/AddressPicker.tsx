@@ -3,6 +3,7 @@
 import { cloneElement, useId, useState, type MouseEventHandler, type ReactElement } from "react";
 import { MapPin, MoveRight, Pencil, Plus, Search, X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -33,6 +34,8 @@ import type {
 import { useAddresses } from "@/features/address/api/use-addresses";
 import { useProvinces } from "@/features/address/api/use-provinces";
 import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
+import { cn } from "@/lib/utils";
+import { setClientSessionSnapshot } from "@/lib/axios-client";
 
 type AddressStep = "addresses" | "location" | "details" | "store";
 
@@ -43,6 +46,10 @@ const AddressMap = dynamic(() => import("./AddressMap").then((module) => module.
 
 interface AddressPickerProps {
   trigger: ReactElement<{ onClick?: MouseEventHandler<HTMLElement> }>;
+  startInCreateMode?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  editingAddress?: Address | null;
 }
 
 function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
@@ -55,8 +62,15 @@ function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
   return fallback;
 }
 
-export function AddressPicker({ trigger }: AddressPickerProps) {
+export function AddressPicker({
+  trigger,
+  startInCreateMode = false,
+  open: controlledOpen,
+  onOpenChange,
+  editingAddress: externalEditingAddress,
+}: AddressPickerProps) {
   const { data: session, status, update } = useSession();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<AddressStep>("addresses");
@@ -69,7 +83,14 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
   const requiresAddress = status === "authenticated" && !session.user.applianceStoreId;
-  const activeStep = step;
+  const isExternallyEditing = Boolean(externalEditingAddress);
+  const activeEditingAddress = externalEditingAddress ?? editingAddress;
+  const activeCityId = externalEditingAddress?.cityId ?? cityId;
+  const activeCoordinates = externalEditingAddress
+    ? { latitude: externalEditingAddress.latitude, longitude: externalEditingAddress.longitude }
+    : coordinates;
+  const activeStep: AddressStep = isExternallyEditing ? "details" : step;
+  const isOpen = controlledOpen ?? open;
 
   function handleOpenChange(nextOpen: boolean) {
     if (requiresAddress && !nextOpen) {
@@ -77,6 +98,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
     }
 
     setOpen(nextOpen);
+    onOpenChange?.(nextOpen);
     if (!nextOpen) {
       setStep("addresses");
     }
@@ -84,13 +106,15 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
 
   async function refreshAddressSession(value: AddressAuthValue) {
     await update({ user: value.user, accessToken: value.accessToken });
-    await queryClient.invalidateQueries({ queryKey: ["address"] });
+    setClientSessionSnapshot({ accessToken: value.accessToken.token });
+    await queryClient.invalidateQueries();
+    router.refresh();
   }
 
   async function handleSaveAddress(payload: AddressPayload) {
     try {
-      if (editingAddress) {
-        const id = Number(editingAddress.id);
+      if (activeEditingAddress) {
+        const id = Number(activeEditingAddress.id);
         if (!Number.isInteger(id)) {
           throw new Error("شناسه آدرس معتبر نیست.");
         }
@@ -112,15 +136,33 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
       await queryClient.invalidateQueries({ queryKey: ["address"] });
       setEditingAddress(null);
       setStep("addresses");
-      setOpen(false);
+      handleOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ثبت آدرس ناموفق بود.");
     }
   }
 
-  const guardedTrigger = cloneElement(trigger, {
+  function startCreatingAddress() {
+    setEditingAddress(null);
+    setCityId(0);
+    setCoordinates({ latitude: "", longitude: "" });
+    setStep("location");
+  }
+
+  const configuredTrigger = startInCreateMode
+    ? cloneElement(trigger, {
+        onClick: (event) => {
+          trigger.props.onClick?.(event);
+          if (!event.defaultPrevented) {
+            startCreatingAddress();
+          }
+        },
+      })
+    : trigger;
+
+  const guardedTrigger = cloneElement(configuredTrigger, {
     onClick: (event) => {
-      trigger.props.onClick?.(event);
+      configuredTrigger.props.onClick?.(event);
       if (event.defaultPrevented || status !== "unauthenticated") {
         return;
       }
@@ -138,13 +180,16 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
   }[activeStep];
 
   return (
-    <Dialog open={open || requiresAddress} onOpenChange={handleOpenChange}>
-      {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={trigger} />}
+    <Dialog open={isOpen || requiresAddress} onOpenChange={handleOpenChange}>
+      {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={configuredTrigger} />}
       <DialogContent
         showCloseButton={false}
-        className={`max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-[28px] p-0 ${
-          activeStep === "addresses" ? "sm:max-w-[30rem]" : "sm:max-w-[38rem]"
-        }`}
+        className={cn(
+          "max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 rounded-[28px] p-0",
+          activeStep === "addresses"
+            ? "flex h-[min(calc(100dvh-2rem),36rem)] flex-col overflow-hidden sm:max-w-[30rem]"
+            : "overflow-y-auto sm:max-w-[38rem]",
+        )}
       >
         <DialogHeader
           className={`relative flex-row items-center justify-between border-b px-6 ${
@@ -152,7 +197,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
           }`}
         >
           <div className="flex items-center gap-3">
-            {activeStep !== "addresses" && (
+            {activeStep !== "addresses" && !isExternallyEditing && (
               <Button
                 aria-label="بازگشت به مرحله قبل"
                 className="text-secondary"
@@ -187,10 +232,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
               <Button
                 className="h-11 min-w-40.75 rounded-full px-5"
                 onClick={() => {
-                  setEditingAddress(null);
-                  setCityId(0);
-                  setCoordinates({ latitude: "", longitude: "" });
-                  setStep("location");
+                  startCreatingAddress();
                 }}
                 variant="outline-primary"
               >
@@ -204,7 +246,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
                 className={activeStep === "addresses" ? "sr-only" : "text-muted-foreground"}
                 size="icon-sm"
                 variant="ghost"
-                onClick={() => setOpen(false)}
+                onClick={() => handleOpenChange(false)}
               >
                 <X data-icon="inline-end" />
               </Button>
@@ -212,7 +254,13 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
           </div>
         </DialogHeader>
 
-        <div key={activeStep} className="animate-in fade-in slide-in-from-right-4 duration-200">
+        <div
+          key={activeStep}
+          className={cn(
+            "animate-in fade-in slide-in-from-right-4 duration-200",
+            activeStep === "addresses" && "flex min-h-0 flex-1 flex-col",
+          )}
+        >
           {activeStep === "addresses" && (
             <AddressListStep
               selectedAddress={selectedAddress}
@@ -226,7 +274,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
                 await refreshAddressSession(value);
                 setSelectedAddress(address.id);
               }}
-              onConfirm={() => setOpen(false)}
+              onConfirm={() => handleOpenChange(false)}
             />
           )}
           {activeStep === "location" && (
@@ -241,9 +289,9 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
           )}
           {activeStep === "details" && (
             <DetailsStep
-              address={editingAddress}
-              cityId={cityId}
-              coordinates={coordinates}
+              address={activeEditingAddress}
+              cityId={activeCityId}
+              coordinates={activeCoordinates}
               formId={formId}
               isPending={createAddress.isPending || updateAddress.isPending}
               onSave={handleSaveAddress}
@@ -253,7 +301,7 @@ export function AddressPicker({ trigger }: AddressPickerProps) {
             <StoreStep
               selectedStore={selectedStore}
               onSelectStore={setSelectedStore}
-              onComplete={() => setOpen(false)}
+              onComplete={() => handleOpenChange(false)}
             />
           )}
         </div>
@@ -308,99 +356,105 @@ function AddressListStep({
   }
 
   return (
-    <div className="px-6 pt-[18px] pb-6">
-      <label className="relative flex">
-        <span className="sr-only">جست‌وجوی آدرس</span>
-        <Search className="text-muted-foreground pointer-events-none absolute end-3 top-1/2 size-5 -translate-y-1/2" />
-        <Input
-          className="bg-background h-14 rounded-xl pe-11"
-          placeholder="جست‌وجو"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
-      </label>
-
-      <div className="mt-4 flex flex-col gap-2">
-        {isPending && (
-          <div aria-busy="true" className="flex flex-col gap-2">
-            <Skeleton className="h-36 rounded-2xl" />
-            <Skeleton className="h-36 rounded-2xl" />
-          </div>
-        )}
-        {!isPending &&
-          !isError &&
-          visibleAddresses.map((address) => {
-            const isSelected = address.id === activeAddressId;
-            return (
-              <div
-                className={`h-36 rounded-2xl border p-4 transition-colors ${
-                  isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60"
-                }`}
-                key={address.id}
-              >
-                <div className="flex items-start gap-3">
-                  <MapPin className="text-primary-hover size-5 shrink-0" aria-hidden="true" />
-                  <button
-                    aria-pressed={isSelected}
-                    className="focus-visible:ring-ring/50 min-w-0 flex-1 text-start focus-visible:ring-3 focus-visible:outline-none"
-                    onClick={() => void handleSelectAddress(address)}
-                    type="button"
-                  >
-                    <span className="body-medium-bold text-primary-hover block text-start">
-                      {address.title}
-                    </span>
-                    <span className="body-small text-foreground mt-1 block text-start">
-                      {address.address}
-                    </span>
-                    {address.postalCode && (
-                      <span className="body-small text-foreground block text-start">
-                        کد پستی: {address.postalCode}
-                      </span>
-                    )}
-                    {address.recipient && (
-                      <span className="body-small text-foreground block text-start">
-                        گیرنده: {address.recipient}
-                      </span>
-                    )}
-                    {address.phone && (
-                      <span className="body-small text-foreground block text-start">
-                        {address.phone}
-                      </span>
-                    )}
-                  </button>
-                  <Button
-                    aria-label={`ویرایش آدرس ${address.title}`}
-                    className="text-muted-foreground"
-                    size="icon-sm"
-                    variant="ghost"
-                    onClick={() => onEditAddress(address)}
-                  >
-                    <Pencil data-icon="inline-end" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 px-6 pt-[18px]">
+        <label className="relative flex">
+          <span className="sr-only">جست‌وجوی آدرس</span>
+          <Search className="text-muted-foreground pointer-events-none absolute end-3 top-1/2 size-5 -translate-y-1/2" />
+          <Input
+            className="bg-background h-14 rounded-xl pe-11"
+            placeholder="جست‌وجو"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </label>
       </div>
 
-      {isError && (
-        <p className="body-small text-destructive py-8 text-center" role="alert">
-          دریافت آدرس‌ها ممکن نشد. دوباره تلاش کنید.
-        </p>
-      )}
+      <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-6">
+        <div className="flex flex-col gap-2">
+          {isPending && (
+            <div aria-busy="true" className="flex flex-col gap-2">
+              <Skeleton className="h-36 rounded-2xl" />
+              <Skeleton className="h-36 rounded-2xl" />
+            </div>
+          )}
+          {!isPending &&
+            !isError &&
+            visibleAddresses.map((address) => {
+              const isSelected = address.id === activeAddressId;
+              return (
+                <div
+                  className={`h-36 rounded-2xl border p-4 transition-colors ${
+                    isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60"
+                  }`}
+                  key={address.id}
+                >
+                  <div className="flex items-start gap-3">
+                    <MapPin className="text-primary-hover size-5 shrink-0" aria-hidden="true" />
+                    <button
+                      aria-pressed={isSelected}
+                      className="focus-visible:ring-ring/50 min-w-0 flex-1 text-start focus-visible:ring-3 focus-visible:outline-none"
+                      onClick={() => void handleSelectAddress(address)}
+                      type="button"
+                    >
+                      <span className="body-medium-bold text-primary-hover block text-start">
+                        {address.title}
+                      </span>
+                      <span className="body-small text-foreground mt-1 block text-start">
+                        {address.address}
+                      </span>
+                      {address.postalCode && (
+                        <span className="body-small text-foreground block text-start">
+                          کد پستی: {address.postalCode}
+                        </span>
+                      )}
+                      {address.recipient && (
+                        <span className="body-small text-foreground block text-start">
+                          گیرنده: {address.recipient}
+                        </span>
+                      )}
+                      {address.phone && (
+                        <span className="body-small text-foreground block text-start">
+                          {address.phone}
+                        </span>
+                      )}
+                    </button>
+                    <Button
+                      aria-label={`ویرایش آدرس ${address.title}`}
+                      className="text-muted-foreground"
+                      size="icon-sm"
+                      variant="ghost"
+                      onClick={() => onEditAddress(address)}
+                    >
+                      <Pencil data-icon="inline-end" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
 
-      {!isPending && !isError && visibleAddresses.length === 0 && (
-        <p className="body-small text-muted-foreground py-8 text-center">آدرسی یافت نشد.</p>
-      )}
+        {isError && (
+          <p className="body-small text-destructive py-8 text-center" role="alert">
+            دریافت آدرس‌ها ممکن نشد. دوباره تلاش کنید.
+          </p>
+        )}
 
-      <Button
-        className="mt-10 h-[59px] w-full rounded-full text-base font-bold"
-        disabled={!activeAddressId || isPending || isError}
-        onClick={onConfirm}
-        size="xl"
-      >
-        تأیید آدرس
-      </Button>
+        {!isPending && !isError && visibleAddresses.length === 0 && (
+          <p className="body-small text-muted-foreground py-8 text-center">آدرسی یافت نشد.</p>
+        )}
+      </div>
+
+      <div className="bg-background shrink-0 border-t px-6 py-4">
+        <Button
+          className="h-[59px] w-full rounded-full text-base font-bold"
+          disabled={!activeAddressId || isPending || isError}
+          onClick={onConfirm}
+          size="xl"
+        >
+          تأیید آدرس
+        </Button>
+      </div>
     </div>
   );
 }

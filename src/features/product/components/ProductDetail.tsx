@@ -286,7 +286,7 @@ export default function ProductDetail({
 
           <UserImagesSection images={product.userImages} />
 
-          <ReviewsSection averageRating={4} totalRatings={40} />
+          <ReviewsSection productId={product.id} averageRating={4} totalRatings={40} />
         </div>
         <div className="hidden w-[260px] shrink-0 lg:block">
           <ProductInfoCard

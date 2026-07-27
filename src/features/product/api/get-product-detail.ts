@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -196,8 +196,8 @@ export async function getProductDetail(productId: string): Promise<ProductDetail
 
   try {
     const response = await fetch(new URL(`/api/Products/${productId}`, API_BASE_URL), {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: [`product:${productId}`] },
+      headers: await getServerApiHeaders(),
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
 

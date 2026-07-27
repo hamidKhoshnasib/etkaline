@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { SortDescIcon, StarIcon } from "lucide-react";
+import { Heart, SortDescIcon, StarIcon } from "lucide-react";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Pagination } from "@/components/ui/Pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProductComments } from "@/features/product/api/use-product-comments";
 import { cn } from "@/lib/utils";
 import { ReviewCard } from "./ReviewCard";
 
@@ -17,36 +21,23 @@ const SORT_OPTIONS = [
   { id: "lowest", label: "کمترین امتیاز" },
 ];
 
-const SAMPLE_REVIEWS = [
-  {
-    id: 1,
-    author: "مجید تهرانی",
-    date: "۱۲ فرودین ۱۴۰۵",
-    rating: 5,
-    body: "سلام خدمت کسایی که نظر بنده رو میخونن ، ما این یخچال رو از سرای ایرانی خریدم ، جدی یخچال خوبیه ، موتورش صدای خیلی کمی داره و اصلا به چشم نمیاد و تقریباً میشه گفت بی صداست ، جا داره ، کاملا لمسیه و دیجیتال ، فشار آبش خوبه ، یخ سازش اوکیه و انتظار اینکه مثل یخچال های ساید ال جی یخ سازی کنه رو نداشته باشید یکم یخ سازش دیر کاره اما خدایی خوبه ولی یه ایراد ریز داره که یکم اولای خریدن دستگاه زیر یخ ساز یه حالت خیلی ریز یخ میزنه و حالت دونه های برف میگیره که به مرور درست میشه ... ...",
-    likes: 283,
-    dislikes: 12,
-    truncate: false,
-  },
-  {
-    id: 2,
-    author: "مجید تهرانی",
-    date: "۱۲ فرودین ۱۴۰۵",
-    rating: 5,
-    body: "سلام خدمت کسایی که نظر بنده رو میخونن ، ما این یخچال رو از سرای ایرانی خریدم ، جدی یخچال خوبیه ، موتورش صدای خیلی کمی داره و اصلا به چشم نمیاد و تقریباً میشه گفت بی صداست ،",
-    likes: 283,
-    dislikes: 12,
-    truncate: true,
-  },
-];
-
 interface ReviewsSectionProps {
+  productId: number;
   averageRating: number;
   totalRatings: number;
 }
 
-export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionProps) {
+export function ReviewsSection({ productId, averageRating, totalRatings }: ReviewsSectionProps) {
   const [sort, setSort] = useState("priority");
+  const [page, setPage] = useState(0);
+  const { data, error, isLoading } = useProductComments(productId, page);
+  const comments = data?.comments ?? [];
+  const approvedCommentCount = data?.totalCount ?? totalRatings;
+  const apiAverageRating =
+    comments.length > 0
+      ? comments.reduce((total, comment) => total + comment.score, 0) / comments.length
+      : null;
+  const displayedAverageRating = apiAverageRating ?? averageRating;
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-8">
@@ -57,7 +48,9 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
         </h3>
 
         <div className="mb-3 flex items-center justify-between lg:block">
-          <span className="text-sm text-gray-500">میانگین امتیاز: {toPersian(averageRating)}</span>
+          <span className="text-sm text-gray-500">
+            میانگین امتیاز: {toPersian(Number(displayedAverageRating.toFixed(1)))}
+          </span>
         </div>
 
         <div className="mb-5 flex items-center justify-between gap-3">
@@ -67,14 +60,16 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
                 key={i}
                 className={cn(
                   "size-3.5",
-                  i < Math.round(averageRating)
+                  i < Math.round(displayedAverageRating)
                     ? "fill-yellow-400 text-yellow-400"
                     : "fill-gray-200 text-gray-200",
                 )}
               />
             ))}
           </div>
-          <span className="text-sm text-gray-500">از مجموع {toPersian(totalRatings)} امتیاز</span>
+          <span className="text-sm text-gray-500">
+            از مجموع {toPersian(approvedCommentCount)} امتیاز
+          </span>
         </div>
 
         <p className="mb-3 text-sm">شما هم درباره این کالا دیدگاه ثبت کنید</p>
@@ -121,19 +116,47 @@ export function ReviewsSection({ averageRating, totalRatings }: ReviewsSectionPr
         <div className="bg-border mb-5 h-px" />
 
         {/* Review cards */}
-        <div className="space-y-4 lg:max-w-[620px]">
-          {SAMPLE_REVIEWS.map((r) => (
-            <ReviewCard
-              key={r.id}
-              author={r.author}
-              date={r.date}
-              rating={r.rating}
-              body={r.body}
-              likes={r.likes}
-              dislikes={r.dislikes}
-              truncate={r.truncate}
+        <div className="flex flex-col gap-4 lg:max-w-[620px]">
+          {isLoading &&
+            Array.from({ length: 2 }, (_, index) => (
+              <Skeleton key={index} className="h-52 rounded-2xl" />
+            ))}
+          {!isLoading && error && (
+            <p className="text-destructive text-sm" role="alert">
+              دریافت دیدگاه‌ها ناموفق بود. دوباره تلاش کنید.
+            </p>
+          )}
+          {!isLoading && !error && comments.length === 0 && (
+            <Empty className="min-h-52 border">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Heart aria-hidden="true" />
+                </EmptyMedia>
+                <EmptyTitle>هنوز دیدگاهی ثبت نشده است</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
+          )}
+          {!isLoading &&
+            !error &&
+            comments.map((comment) => (
+              <ReviewCard
+                key={comment.id}
+                author={comment.creatorName}
+                date={comment.createDateFa ?? ""}
+                rating={comment.score}
+                body={comment.text}
+                likes={comment.likeCount}
+                dislikes={0}
+              />
+            ))}
+          {!isLoading && !error && data && data.pageCount > 1 && (
+            <Pagination
+              className="self-center"
+              page={data.page + 1}
+              total={data.pageCount}
+              onChange={(nextPage) => setPage(nextPage - 1)}
             />
-          ))}
+          )}
         </div>
       </div>
     </div>

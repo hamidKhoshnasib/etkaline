@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   EllipsisVertical,
   Map,
@@ -8,9 +11,18 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,33 +31,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AddressPicker } from "@/components/layout/header/AddressPicker";
+import { useDeleteAddress } from "@/features/address/api/use-address-mutations";
+import { type Address, type ApiResult, useAddresses } from "@/features/address/api/use-addresses";
 
-const MOCK_ADDRESSES = [
-  {
-    id: "address-1",
-    title: "خانه",
-    recipient: "محمدرضا چاهی",
-    address: "بازار، خ پانزده خرداد، خ پامنار، بن‌بست قائم مقام",
-    postalCode: "۶۷۷۴۵۷۴۴۷۶",
-    phone: "۰۹۳۶۰۲۴۱۵۷۰",
-  },
-  {
-    id: "address-2",
-    title: "خانه",
-    recipient: "محمدرضا چاهی",
-    address: "بازار، خ پانزده خرداد، خ پامنار، بن‌بست قائم مقام",
-    postalCode: "۶۷۷۴۵۷۴۴۷۶",
-    phone: "۰۹۳۶۰۲۴۱۵۷۰",
-  },
-  {
-    id: "address-3",
-    title: "خانه",
-    recipient: "محمدرضا چاهی",
-    address: "بازار، خ پانزده خرداد، خ پامنار، بن‌بست قائم مقام",
-    postalCode: "۶۷۷۴۵۷۴۴۷۶",
-    phone: "۰۹۳۶۰۲۴۱۵۷۰",
-  },
-] as const;
+function getResponseMessage(response: ApiResult<never>, fallback: string) {
+  if (typeof response.message === "string" && response.message.trim()) {
+    return response.message;
+  }
+  if (Array.isArray(response.errors) && typeof response.errors[0] === "string") {
+    return response.errors[0];
+  }
+  return fallback;
+}
 
 function AddressInfoRow({
   icon: Icon,
@@ -62,9 +61,17 @@ function AddressInfoRow({
   );
 }
 
-function AddressActions({ defaultOpen = false }: { defaultOpen?: boolean }) {
+function AddressActions({
+  onEdit,
+  onDelete,
+  isDeleting,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}) {
   return (
-    <DropdownMenu defaultOpen={defaultOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <button
@@ -83,7 +90,10 @@ function AddressActions({ defaultOpen = false }: { defaultOpen?: boolean }) {
         className="min-w-28 rounded-lg p-0"
       >
         <DropdownMenuGroup>
-          <DropdownMenuItem className="min-h-10 cursor-pointer justify-between rounded-none px-3">
+          <DropdownMenuItem
+            className="min-h-10 cursor-pointer justify-between rounded-none px-3"
+            onClick={onEdit}
+          >
             <span>ویرایش</span>
             <Pencil aria-hidden="true" />
           </DropdownMenuItem>
@@ -91,8 +101,10 @@ function AddressActions({ defaultOpen = false }: { defaultOpen?: boolean }) {
           <DropdownMenuItem
             variant="destructive"
             className="min-h-10 cursor-pointer justify-between rounded-none px-3"
+            disabled={isDeleting}
+            onClick={onDelete}
           >
-            <span>حذف</span>
+            <span>{isDeleting ? "در حال حذف..." : "حذف"}</span>
             <Trash2 aria-hidden="true" />
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -101,44 +113,139 @@ function AddressActions({ defaultOpen = false }: { defaultOpen?: boolean }) {
   );
 }
 
+function AddressesSkeleton() {
+  return (
+    <div className="flex flex-col gap-5" aria-busy="true" aria-label="در حال دریافت آدرس‌ها">
+      {Array.from({ length: 2 }, (_, index) => (
+        <Card key={index} className="min-h-48 gap-3 rounded-xl py-5 shadow-none">
+          <CardHeader className="px-5 py-0">
+            <Skeleton className="h-5 w-24" />
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 px-5 pb-0">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-28" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export function AddressesView() {
+  const { data: addresses = [], error, isLoading } = useAddresses();
+  const queryClient = useQueryClient();
+  const deleteAddress = useDeleteAddress();
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+
+  async function handleDeleteAddress(id: string) {
+    const numericId = Number(id);
+    if (!Number.isSafeInteger(numericId)) {
+      toast.error("شناسه آدرس معتبر نیست.");
+      return;
+    }
+
+    try {
+      const response = await deleteAddress.mutateAsync({ id: numericId });
+      if (response.isSuccess !== true) {
+        throw new Error(getResponseMessage(response, "حذف آدرس ناموفق بود."));
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["address"] });
+      toast.success("آدرس با موفقیت حذف شد.");
+    } catch (deleteError) {
+      toast.error(deleteError instanceof Error ? deleteError.message : "حذف آدرس ناموفق بود.");
+    }
+  }
+
   return (
     <section className="bg-muted/60 min-h-full px-4 py-6 lg:bg-transparent lg:px-0 lg:py-0">
       <div className="mb-5 flex items-center justify-between gap-4">
         <h1 className="text-secondary text-lg font-bold">آدرس‌های من</h1>
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="border-primary-hover text-primary-hover bg-transparent"
-        >
-          <Plus data-icon="inline-start" />
-          افزودن آدرس جدید
-        </Button>
+        <AddressPicker
+          startInCreateMode
+          trigger={
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="border-primary-hover text-primary-hover bg-transparent"
+            >
+              <Plus data-icon="inline-start" />
+              افزودن آدرس جدید
+            </Button>
+          }
+        />
       </div>
 
-      <div className="flex flex-col gap-5">
-        {MOCK_ADDRESSES.map((address, index) => (
-          <Card key={address.id} className="min-h-48 gap-2 rounded-xl py-0 shadow-none">
-            <CardHeader className="grid grid-cols-[1fr_auto] items-start px-5 pt-5 pb-0">
-              <CardTitle className="text-secondary font-bold">{address.title}</CardTitle>
-              <CardAction className="col-start-2 row-start-1">
-                <AddressActions defaultOpen={index === 0} />
-              </CardAction>
-            </CardHeader>
-            <CardContent className="flex flex-col px-5 pb-5">
-              <AddressInfoRow icon={UserRound}>گیرنده: {address.recipient}</AddressInfoRow>
-              <AddressInfoRow icon={MapPin}>{address.address}</AddressInfoRow>
-              <AddressInfoRow icon={Map}>
-                <bdi dir="ltr">{address.postalCode}</bdi>
-              </AddressInfoRow>
-              <AddressInfoRow icon={Smartphone}>
-                <bdi dir="ltr">{address.phone}</bdi>
-              </AddressInfoRow>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {editingAddress && (
+        <AddressPicker
+          editingAddress={editingAddress}
+          open
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              setEditingAddress(null);
+            }
+          }}
+          trigger={
+            <Button aria-hidden="true" className="sr-only" tabIndex={-1} type="button">
+              ویرایش آدرس
+            </Button>
+          }
+        />
+      )}
+
+      {isLoading ? (
+        <AddressesSkeleton />
+      ) : error ? (
+        <Empty className="bg-card min-h-48">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <MapPin aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>دریافت آدرس‌ها ناموفق بود</EmptyTitle>
+            <EmptyDescription>{error.message}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : addresses.length === 0 ? (
+        <Empty className="bg-card min-h-48">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <MapPin aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>هنوز آدرسی ثبت نکرده‌اید</EmptyTitle>
+            <EmptyDescription>برای ثبت آدرس جدید از دکمهٔ بالا استفاده کنید.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {addresses.map((address) => (
+            <Card key={address.id} className="min-h-48 gap-2 rounded-xl py-0 shadow-none">
+              <CardHeader className="grid grid-cols-[1fr_auto] items-start px-5 pt-5 pb-0">
+                <CardTitle className="text-secondary font-bold">{address.title}</CardTitle>
+                <CardAction className="col-start-2 row-start-1">
+                  <AddressActions
+                    isDeleting={deleteAddress.isPending}
+                    onEdit={() => setEditingAddress(address)}
+                    onDelete={() => handleDeleteAddress(address.id)}
+                  />
+                </CardAction>
+              </CardHeader>
+              <CardContent className="flex flex-col px-5 pb-5">
+                <AddressInfoRow icon={UserRound}>گیرنده: {address.recipient}</AddressInfoRow>
+                <AddressInfoRow icon={MapPin}>{address.address}</AddressInfoRow>
+                <AddressInfoRow icon={Map}>
+                  <bdi dir="ltr">{address.postalCode}</bdi>
+                </AddressInfoRow>
+                <AddressInfoRow icon={Smartphone}>
+                  <bdi dir="ltr">{address.phone}</bdi>
+                </AddressInfoRow>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 import { Info, PencilLine, RefreshCw } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
+import { CLIENT_SESSION_SYNC_EVENT } from "@/lib/axios-client";
 
 import EtkalineLogo from "@/assets/icons/logo.svg";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,35 @@ function normalizeCaptchaImage(image: string) {
 
 function responseMessage(response: ApiResponse<unknown>, fallback: string) {
   return response.message || response.errors?.[0] || fallback;
+}
+
+function waitForAuthenticatedSessionSync() {
+  let resolveReady!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    resolveReady = resolve;
+  });
+  const cleanup = () => {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+    window.removeEventListener(CLIENT_SESSION_SYNC_EVENT, handleSessionSync);
+  };
+  const handleSessionSync = (event: Event) => {
+    if (!(event instanceof CustomEvent) || typeof event.detail !== "string" || !event.detail) {
+      return;
+    }
+
+    cleanup();
+    resolveReady();
+  };
+
+  window.addEventListener(CLIENT_SESSION_SYNC_EVENT, handleSessionSync);
+  const timeoutId = window.setTimeout(() => {
+    cleanup();
+    resolveReady();
+  }, 5_000);
+
+  return { ready, cancel: cleanup };
 }
 
 async function authRequest<T>(url: string, init?: RequestInit) {
@@ -238,6 +268,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
     setError("");
 
     try {
+      const sessionSync = waitForAuthenticatedSessionSync();
       const result = await signIn("credentials", {
         mobile: normalizedMobile,
         code: verificationCode,
@@ -245,9 +276,11 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
       });
 
       if (!result?.ok || result.error) {
+        sessionSync.cancel();
         throw new Error("کد تأیید واردشده صحیح نیست یا منقضی شده است.");
       }
 
+      await sessionSync.ready;
       window.dispatchEvent(new Event("etkala:authenticated"));
       toast.success("با موفقیت وارد حساب کاربری شدید.");
       void showWelcomeDialog();

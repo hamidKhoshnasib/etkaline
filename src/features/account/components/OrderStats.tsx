@@ -1,13 +1,13 @@
-import { PackageCheck, ReceiptText, ShoppingBasket, Undo2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 const ORDER_STATS = [
-  { label: "سفارش فعال", count: "۳ سفارش", icon: ReceiptText },
-  { label: "تحویل داده شده", count: "۰ سفارش", icon: PackageCheck },
-  { label: "مرجوع شده", count: "۰ سفارش", icon: Undo2 },
-  { label: "لغو شده", count: "۰ سفارش", icon: ShoppingBasket },
+  { label: "سفارش فعال", count: "۳ سفارش", iconSrc: "/icons/orders/in-transit.svg" },
+  { label: "تحویل داده شده", count: "۰ سفارش", iconSrc: "/icons/orders/order-history.svg" },
+  { label: "مرجوع شده", count: "۰ سفارش", iconSrc: "/icons/orders/return.svg" },
+  { label: "لغو شده", count: "۰ سفارش", iconSrc: "/icons/orders/shopping-basket.svg" },
 ] as const;
 
 export function OrderStats({ mobile = false }: { mobile?: boolean }) {
@@ -17,14 +17,16 @@ export function OrderStats({ mobile = false }: { mobile?: boolean }) {
         aria-label="خلاصه سفارش‌ها"
         className="grid min-h-[119px] grid-cols-4 border-b bg-white lg:hidden"
       >
-        {ORDER_STATS.map(({ label, count, icon: Icon }) => (
-          <div key={label} className="flex min-w-0 flex-col items-center justify-center gap-1 px-1">
-            <span className="bg-muted text-primary-hover flex size-10 items-center justify-center rounded-lg">
-              <Icon aria-hidden="true" />
-            </span>
+        {ORDER_STATS.map(({ label, count, iconSrc }) => (
+          <Link
+            key={label}
+            href="/account/orders"
+            className="hover:bg-muted flex min-w-0 flex-col items-center justify-center gap-1 px-1 transition-colors"
+          >
+            <Image src={iconSrc} width={48} height={48} alt="" className="size-10" />
             <span className="text-secondary truncate text-xs font-medium">{label}</span>
             <span className="text-secondary text-xs">{count.replace(" سفارش", "")}</span>
-          </div>
+          </Link>
         ))}
       </section>
     );
@@ -32,16 +34,18 @@ export function OrderStats({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <section aria-label="خلاصه سفارش‌ها" className="hidden grid-cols-4 gap-3 lg:grid">
-      {ORDER_STATS.map(({ label, count, icon: Icon }) => (
-        <Card key={label} className="min-h-22 rounded-2xl py-0 shadow-none">
-          <CardHeader className="grid grid-cols-[auto_1fr] items-center gap-3 px-4 pt-5 pb-1">
-            <span className="bg-muted text-primary-hover flex size-11 items-center justify-center rounded-xl">
-              <Icon aria-hidden="true" />
-            </span>
-            <p className="text-secondary font-bold">{label}</p>
-          </CardHeader>
-          <CardContent className={cn("text-secondary px-4 pb-4 text-sm")}>{count}</CardContent>
-        </Card>
+      {ORDER_STATS.map(({ label, count, iconSrc }) => (
+        <Link key={label} href="/account/orders" className="block">
+          <Card className="hover:bg-muted h-[86px] gap-0 rounded-2xl py-0 shadow-none transition-colors">
+            <CardHeader className="grid h-full grid-cols-[auto_1fr] content-center items-center gap-3 px-4 py-3">
+              <Image src={iconSrc} width={48} height={48} alt="" className="size-11" />
+              <div className="flex flex-col gap-1">
+                <p className="text-secondary font-bold">{label}</p>
+                <CardContent className="text-secondary p-0 text-sm">{count}</CardContent>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
       ))}
     </section>
   );

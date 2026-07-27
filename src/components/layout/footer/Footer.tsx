@@ -7,16 +7,30 @@ import Enamad from "@/assets/icons/enamad-icon.svg";
 import Etehadie from "@/assets/icons/etehadie-icon.svg";
 import Samandehi from "@/assets/icons/samandehi-icon.svg";
 import { getFooterDescription } from "@/features/home/appliances/api/get-footer-description";
+import { getExtraPages } from "@/features/extra-pages/api/get-extra-pages";
+import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href";
 import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export async function Footer() {
-  const [footerDescription, socialNetworks] = await Promise.all([
+  const [footerDescription, socialNetworks, extraPages] = await Promise.all([
     getFooterDescription(),
     getSocialNetworks(),
+    getExtraPages(),
   ]);
+  const linkColumns = LINK_COLUMNS.map((column) =>
+    column.title === "راهنمای مشتریان"
+      ? {
+          ...column,
+          items: extraPages.footerItems.map((page) => ({
+            href: getExtraPageHref(page.id),
+            label: page.title,
+          })),
+        }
+      : column,
+  );
 
   return (
     <footer className="relative overflow-hidden">
@@ -39,7 +53,7 @@ export async function Footer() {
               {footerDescription && <p className="body-medium line-clamp-7">{footerDescription}</p>}
             </div>
 
-            {LINK_COLUMNS.map((col) => (
+            {linkColumns.map((col) => (
               <div key={col.title} className="order-2 lg:order-0">
                 <details className="group pb-3 lg:hidden">
                   <summary className="title-medium-bold flex cursor-pointer list-none items-center justify-between">

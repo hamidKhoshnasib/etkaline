@@ -13,6 +13,10 @@ interface AddressMapProps {
 }
 
 function getCoordinates(latitude: string, longitude: string): [number, number] | null {
+  if (!latitude.trim() || !longitude.trim()) {
+    return null;
+  }
+
   const parsedLatitude = Number(latitude);
   const parsedLongitude = Number(longitude);
 

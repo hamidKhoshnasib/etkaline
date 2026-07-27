@@ -5,10 +5,14 @@ import { usePathname } from "next/navigation";
 import { Bell, MapPin, ChevronDown, Search } from "lucide-react";
 import EtkalineLogo from "@/assets/icons/logo.svg";
 import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
+import { useAddresses } from "@/features/address/api/use-addresses";
 import { AddressPicker } from "./AddressPicker";
 
 export function MobileHeader() {
   const pathname = usePathname();
+  const { data: addresses = [] } = useAddresses();
+  const selectedAddressTitle =
+    addresses.find((address) => address.isDefault)?.title ?? "انتخاب آدرس";
   if (
     pathname.startsWith("/products/") ||
     pathname.startsWith("/categories/") ||
@@ -34,7 +38,7 @@ export function MobileHeader() {
               >
                 <MapPin size={18} className="text-primary-hover shrink-0" />
                 <span className="body-small min-w-0 truncate text-black min-[390px]:block">
-                  انتخاب آدرس...
+                  {selectedAddressTitle}
                 </span>
                 <ChevronDown size={16} className="shrink-0 text-black" />
               </button>

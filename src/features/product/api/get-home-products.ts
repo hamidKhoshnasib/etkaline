@@ -5,7 +5,7 @@ import {
   type BackendHomeProductGroup,
   type Product,
 } from "@/features/product/model/product";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 // آدرس API فقط در لایه سرور خوانده می‌شود تا جزئیات بک‌اند به کلاینت نشت نکند
 const API_BASE_URL =
@@ -29,8 +29,8 @@ export async function getHomeProducts(count = 12): Promise<HomeProductsResult> {
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: ["home-products"] },
+      headers: await getServerApiHeaders(),
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
 

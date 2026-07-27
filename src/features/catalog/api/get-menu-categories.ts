@@ -2,7 +2,7 @@ import "server-only";
 
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 interface CategoriesResponse {
   value?: unknown;
@@ -101,8 +101,8 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
 export async function getMenuCategories(): Promise<MenuCategory[]> {
   try {
     const response = await fetch(new URL("/api/Categories", getServerApiBaseUrl()), {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: ["menu-categories"] },
+      headers: await getServerApiHeaders(),
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
     if (!response.ok) {

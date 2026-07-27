@@ -1,36 +1,78 @@
-import { Plus, Trash2 } from "lucide-react";
+"use client";
 
-import ovenImage from "@/assets/images/gaz.png";
+import { Heart, Plus, Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductCard } from "@/features/product";
-
-const MOCK_WISHLIST_PRODUCTS = Array.from({ length: 5 }, (_, index) => ({
-  id: `wishlist-product-${index + 1}`,
-  title: "ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M",
-  image: ovenImage.src,
-  price: 580_000_000,
-  originalPrice: index === 1 || index === 2 ? undefined : 680_000_000,
-  discount: index === 1 || index === 2 ? undefined : 30,
-}));
+import { useFavoriteProducts } from "@/features/account/api/use-favorite-products";
+import { ProductCard } from "@/features/product/components/ProductCard";
 
 function WishlistProducts() {
+  const { data: products = [], error, isLoading, refetch } = useFavoriteProducts();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-busy="true">
+        {Array.from({ length: 5 }, (_, index) => (
+          <Skeleton key={index} className="h-64 rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error || products.length === 0) {
+    return (
+      <Empty className="min-h-80">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Heart aria-hidden="true" />
+          </EmptyMedia>
+          <EmptyTitle>
+            {error ? "دریافت علاقه‌مندی‌ها ناموفق بود" : "هنوز علاقه‌مندی ندارید"}
+          </EmptyTitle>
+          <EmptyDescription>
+            {error ? error.message : "محصولات دلخواهتان را برای مشاهدهٔ سریع‌تر ذخیره کنید."}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-      {MOCK_WISHLIST_PRODUCTS.map((product) => (
-        <ProductCard
-          key={product.id}
-          id={product.id}
-          image={product.image}
-          title={product.title}
-          price={product.price}
-          originalPrice={product.originalPrice}
-          discount={product.discount}
-          className="min-w-0 border-0 shadow-none"
-          imageClassName="lg:h-[190px] lg:w-full lg:object-contain"
-        />
-      ))}
+      {products.map((product) => {
+        const price = product.offPrice > 0 ? product.offPrice : product.mainPrice;
+        const productUrl = product.urlTitle
+          ? `/products/${encodeURIComponent(product.urlTitle)}`
+          : undefined;
+
+        return (
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            productUrl={productUrl}
+            image={product.picUrl || product.pic || "/images/placeholder-product.png"}
+            title={product.title}
+            price={price}
+            originalPrice={product.mainPrice > price ? product.mainPrice : undefined}
+            discount={product.offPercent > 0 ? product.offPercent : undefined}
+            isBookmarked
+            outOfStock={!product.isExist || product.inventory <= 0}
+            onBookmark={() => void refetch()}
+            className="min-w-0 border-0 shadow-none"
+            imageClassName="lg:h-[190px] lg:w-full lg:object-contain"
+          />
+        );
+      })}
     </div>
   );
 }
@@ -61,13 +103,13 @@ export function WishlistView() {
             >
               <TabsTrigger
                 value="favorites"
-                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 data-active:font-bold"
+                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 after:bottom-[-2px] data-active:font-bold"
               >
                 علاقه‌مندی‌ها
               </TabsTrigger>
               <TabsTrigger
                 value="later"
-                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 data-active:font-bold"
+                className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-4 after:bottom-[-2px] data-active:font-bold"
               >
                 بعداً می‌خرم
               </TabsTrigger>
@@ -88,7 +130,14 @@ export function WishlistView() {
               <WishlistProducts />
             </TabsContent>
             <TabsContent value="later">
-              <WishlistProducts />
+              <Empty className="min-h-80">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Heart aria-hidden="true" />
+                  </EmptyMedia>
+                  <EmptyTitle>لیست «بعداً می‌خرم» خالی است</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
             </TabsContent>
           </CardContent>
         </Card>

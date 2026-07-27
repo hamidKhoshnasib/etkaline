@@ -48,13 +48,13 @@ export function OrdersDashboard() {
         >
           <TabsTrigger
             value="current"
-            className="data-active:bg-primary! data-active:text-secondary h-full max-w-none rounded-full px-5 after:hidden data-active:font-bold lg:max-w-40 lg:rounded-none lg:after:block lg:data-active:bg-transparent!"
+            className="data-active:bg-primary! data-active:text-secondary h-full max-w-none rounded-full px-5 after:hidden data-active:font-bold lg:max-w-40 lg:rounded-none lg:after:bottom-[-1px] lg:after:block lg:after:bg-[#FFCD49] lg:data-active:bg-transparent!"
           >
             سفارشات جاری
           </TabsTrigger>
           <TabsTrigger
             value="previous"
-            className="data-active:bg-primary! data-active:text-secondary h-full max-w-none rounded-full px-5 after:hidden data-active:font-bold lg:max-w-40 lg:rounded-none lg:after:block lg:data-active:bg-transparent!"
+            className="data-active:bg-primary! data-active:text-secondary h-full max-w-none rounded-full px-5 after:hidden data-active:font-bold lg:max-w-40 lg:rounded-none lg:after:bottom-[-1px] lg:after:block lg:after:bg-[#FFCD49] lg:data-active:bg-transparent!"
           >
             سفارشات گذشته
           </TabsTrigger>

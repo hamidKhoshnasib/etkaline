@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -46,11 +46,8 @@ export async function getBannersByLayoutId(layoutId: number): Promise<LayoutBann
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: {
-        revalidate: 300,
-        tags: [`home-layout-banners-${layoutId}`],
-      },
+      headers: await getServerApiHeaders(),
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
 

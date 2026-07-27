@@ -40,7 +40,7 @@ export function HeaderAuth() {
             <DropdownMenuContent align="end" className="min-w-36 rounded-xl p-1.5">
               <DropdownMenuGroup>
                 <DropdownMenuItem
-                  render={<Link href="/account/profile" />}
+                  render={<Link href="/account/orders" />}
                   className="cursor-pointer gap-2 px-3 py-2 text-sm"
                 >
                   <User aria-hidden="true" />

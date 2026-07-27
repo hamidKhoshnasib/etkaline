@@ -4,7 +4,6 @@ import { CmsPageContent, getCmsPage } from "@/features/cms-page";
 
 type Props = { params: Promise<{ slug: string[] }> };
 
-// متادیتای صفحه CMS از فیلدهای تأییدشده‌ی backend تولید می‌شود.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = await getCmsPage(slug.join("/"));

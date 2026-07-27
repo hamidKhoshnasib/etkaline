@@ -76,8 +76,9 @@ function SidebarItem({
 
 export function AccountSidebar() {
   const pathname = usePathname();
-  const { data: profile, isLoading } = useProfile();
+  const { data: profile, isLoading, sessionStatus } = useProfile();
   const isProfileHome = pathname === "/account/profile" || pathname === "/account";
+  const isProfileLoading = sessionStatus === "loading" || isLoading;
   const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
 
   return (
@@ -90,7 +91,7 @@ export function AccountSidebar() {
       <Card className="gap-0 rounded-none border-x-0 border-t-0 py-0 shadow-none lg:gap-4 lg:rounded-2xl lg:border">
         <CardHeader className="grid min-h-27 grid-cols-[1fr_auto] items-center gap-2 px-5 py-6 lg:min-h-0 lg:px-6 lg:pt-6 lg:pb-4">
           <div>
-            {isLoading ? (
+            {isProfileLoading ? (
               <div className="space-y-2" aria-label="در حال دریافت اطلاعات پروفایل">
                 <Skeleton className="h-5 w-28" />
                 <Skeleton className="h-4 w-36" />
@@ -116,13 +117,24 @@ export function AccountSidebar() {
         </CardHeader>
         <CardContent className="px-0 pb-0 lg:px-6 lg:pb-6">
           <Separator />
-          <div className="text-secondary flex min-h-13 items-center justify-between gap-3 px-5 font-bold lg:min-h-0 lg:px-0 lg:pt-5">
-            <div className="flex items-center gap-2">
-              <WalletCards aria-hidden="true" />
-              <span>کیف پول</span>
+          {isProfileLoading ? (
+            <div
+              className="flex min-h-13 items-center justify-between gap-3 px-5 lg:min-h-0 lg:px-0 lg:pt-5"
+              aria-busy="true"
+              aria-label="در حال دریافت اطلاعات حساب کاربری"
+            >
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-28" />
             </div>
-            <span className="whitespace-nowrap">۳۰۴,۵۶۲,۵۰۰</span>
-          </div>
+          ) : (
+            <div className="text-secondary flex min-h-13 items-center justify-between gap-3 px-5 font-bold lg:min-h-0 lg:px-0 lg:pt-5">
+              <div className="flex items-center gap-2">
+                <WalletCards aria-hidden="true" />
+                <span>کیف پول</span>
+              </div>
+              <span className="whitespace-nowrap">۳۰۴,۵۶۲,۵۰۰</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

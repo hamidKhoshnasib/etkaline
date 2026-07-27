@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header/Header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/config/site";
+import { auth } from "@/features/auth/lib/auth";
 import "./globals.css";
 
 const iranYekan = localFont({
@@ -48,16 +49,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="fa" dir="rtl" className={`${iranYekan.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <DirectionProvider direction="rtl">
-          <Providers>
+          <Providers session={session}>
             <Header />
             {children}
             <Toaster />

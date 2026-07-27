@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
@@ -17,6 +17,14 @@ export interface Profile {
   applianceStoreId: number;
   applianceStoreTitle: string;
   isEnabled: boolean;
+}
+
+export interface UpdateProfileInput {
+  id: number;
+  firstName: string;
+  lastName: string;
+  nationalCode: string;
+  email: string;
 }
 
 interface ProfileResponse {
@@ -86,13 +94,36 @@ async function getProfile(): Promise<Profile> {
   return parseProfileResponse(data);
 }
 
+async function updateProfile(input: UpdateProfileInput): Promise<void> {
+  let data: ProfileResponse;
+
+  try {
+    ({ data } = await axiosClient.put<ProfileResponse>("/api/Profile", input));
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+
+  if (data.isSuccess !== true) {
+    throw new Error(responseMessage(data));
+  }
+}
+
 export function useProfile() {
   const { status } = useSession();
 
-  return useQuery<Profile, Error>({
+  const query = useQuery<Profile, Error>({
     queryKey: profileQueryKeys.detail,
     queryFn: getProfile,
     enabled: status === "authenticated",
     staleTime: 60_000,
+  });
+
+  return { ...query, sessionStatus: status };
+}
+
+export function useUpdateProfile() {
+  return useMutation<void, Error, UpdateProfileInput>({
+    mutationFn: updateProfile,
+    retry: false,
   });
 }
