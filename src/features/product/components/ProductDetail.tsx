@@ -9,6 +9,10 @@ import { ReviewsSection } from "./reviews/ReviewsSection";
 import { ArrowLeftIcon } from "lucide-react";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
+import Image35 from "@/assets/images/image 35.png";
+import Image36 from "@/assets/images/image 36.png";
+import Image37 from "@/assets/images/image 37.png";
+import Swiper1 from "@/assets/images/swiper1.png";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,6 +26,7 @@ import type { ProductDetailData } from "@/features/product/api/get-product-detai
 import type { CartItem } from "@/features/cart/model/cart";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
+import { Container } from "@/components/ui/Container";
 
 function ProductBreadcrumbSeparator() {
   return (
@@ -61,6 +66,8 @@ const PRODUCT_BREADCRUMBS: ProductBreadcrumbEntry[] = [
   { label: "یخچال فریزر سامسونگ" },
 ];
 
+const PRODUCT_IMAGES = [Image35.src, Image36.src, Image37.src, Swiper1.src];
+
 const PRODUCT: ProductViewModel = {
   id: 6,
   storeProductId: null,
@@ -81,18 +88,12 @@ const PRODUCT: ProductViewModel = {
     { id: "silver", hex: "#c0c0c0", label: "نقره‌ای" },
     { id: "black", hex: "#1a1a2e", label: "مشکی" },
   ],
-  images: Array.from(
-    { length: 5 },
-    (_, i) => `https://via.placeholder.com/432x350?text=Image+${i + 1}`,
-  ),
+  images: Array.from({ length: 5 }, (_, i) => PRODUCT_IMAGES[i % PRODUCT_IMAGES.length]),
   shortDescription:
     "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد کتابهای زیادی در شصت و سه درصد گذشته حال و آینده",
   description:
     "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.",
-  userImages: Array.from(
-    { length: 11 },
-    (_, i) => `https://via.placeholder.com/84x84?text=${i + 1}`,
-  ),
+  userImages: Array.from({ length: 11 }, (_, i) => PRODUCT_IMAGES[i % PRODUCT_IMAGES.length]),
   breadcrumbs: PRODUCT_BREADCRUMBS,
 };
 
@@ -264,13 +265,17 @@ export default function ProductDetail({
   const cartItem = createMockCartItem(product);
 
   return (
-    <main className="container mx-auto space-y-6 px-4 pt-20 pb-28 lg:space-y-10 lg:px-0 lg:py-6">
+    <Container as="main" className="space-y-6 pt-20 pb-28 lg:space-y-10 lg:px-0 lg:py-6">
       <MobilePageHeader title="یخچال و فریزر" />
       <ProductBreadcrumbs crumbs={product.breadcrumbs} />
       <div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
         <div className="w-full min-w-0 space-y-8 lg:w-auto lg:flex-1 lg:space-y-12">
           <section className="flex flex-col gap-6 lg:gap-10 xl:flex-row">
-            <ProductImageGallery images={product.images} title={product.title} />
+            <ProductImageGallery
+              productId={product.id}
+              images={product.images}
+              title={product.title}
+            />
 
             <ProductSummary
               title={product.title}
@@ -305,6 +310,6 @@ export default function ProductDetail({
         cartItem={cartItem}
         storeProductId={product.storeProductId}
       />
-    </main>
+    </Container>
   );
 }

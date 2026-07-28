@@ -20,7 +20,7 @@ export function SocialNetworkLinks({ socialNetworks, className }: SocialNetworkL
           target="_blank"
           rel="noreferrer"
           aria-label={socialNetwork.title}
-          className="group hover:bg-secondary flex size-8 items-center justify-center rounded-md bg-gray-200 transition-all"
+          className="group flex size-8 items-center justify-center rounded-md bg-gray-200 transition-all"
         >
           <AppImage
             src={socialNetwork.picUrl}
@@ -28,7 +28,7 @@ export function SocialNetworkLinks({ socialNetworks, className }: SocialNetworkL
             width={20}
             height={20}
             unoptimized
-            className="size-5 object-contain"
+            className="size-5 object-contain grayscale duration-300 group-hover:grayscale-0 group-focus-visible:grayscale-0"
           />
         </a>
       ))}

@@ -6,6 +6,7 @@ import { ChevronDown, MapPin } from "lucide-react";
 import { AddressPicker } from "./AddressPicker";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import { useAddresses } from "@/features/address/api/use-addresses";
+import { Container } from "@/components/ui/Container";
 import type { ExtraPageLink } from "@/features/extra-pages/api/get-extra-pages";
 import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href";
 import { navLinks } from "./header.config";
@@ -44,10 +45,17 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
     closeTimer.current = setTimeout(() => setIsOpen(false), 80);
   }, []);
 
+  const close = useCallback(() => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+    }
+    setIsOpen(false);
+  }, []);
+
   return (
     <div className="absolute z-40 w-full rounded-t-[32px] bg-white">
       {/* Nav row */}
-      <div className="container m-auto h-15">
+      <Container className="h-15">
         <div className="flex h-full items-center justify-between">
           <nav className="flex h-full items-center gap-6">
             {/* Categories trigger (no link — opens mega menu on hover) */}
@@ -108,7 +116,7 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
             }
           />
         </div>
-      </div>
+      </Container>
 
       {/* Mega menu */}
       {isOpen && (
@@ -116,6 +124,7 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
           categories={categories}
           activeCategoryId={selectedCategoryId}
           onActiveCategoryChange={setActiveCategoryId}
+          onClose={close}
           onMouseEnter={open}
           onMouseLeave={scheduleClose}
         />

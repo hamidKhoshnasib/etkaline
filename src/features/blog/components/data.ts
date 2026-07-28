@@ -1,6 +1,12 @@
 import { Tag, Blinds, Lightbulb, Trees, Bath, CookingPot } from "lucide-react";
+import Image35 from "@/assets/images/image 35.png";
+import Image36 from "@/assets/images/image 36.png";
+import Image37 from "@/assets/images/image 37.png";
+import Swiper1 from "@/assets/images/swiper1.png";
 import type { Category } from "./CategoryCard";
 import type { CompactBlogCardProps } from "@/features/blog/components/CompactBlogCard";
+
+const blogImages = [Image35.src, Image36.src, Image37.src, Swiper1.src];
 
 export const categories: Category[] = [
   { label: "جدیدترین مطالب", icon: Tag, href: "#" },
@@ -22,7 +28,7 @@ interface GridPost {
 
 export const gridPosts: GridPost[] = Array.from({ length: 9 }, (_, i) => ({
   id: i + 1,
-  image: `https://via.placeholder.com/284x246?text=Blog+${i + 1}`,
+  image: blogImages[i % blogImages.length],
   title: "بررسی آخرین مدل های تلوزیون های هوشمند",
   description: "راهنمای خرید و معرفی بهترین گزینه‌های موجود در بازار",
   date: "۹ آذر ۱۴۰۳",
@@ -33,7 +39,7 @@ export const popularPosts: (CompactBlogCardProps & { id: number })[] = Array.fro
   { length: 4 },
   (_, i) => ({
     id: i + 1,
-    image: `https://via.placeholder.com/81x76?text=${i + 1}`,
+    image: blogImages[i % blogImages.length],
     title: "بررسی آخرین مدل ها ...",
     time: "۱۴ دقیقه قبل",
     views: "۱۲۲ بازدید",
@@ -46,7 +52,7 @@ export const featuredPost = {
   title: "فرش ایرانی در خانه مدرن",
   description:
     "فرش ایرانی یکی از هنرهای دستی و اصیل ایران است که به دلیل طراحی‌های پیچیده و استفاده از مواد باکیفیت، شهرت جهانی دارد. این فرش‌ها نمادی از فرهنگ، تاریخ و مهارت‌های بافندگان ایرانی هستند و در طرح‌ها، رنگ‌ها و ابعاد مختلف برای استفاده در منازل و دکوراسیون‌های مختلف تولید می‌شوند.",
-  image: "https://via.placeholder.com/912x416?text=Featured",
+  image: Swiper1.src,
   date: "۹ آذر ۱۴۰۳",
   href: "#",
 };

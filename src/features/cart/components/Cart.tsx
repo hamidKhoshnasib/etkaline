@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { Container } from "@/components/ui/Container";
 import CartStep from "@/features/cart/components/CartStep";
 import AddressStep from "@/features/cart/checkout/AddressStep";
 import ReviewStep from "@/features/cart/checkout/ReviewStep";
@@ -43,7 +44,10 @@ export default function CartPage() {
   const canProceed = step === "address" ? addressReady : true;
 
   return (
-    <main className="container mx-auto grid grid-cols-1 gap-6 pt-6 pb-12 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <Container
+      as="main"
+      className="grid grid-cols-1 gap-6 pt-6 pb-12 lg:grid-cols-[minmax(0,1fr)_360px]"
+    >
       <div className="min-w-0">
         {step === "cart" && <CartStep items={items} onQuantityChange={handleQuantityChange} />}
         {step === "address" && <AddressStep onReadyChange={handleReadyChange} />}
@@ -51,6 +55,6 @@ export default function CartPage() {
       </div>
 
       <OrderSummary step={step} items={items} canProceed={canProceed} onPrimary={handlePrimary} />
-    </main>
+    </Container>
   );
 }

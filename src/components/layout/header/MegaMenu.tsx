@@ -2,12 +2,14 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
 import { CategoryMenuIcon } from "./CategoryMenuIcon";
+import { Container } from "@/components/ui/Container";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 
 interface MegaMenuProps {
   categories: MenuCategory[];
   activeCategoryId: number | null;
   onActiveCategoryChange: (id: number) => void;
+  onClose: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }
@@ -16,6 +18,7 @@ export function MegaMenu({
   categories,
   activeCategoryId,
   onActiveCategoryChange,
+  onClose,
   onMouseEnter,
   onMouseLeave,
 }: MegaMenuProps) {
@@ -33,7 +36,7 @@ export function MegaMenu({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="container mx-auto flex py-6">
+      <Container className="flex py-6">
         <div className="w-47.5 shrink-0 border-e border-gray-100">
           {categories.map(({ id, title, iconName }) => {
             const active = id === activeCategory.id;
@@ -63,6 +66,7 @@ export function MegaMenu({
         <div className="flex-1 px-8">
           <Link
             href={activeCategory.href}
+            onClick={onClose}
             className="title-medium-bold hover:text-primary-hover mb-6.5 flex w-42 items-center justify-between gap-1 font-bold"
           >
             <span className="line-clamp-1">همه {activeCategory.title}</span>
@@ -74,6 +78,7 @@ export function MegaMenu({
               <div key={subcategory.id}>
                 <Link
                   href={subcategory.href}
+                  onClick={onClose}
                   className="title-small-bold hover:text-primary-hover mb-6 flex w-42 items-center justify-between gap-1 transition-colors"
                 >
                   <span className="border-primary-hover line-clamp-1 rounded-r-[4px] border-r-4 pr-2">
@@ -86,6 +91,7 @@ export function MegaMenu({
                     <li key={item.id}>
                       <Link
                         href={item.href}
+                        onClick={onClose}
                         className="title-small hover:text-primary-hover block text-right text-gray-900 transition-colors"
                       >
                         {item.title}
@@ -97,7 +103,7 @@ export function MegaMenu({
             ))}
           </div>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

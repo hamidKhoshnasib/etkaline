@@ -7,6 +7,7 @@ import ContactForm from "@/features/contact/components/ContactForm";
 import { getContactDetails } from "@/features/contact/api/get-contact-us";
 import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
+import { Container } from "@/components/ui/Container";
 
 export default async function ContactUsPage() {
   const [contactDetails, socialNetworks] = await Promise.all([
@@ -32,7 +33,7 @@ export default async function ContactUsPage() {
   ].filter((item): item is { icon: typeof Headset; label: string; value: string } => Boolean(item));
 
   return (
-    <main className="container mx-auto pt-9 pb-12">
+    <Container as="main" className="pt-9 pb-12">
       {/* Hero Banner */}
       <div className="relative h-70 w-full overflow-hidden">
         <AppImage
@@ -45,45 +46,47 @@ export default async function ContactUsPage() {
       </div>
 
       <div>
-        {/* Breadcrumb */}
-        <p className="text-primary-hover my-3 flex items-center gap-1">
-          <House className="ml-2" />
-          با
-          <b> اتکالاین</b> در ارتباط باشید
-        </p>
+        <div className="px-4 lg:px-[105px]">
+          {/* Breadcrumb */}
+          <p className="text-primary-hover my-3 flex items-center gap-1">
+            <House className="ml-2" />
+            با
+            <b> اتکالاین</b> در ارتباط باشید
+          </p>
 
-        <p>
-          ما همیشه آماده پاسخگویی به سوالات شما هستیم . اگر درباره محصولات ، نحوه خرید ، ارسال سفارش
-          یا هر موضوع دیگری سوالی دارید ، تیم پشتیبانی اتکالاین در کنار شماست. با ما از طریق فرم
-          تماس زیر تماس بگیرید
-          {contactDetails?.email && (
-            <>
-              {" و همچنین می‌توانید به آدرس "}
-              <a href={`mailto:${contactDetails.email}`} className="text-primary-hover">
-                <bdi dir="ltr">{contactDetails.email}</bdi>
-              </a>
-              {" ایمیل بزنید"}
-            </>
-          )}
-          {" یا از طریق واتس آپ ما در"}
-          گوشه سمت راست پایین این صفحه با ما چت کنید. ما قصد داریم ظرف 1-2 روز کاری به شما پاسخ دهیم
-          رضایت شما الویت ماست .
-        </p>
+          <p>
+            ما همیشه آماده پاسخگویی به سوالات شما هستیم . اگر درباره محصولات ، نحوه خرید ، ارسال
+            سفارش یا هر موضوع دیگری سوالی دارید ، تیم پشتیبانی اتکالاین در کنار شماست. با ما از طریق
+            فرم تماس زیر تماس بگیرید
+            {contactDetails?.email && (
+              <>
+                {" و همچنین می‌توانید به آدرس "}
+                <a href={`mailto:${contactDetails.email}`} className="text-primary-hover">
+                  <bdi dir="ltr">{contactDetails.email}</bdi>
+                </a>
+                {" ایمیل بزنید"}
+              </>
+            )}
+            {" یا از طریق واتس آپ ما در"}
+            گوشه سمت راست پایین این صفحه با ما چت کنید. ما قصد داریم ظرف 1-2 روز کاری به شما پاسخ
+            دهیم رضایت شما الویت ماست .
+          </p>
 
-        <div className="flex flex-col gap-6">
-          <div>
-            <h1 className="mt-2.5 mb-3.75 font-bold"> فرم تماس اتکالاین</h1>
-            <p>
-              لطفا قبل از تماس یا ارسال ایمیل ، ابتدا
-              <Link href="/faq" className="text-primary-hover">
-                {" "}
-                سوالات متداول{" "}
-              </Link>
-              را مشاهده کنید.
-            </p>
+          <div className="flex flex-col gap-6">
+            <div>
+              <h1 className="mt-2.5 mb-3.75 font-bold"> فرم تماس اتکالاین</h1>
+              <p>
+                لطفا قبل از تماس یا ارسال ایمیل ، ابتدا
+                <Link href="/faq" className="text-primary-hover">
+                  {" "}
+                  سوالات متداول{" "}
+                </Link>
+                را مشاهده کنید.
+              </p>
+            </div>
+
+            <ContactForm />
           </div>
-
-          <ContactForm />
         </div>
 
         {/* Map */}
@@ -124,6 +127,6 @@ export default async function ContactUsPage() {
           </div>
         </div>
       </div>
-    </main>
+    </Container>
   );
 }

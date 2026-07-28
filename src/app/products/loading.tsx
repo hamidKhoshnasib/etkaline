@@ -1,9 +1,10 @@
 import { ProductGridSkeleton } from "@/features/product";
+import { Container } from "@/components/ui/Container";
 
 export default function ProductsLoading() {
   return (
-    <main className="container mx-auto flex min-h-screen flex-col gap-6 px-4 py-8">
+    <Container as="main" className="flex min-h-screen flex-col gap-6 py-8">
       <ProductGridSkeleton />
-    </main>
+    </Container>
   );
 }

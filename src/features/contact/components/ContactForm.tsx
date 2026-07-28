@@ -104,7 +104,7 @@ export default function ContactForm() {
             type="tel"
             value={form.phone}
             onChange={handleChange}
-            placeholder="شماره تماس خود را وارد کنید"
+            placeholder="09121234567"
             className="h-11"
             required
             maxLength={32}
@@ -139,7 +139,7 @@ export default function ContactForm() {
           onChange={handleChange}
           placeholder="متن پیام خود را بنویسید..."
           rows={6}
-          className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm transition-colors outline-none focus-visible:ring-3"
+          className="border-input placeholder:text-muted-foreground focus-visible:border-auth-accent w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm transition-colors outline-none"
           required
           maxLength={5000}
         />
@@ -150,10 +150,10 @@ export default function ContactForm() {
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="bg-primary text-primary-foreground hover:bg-primary-hover h-11 w-full text-base font-bold"
+        className="title-small-bold bg-primary text-primary-foreground hover:bg-primary-hover h-11 w-[118px] self-end rounded-[39px]"
       >
         {isSubmitting && <Spinner data-icon="inline-start" className="size-4" />}
-        {isSubmitting ? "در حال ارسال" : "ارسال"}
+        {isSubmitting ? "در حال ارسال" : "ثبت و ارسال"}
       </Button>
     </form>
   );

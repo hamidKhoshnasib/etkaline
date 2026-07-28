@@ -485,7 +485,7 @@ function LocationStep({
             شهر
           </label>
           <select
-            className="bg-background text-secondary focus-visible:ring-ring/50 h-11 rounded-lg border px-3 text-sm outline-none focus-visible:ring-3"
+            className="bg-background text-secondary focus-visible:border-auth-accent h-11 rounded-lg border px-3 text-sm outline-none"
             disabled={isPending || isError}
             id="city"
             value={selectedProvinceId}
@@ -581,6 +581,50 @@ function DetailsStep({
   return (
     <form className="p-5" id={formId} onSubmit={handleSubmit}>
       <FieldGroup className="gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field>
+            <FieldLabel htmlFor={`${formId}-receiver-first-name`}>نام</FieldLabel>
+            <Input
+              className="h-12"
+              defaultValue={address?.receiverFirstName ?? ""}
+              id={`${formId}-receiver-first-name`}
+              name="receiverFirstName"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${formId}-receiver-last-name`}>نام خانوادگی</FieldLabel>
+            <Input
+              className="h-12"
+              defaultValue={address?.receiverLastName ?? ""}
+              id={`${formId}-receiver-last-name`}
+              name="receiverLastName"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${formId}-receiver-mobile`}>موبایل</FieldLabel>
+            <Input
+              className="h-12"
+              defaultValue={address?.phone ?? ""}
+              id={`${formId}-receiver-mobile`}
+              inputMode="tel"
+              name="receiverPhone"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${formId}-national-code`}>کد ملی</FieldLabel>
+            <Input
+              className="h-12"
+              dir="ltr"
+              id={`${formId}-national-code`}
+              inputMode="numeric"
+              maxLength={10}
+              name="nationalCode"
+            />
+          </Field>
+        </div>
         <Field>
           <FieldLabel htmlFor={`${formId}-title`}>عنوان آدرس</FieldLabel>
           <Input
@@ -645,39 +689,6 @@ function DetailsStep({
             شخص دیگری تحویل می‌گیرد
           </FieldLabel>
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor={`${formId}-receiver-first-name`}>نام</FieldLabel>
-            <Input
-              className="h-12"
-              defaultValue={address?.receiverFirstName ?? ""}
-              id={`${formId}-receiver-first-name`}
-              name="receiverFirstName"
-              required
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor={`${formId}-receiver-last-name`}>نام خانوادگی</FieldLabel>
-            <Input
-              className="h-12"
-              defaultValue={address?.receiverLastName ?? ""}
-              id={`${formId}-receiver-last-name`}
-              name="receiverLastName"
-              required
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor={`${formId}-receiver-mobile`}>موبایل</FieldLabel>
-            <Input
-              className="h-12"
-              defaultValue={address?.phone ?? ""}
-              id={`${formId}-receiver-mobile`}
-              inputMode="tel"
-              name="receiverPhone"
-              required
-            />
-          </Field>
-        </div>
       </FieldGroup>
       <Button
         aria-busy={isPending}

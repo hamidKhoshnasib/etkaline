@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CmsPageContent, getCmsPage } from "@/features/cms-page";
+import { Container } from "@/components/ui/Container";
 
 type Props = { params: Promise<{ slug: string[] }> };
 
@@ -23,9 +24,9 @@ export default async function CmsPage({ params }: Props) {
     notFound();
   }
   return (
-    <main className="container mx-auto w-full flex-1 px-4 py-10">
+    <Container as="main" className="w-full flex-1 py-10">
       <h1 className="mb-6 text-3xl font-bold">{page.title}</h1>
       <CmsPageContent page={page} />
-    </main>
+    </Container>
   );
 }

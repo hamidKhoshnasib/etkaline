@@ -6,12 +6,13 @@ import BlogPromoBanner from "./BlogPromoBanner";
 import FeaturedBlog from "./FeaturedBlog";
 import { categories, gridPosts, popularPosts, featuredPost } from "./data";
 import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
+import { Container } from "@/components/ui/Container";
 
 export default async function BlogPage() {
   const blogBanners = await getBlogBanners();
 
   return (
-    <main className="container mx-auto space-y-6 py-6">
+    <Container as="main" className="space-y-6 py-6">
       {/* ── Latest posts grid + sidebar ─────────────────────────────── */}
       <section className="flex flex-col gap-6 lg:flex-row">
         <aside className="flex w-full shrink-0 flex-col gap-6 lg:w-[308px]">
@@ -30,6 +31,7 @@ export default async function BlogPage() {
                 description={post.description}
                 date={post.date}
                 href={post.href}
+                showBottomBorder
               />
             ))}
           </div>
@@ -60,6 +62,6 @@ export default async function BlogPage() {
           <FeaturedBlog {...featuredPost} />
         </div>
       </section>
-    </main>
+    </Container>
   );
 }

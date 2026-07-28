@@ -5,7 +5,6 @@ export interface Product {
   price: number;
   originalPrice?: number;
   discount?: number;
-  isBookmarked?: boolean;
   outOfStock?: boolean;
 }
 

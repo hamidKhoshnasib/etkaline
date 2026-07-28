@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Download, FileText } from "lucide-react";
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Container } from "@/components/ui/Container";
 import { getExtraPage } from "@/features/extra-pages/api/get-extra-page";
 import { sanitizeCmsHtml } from "@/features/cms-page/lib/sanitize-cms-html";
 
@@ -41,7 +42,7 @@ export default async function ExtraPage({ params }: Props) {
   }
 
   return (
-    <main className="container mx-auto w-full flex-1 px-4 py-10">
+    <Container as="main" className="w-full flex-1 py-10">
       <Card className="mx-auto max-w-4xl rounded-2xl shadow-none">
         <CardHeader>
           <CardTitle className="text-secondary text-2xl">{page.title}</CardTitle>
@@ -87,6 +88,6 @@ export default async function ExtraPage({ params }: Props) {
           </CardFooter>
         )}
       </Card>
-    </main>
+    </Container>
   );
 }

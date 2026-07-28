@@ -1,4 +1,5 @@
 import { NavBar } from "./NavBar";
+import { Container } from "@/components/ui/Container";
 import { HeaderLogo } from "./HeaderLogo";
 import { HeaderSearch } from "./HeaderSearch";
 import { HeaderAuth } from "./HeaderAuth";
@@ -18,13 +19,13 @@ export async function Header() {
         <MobileHeader />
 
         <div className="etkaline-pattern bg-primary! text-secondary relative isolate hidden pb-15 lg:block">
-          <div className="relative z-[70] container mx-auto">
+          <Container className="relative z-[70]">
             <div className="flex items-center py-3">
               <HeaderLogo />
               <HeaderSearch />
               <HeaderAuth />
             </div>
-          </div>
+          </Container>
           <NavBar categories={categories} extraPages={extraPages.headerItems} />
         </div>
       </header>

@@ -4,12 +4,18 @@ import mixerImage from "@/assets/images/Group 16.png";
 import airFryerImage from "@/assets/images/image 41.png";
 import ovenImage from "@/assets/images/gaz.png";
 
-export type MockOrderStatus = "processing" | "delivered" | "returned" | "canceled";
+export type MockOrderStatus =
+  | "open"
+  | "paid"
+  | "processing"
+  | "delivered"
+  | "returned"
+  | "canceled";
 
 export interface MockOrderProduct {
   id: string;
   title: string;
-  image: StaticImageData;
+  image: StaticImageData | string;
   price: number;
   originalPrice?: number;
 }
@@ -34,6 +40,8 @@ export interface MockOrder {
 }
 
 export const ORDER_STATUS_LABELS: Record<MockOrderStatus, string> = {
+  open: "سبد باز",
+  paid: "ثبت سفارش",
   processing: "در حال ارسال",
   delivered: "تحویل داده شده",
   returned: "مرجوع شده",

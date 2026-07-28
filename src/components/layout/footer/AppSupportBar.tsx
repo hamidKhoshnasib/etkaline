@@ -1,4 +1,5 @@
 import { Headset } from "lucide-react";
+import { Container } from "@/components/ui/Container";
 import BazarIcon from "@/assets/icons/bazar-icon.svg";
 import MayketIcon from "@/assets/icons/mayket-icon.svg";
 
@@ -9,7 +10,9 @@ type AppSupportBarProps = {
 export function AppSupportBar({ mobileVariant }: AppSupportBarProps) {
   const supportDetails = (
     <div>
-      <p className="title-medium-bold">تلفن پشتیبانی: ۰۲۱-۴۸۵۶</p>
+      <p className="title-medium-bold">
+        تلفن پشتیبانی: <bdi dir="ltr">۰۲۱-۴۸۵۶</bdi>
+      </p>
       <p className="body-small">۷ روز هفته، ۲۴ ساعته پاسخگوی شما هستیم</p>
     </div>
   );
@@ -21,20 +24,30 @@ export function AppSupportBar({ mobileVariant }: AppSupportBarProps) {
     </div>
   );
 
-  const download = (
+  const downloadDetails = (
     <div>
       <p className="mb-1 font-bold">دانلود اپلیکیشن</p>
       <p className="body-small">
         اپلیکیشن اتکالاین را دانلود کنید و هر روز تخفیفات هیجان انگیز مشاهده کنید
       </p>
-      <div className="mt-3 flex items-center gap-2">
-        <a href="#" aria-label="دریافت از بازار">
-          <BazarIcon className="h-10 w-auto" />
-        </a>
-        <a href="#" aria-label="دریافت از مایکت">
-          <MayketIcon className="h-10 w-auto" />
-        </a>
-      </div>
+    </div>
+  );
+
+  const downloadButtons = (
+    <div className="flex items-center gap-2">
+      <a href="#" aria-label="دریافت از بازار">
+        <BazarIcon className="h-10 w-auto" />
+      </a>
+      <a href="#" aria-label="دریافت از مایکت">
+        <MayketIcon className="h-10 w-auto" />
+      </a>
+    </div>
+  );
+
+  const download = (
+    <div>
+      {downloadDetails}
+      <div className="mt-3">{downloadButtons}</div>
     </div>
   );
 
@@ -48,17 +61,20 @@ export function AppSupportBar({ mobileVariant }: AppSupportBarProps) {
 
   return (
     <div className="text-secondary mb-6 hidden lg:block">
-      <div className="container mx-auto">
-        <div className="flex items-center justify-between gap-6 py-5">
+      <Container>
+        <div className="grid grid-cols-4 items-center gap-10 py-5">
           <div className="flex shrink-0 items-center gap-4">
             <Headset size={38} aria-hidden="true" />
             <div className="bg-secondary h-10 w-px shrink-0" />
             {supportDetails}
           </div>
 
-          {download}
+          <div className="col-span-2 flex justify-center">
+            <div className="text-right">{downloadDetails}</div>
+          </div>
+          <div className="col-start-4 flex justify-start">{downloadButtons}</div>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function FilterOptions({ property, selectedValueIds, onToggle }: FilterOp
               type="checkbox"
               checked={checked}
               onChange={() => onToggle(value.id)}
-              className="border-input text-primary focus-visible:ring-ring size-4 shrink-0 rounded accent-current focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="border-input text-primary focus-visible:border-auth-accent size-4 shrink-0 rounded accent-current focus-visible:outline-none"
             />
             <span className="min-w-0 text-slate-600">{value.title}</span>
           </label>

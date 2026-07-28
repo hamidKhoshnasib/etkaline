@@ -17,7 +17,7 @@ import { useFavoriteProducts } from "@/features/account/api/use-favorite-product
 import { ProductCard } from "@/features/product/components/ProductCard";
 
 function WishlistProducts() {
-  const { data: products = [], error, isLoading, refetch } = useFavoriteProducts();
+  const { data: products = [], error, isLoading } = useFavoriteProducts();
 
   if (isLoading) {
     return (
@@ -65,9 +65,7 @@ function WishlistProducts() {
             price={price}
             originalPrice={product.mainPrice > price ? product.mainPrice : undefined}
             discount={product.offPercent > 0 ? product.offPercent : undefined}
-            isBookmarked
             outOfStock={!product.isExist || product.inventory <= 0}
-            onBookmark={() => void refetch()}
             className="min-w-0 border-0 shadow-none"
             imageClassName="lg:h-[190px] lg:w-full lg:object-contain"
           />

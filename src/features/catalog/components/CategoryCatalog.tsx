@@ -13,6 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Pagination } from "@/components/ui/Pagination";
+import { Container } from "@/components/ui/Container";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import { ProductCardSkeleton } from "@/features/product/components/ProductCardSkeleton";
@@ -166,7 +167,10 @@ export default function CategoryCatalog({
   const totalPages = data?.pageCount ?? 0;
 
   return (
-    <main className="container mx-auto min-h-screen bg-[#F8FAFC] px-4 pt-16 pb-24 lg:bg-transparent lg:px-6 lg:py-6 lg:pb-6">
+    <Container
+      as="main"
+      className="min-h-screen bg-[#F8FAFC] pt-16 pb-24 lg:bg-transparent lg:px-6 lg:py-6 lg:pb-6"
+    >
       <h1 className="sr-only">{title}</h1>
 
       <MobilePageHeader
@@ -257,6 +261,6 @@ export default function CategoryCatalog({
           ) : null}
         </div>
       </div>
-    </main>
+    </Container>
   );
 }

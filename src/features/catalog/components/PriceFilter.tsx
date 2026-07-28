@@ -127,7 +127,7 @@ export function PriceFilter({
                   }
                   updateMinPrice(value);
                 }}
-                className="focus:border-primary w-full rounded-lg border border-slate-200 py-2 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
+                className="focus:border-auth-accent w-full rounded-lg border border-slate-200 py-2 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
               />
               <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">
                 تومان
@@ -151,7 +151,7 @@ export function PriceFilter({
                   }
                   updateMaxPrice(value);
                 }}
-                className="focus:border-primary w-full rounded-lg border border-slate-200 py-2 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
+                className="focus:border-auth-accent w-full rounded-lg border border-slate-200 py-2 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
               />
               <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">
                 تومان

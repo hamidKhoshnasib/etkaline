@@ -12,6 +12,8 @@ import {
 } from "@/features/account/model/mock-orders";
 
 const STATUS_STYLES = {
+  open: "bg-amber-100 text-amber-700",
+  paid: "bg-sky-50 text-sky-600",
   processing: "bg-amber-100 text-amber-700",
   delivered: "bg-emerald-50 text-emerald-600",
   returned: "bg-orange-50 text-orange-600",

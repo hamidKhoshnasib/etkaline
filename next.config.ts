@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "via.placeholder.com" },
       {
         protocol: imageProtocol,
         hostname: imageUrl.hostname,

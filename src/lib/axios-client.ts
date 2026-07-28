@@ -56,7 +56,6 @@ axiosClient.interceptors.request.use(async (config) => {
   if (session?.error === "RefreshTokenError") {
     setClientSessionSnapshot(null);
     await signOut({ redirect: false });
-    window.dispatchEvent(new Event("etkala:open-auth"));
     return config;
   }
 
@@ -72,7 +71,6 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401) {
       setClientSessionSnapshot(null);
       void signOut({ redirect: false });
-      window.dispatchEvent(new Event("etkala:open-auth"));
     }
     return Promise.reject(error);
   },

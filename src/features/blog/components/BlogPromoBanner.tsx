@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image35 from "@/assets/images/image 35.png";
 import { AppImage } from "@/components/ui/image";
 import { ChevronLeft } from "lucide-react";
 
@@ -14,7 +15,7 @@ interface BlogPromoBannerProps {
 export default function BlogPromoBanner({
   title = "آشپزخونه ، قلب خونه",
   subtitle = "چیدمان به سبک اتکالاین",
-  image = "https://via.placeholder.com/600x420?text=Kitchen",
+  image = Image35.src,
   href = "#",
   width = 600,
   height = 420,

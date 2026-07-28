@@ -37,7 +37,7 @@ export interface RecommendedProduct {
   discount?: number;
 }
 
-const PLACEHOLDER = "https://via.placeholder.com/180x190?text=Etkaline";
+const PLACEHOLDER = Image35.src;
 
 // ─── Mock data ──────────────────────────────────────────────────────────────
 
@@ -114,7 +114,7 @@ export const PARCEL_GROUPS: ParcelGroup[] = [
 export const RECOMMENDED_PRODUCTS: RecommendedProduct[] = Array.from({ length: 8 }, (_, i) => ({
   id: 100 + i,
   title: "ماشین ظرفشویی ۱۴ نفره بوش مدل SMS6ZCI85M",
-  image: "https://via.placeholder.com/180x190?text=Product",
+  image: Image35.src,
   price: 580000000,
   originalPrice: 828000000,
   discount: 30,
@@ -138,3 +138,4 @@ export function formatPrice(n: number): string {
 export function toPersian(n: number | string): string {
   return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
 }
+import Image35 from "@/assets/images/image 35.png";

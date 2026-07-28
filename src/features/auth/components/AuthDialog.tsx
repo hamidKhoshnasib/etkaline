@@ -164,24 +164,12 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
   }, []);
 
   React.useEffect(() => {
-    const search = new URLSearchParams(window.location.search);
-    const initialTimer =
-      search.get("login") === "1"
-        ? window.setTimeout(() => {
-            setOpen(true);
-            void loadCaptcha();
-          }, 0)
-        : undefined;
-
     const openDialog = () => {
       setOpen(true);
       void loadCaptcha();
     };
     window.addEventListener("etkala:open-auth", openDialog);
     return () => {
-      if (initialTimer) {
-        window.clearTimeout(initialTimer);
-      }
       window.removeEventListener("etkala:open-auth", openDialog);
     };
   }, [loadCaptcha]);
@@ -282,7 +270,6 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
 
       await sessionSync.ready;
       window.dispatchEvent(new Event("etkala:authenticated"));
-      toast.success("با موفقیت وارد حساب کاربری شدید.");
       void showWelcomeDialog();
       const search = new URLSearchParams(window.location.search);
       const callbackUrl = search.get("callbackUrl");
@@ -500,7 +487,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
                       <InputOTPSlot
                         key={index}
                         index={index}
-                        className="size-11 rounded-lg border text-base font-bold text-black first:rounded-lg last:rounded-lg data-[active=true]:border-[#F57F17] data-[active=true]:ring-[#F57F17]/30 sm:size-12"
+                        className="size-11 rounded-lg border text-base font-bold text-black first:rounded-lg last:rounded-lg sm:size-12"
                       />
                     ))}
                   </InputOTPGroup>

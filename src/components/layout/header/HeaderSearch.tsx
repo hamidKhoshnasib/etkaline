@@ -141,7 +141,8 @@ export function HeaderSearch() {
                       {data.categories.map((category) => (
                         <Link
                           key={category.id}
-                          href={`/categories/${category.id}`}
+                          href={`/categories/${encodeURIComponent(String(category.id))}`}
+                          onClick={() => setIsOpen(false)}
                           className="hover:text-primary focus-visible:outline-ring flex items-center justify-between py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
                         >
                           <div className="flex gap-2">
@@ -155,7 +156,12 @@ export function HeaderSearch() {
                 ) : null}
 
                 {data.products.length ? (
-                  <SearchResultSection title="کالاها" items={data.products} onSelect={setQuery} />
+                  <SearchResultSection
+                    title="کالاها"
+                    items={data.products}
+                    getItemHref={(item) => `/products/${encodeURIComponent(String(item.id))}`}
+                    onNavigate={() => setIsOpen(false)}
+                  />
                 ) : null}
 
                 {data.brands.length ? (
@@ -189,26 +195,42 @@ export function HeaderSearch() {
 function SearchResultSection({
   title,
   items,
+  getItemHref,
+  onNavigate,
   onSelect,
 }: {
   title: string;
   items: { id: number; title: string }[];
-  onSelect: (title: string) => void;
+  getItemHref?: (item: { id: number; title: string }) => string;
+  onNavigate?: () => void;
+  onSelect?: (title: string) => void;
 }) {
   return (
     <section className="border-border border-t pt-2">
       <h3 className="px-2 py-1 text-sm font-bold">{title}</h3>
-      {items.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          onClick={() => onSelect(item.title)}
-          className="hover:bg-muted focus-visible:outline-ring flex w-full items-center justify-between px-2 py-3 text-start text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          <span>{item.title}</span>
-          <ArrowUpLeft className="size-5 shrink-0" aria-hidden="true" />
-        </button>
-      ))}
+      {items.map((item) =>
+        getItemHref ? (
+          <Link
+            key={item.id}
+            href={getItemHref(item)}
+            onClick={onNavigate}
+            className="hover:bg-muted focus-visible:outline-ring flex w-full items-center justify-between px-2 py-3 text-start text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            <span>{item.title}</span>
+            <ArrowUpLeft className="size-5 shrink-0" aria-hidden="true" />
+          </Link>
+        ) : (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onSelect?.(item.title)}
+            className="hover:bg-muted focus-visible:outline-ring flex w-full items-center justify-between px-2 py-3 text-start text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            <span>{item.title}</span>
+            <ArrowUpLeft className="size-5 shrink-0" aria-hidden="true" />
+          </button>
+        ),
+      )}
     </section>
   );
 }

@@ -5,25 +5,30 @@ import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
-export interface HomeBanner {
+export interface CategoryBanner {
   id: number;
   title: string;
   image: string;
   href: string | null;
 }
 
-interface HomeBannersResponse {
+interface CategoryBannersResponse {
   value?: unknown;
   isSuccess?: boolean;
 }
 
+function readText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 function toImageUrl(value: unknown): string | null {
-  if (typeof value !== "string" || !value.trim()) {
+  const image = readText(value);
+  if (!image) {
     return null;
   }
 
   try {
-    const url = new URL(value.trim(), API_BASE_URL);
+    const url = new URL(image, API_BASE_URL);
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
   } catch {
     return null;
@@ -31,12 +36,12 @@ function toImageUrl(value: unknown): string | null {
 }
 
 function toBannerHref(value: unknown): string | null {
-  if (typeof value !== "string" || !value.trim()) {
+  const href = readText(value);
+  if (!href) {
     return null;
   }
 
-  const href = value.trim();
-  if (href.startsWith("/")) {
+  if (href.startsWith("/") && !href.startsWith("//")) {
     return href;
   }
 
@@ -48,33 +53,30 @@ function toBannerHref(value: unknown): string | null {
   }
 }
 
-function parseHomeBanners(value: unknown): HomeBanner[] {
+function parseCategoryBanners(value: unknown): CategoryBanner[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value
-    .flatMap((slide, index) => {
-      if (!slide || typeof slide !== "object") {
+    .flatMap((item, index) => {
+      if (!item || typeof item !== "object") {
         return [];
       }
 
-      const record = slide as Record<string, unknown>;
-      const image = toImageUrl(record.picUrl) ?? toImageUrl(record.pic);
-      if (typeof record.id !== "number" || !Number.isInteger(record.id) || !image) {
+      const banner = item as Record<string, unknown>;
+      const image = toImageUrl(banner.picUrl) ?? toImageUrl(banner.pic);
+      if (typeof banner.id !== "number" || !Number.isSafeInteger(banner.id) || !image) {
         return [];
       }
 
       return [
         {
-          id: record.id,
-          title:
-            typeof record.title === "string" && record.title.trim()
-              ? record.title.trim()
-              : "بنر اتکالاین",
+          id: banner.id,
+          title: readText(banner.title) ?? "دسته‌بندی",
           image,
-          href: toBannerHref(record.link),
-          order: typeof record.order === "number" ? record.order : index,
+          href: toBannerHref(banner.link),
+          order: typeof banner.order === "number" ? banner.order : index,
         },
       ];
     })
@@ -82,13 +84,9 @@ function parseHomeBanners(value: unknown): HomeBanner[] {
     .map(({ order: _order, ...banner }) => banner);
 }
 
-export async function getHomeBanners(): Promise<HomeBanner[]> {
-  const url = new URL("/api/Slides", API_BASE_URL);
-  url.searchParams.set("PlatformType", "1");
-  url.searchParams.set("Count", "5");
-
+export async function getCategoryBanners(): Promise<CategoryBanner[]> {
   try {
-    const response = await fetch(url, {
+    const response = await fetch(new URL("/api/Banners/GetCategoryBanners", API_BASE_URL), {
       headers: await getServerApiHeaders(),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
@@ -98,8 +96,8 @@ export async function getHomeBanners(): Promise<HomeBanner[]> {
       return [];
     }
 
-    const payload = (await response.json()) as HomeBannersResponse;
-    return payload.isSuccess ? parseHomeBanners(payload.value) : [];
+    const payload = (await response.json()) as CategoryBannersResponse;
+    return payload.isSuccess ? parseCategoryBanners(payload.value) : [];
   } catch {
     return [];
   }

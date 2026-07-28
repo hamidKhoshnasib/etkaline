@@ -31,7 +31,7 @@ export default function CompactBlogCard({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-[16px] border border-[#D1D4D4] bg-white p-4 transition-shadow hover:shadow-sm"
+      className="flex items-center gap-3 rounded-[16px] border border-[#D1D4D4] bg-white p-4"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <p className="body-medium line-clamp-1 text-black">{title}</p>

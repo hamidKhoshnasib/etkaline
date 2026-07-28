@@ -1,9 +1,10 @@
 import { ProductDetailSkeleton } from "@/features/product";
+import { Container } from "@/components/ui/Container";
 
 export default function ProductDetailLoading() {
   return (
-    <main className="container mx-auto min-h-screen px-4 py-8">
+    <Container as="main" className="min-h-screen py-8">
       <ProductDetailSkeleton />
-    </main>
+    </Container>
   );
 }

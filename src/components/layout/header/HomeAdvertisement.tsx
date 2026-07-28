@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useHomeAdvertisement } from "@/features/home/appliances/api/use-home-advertisement";
+import { Container } from "@/components/ui/Container";
 
 function getSafeHref(link: string): string | null {
   const trimmedLink = link.trim();
@@ -46,7 +47,7 @@ export function HomeAdvertisement() {
       className="bg-primary text-primary-foreground"
       style={{ backgroundColor, color: textColor }}
     >
-      <div className="container mx-auto flex min-h-12 items-center gap-3 px-4 py-2 sm:px-6">
+      <Container className="flex min-h-12 items-center gap-3 py-2 sm:px-6">
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-3">
           <p className="text-center text-sm font-medium sm:text-base">{advertisement.text}</p>
           {href && advertisement.buttonText.trim() ? (
@@ -68,7 +69,7 @@ export function HomeAdvertisement() {
         >
           <X />
         </Button>
-      </div>
+      </Container>
     </aside>
   );
 }

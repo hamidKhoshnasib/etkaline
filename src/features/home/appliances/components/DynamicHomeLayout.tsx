@@ -86,13 +86,24 @@ function renderLayoutItem(
   }
 }
 
+function hasLayoutContent(
+  item: HomeLayoutItem,
+  products: Awaited<ReturnType<typeof getProductsByLayoutId>>,
+  banners: LayoutBanner[],
+) {
+  if (isProductLayout(item)) {
+    return products.length > 0;
+  }
+
+  return !isBannerLayout(item) || banners.length > 0;
+}
+
 export default async function DynamicHomeLayout() {
   const requestHeaders = await headers();
   const { device } = userAgentFromString(requestHeaders.get("user-agent") ?? undefined);
   const platformType: HomePlatformType =
     device.type === "mobile" || device.type === "tablet" ? 2 : 1;
   const layout = await getHomeLayout(2, platformType);
-
   const layoutItems = await Promise.all(
     layout.map(async (item) => ({
       item,
@@ -101,7 +112,33 @@ export default async function DynamicHomeLayout() {
     })),
   );
 
-  return layoutItems.map(({ item, products, banners }) =>
-    renderLayoutItem(item, products, banners),
+  const visibleLayoutItems = layoutItems.filter(({ item, products, banners }) =>
+    hasLayoutContent(item, products, banners),
   );
+  const renderedLayoutItems = [];
+
+  for (let index = 0; index < visibleLayoutItems.length; index += 1) {
+    const layoutItem = visibleLayoutItems[index];
+
+    if (layoutItem.item.componentType !== HOME_COMPONENT_TYPE.GRID_2X2) {
+      renderedLayoutItems.push(
+        renderLayoutItem(layoutItem.item, layoutItem.products, layoutItem.banners),
+      );
+      continue;
+    }
+
+    const gridItems = [layoutItem];
+    while (visibleLayoutItems[index + 1]?.item.componentType === HOME_COMPONENT_TYPE.GRID_2X2) {
+      index += 1;
+      gridItems.push(visibleLayoutItems[index]);
+    }
+
+    renderedLayoutItems.push(
+      <div key={`category-grid-${gridItems[0].item.id}`} className="grid gap-4 lg:grid-cols-4">
+        {gridItems.map(({ item, products, banners }) => renderLayoutItem(item, products, banners))}
+      </div>,
+    );
+  }
+
+  return renderedLayoutItems;
 }

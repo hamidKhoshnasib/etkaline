@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/image";
+import { Container } from "@/components/ui/Container";
 import { FeatureBar } from "@/components/layout/footer/FeatureBar";
 import { AppSupportBar } from "@/components/layout/footer/AppSupportBar";
 import { LINK_COLUMNS } from "@/components/layout/footer/footer.config";
@@ -39,7 +40,7 @@ export async function Footer() {
       <div className="etkaline-pattern !bg-primary text-secondary relative isolate pt-52 lg:pt-24.5">
         <AppSupportBar mobileVariant="support" />
 
-        <div className="px-4 lg:container lg:mx-auto lg:px-0 lg:pt-12">
+        <Container fluid className="lg:container lg:mx-auto lg:px-0 lg:pt-12">
           <div className="grid grid-cols-1 gap-0 lg:grid-cols-4 lg:gap-10">
             <div className="order-3 mt-6 space-y-4.25 lg:order-0 lg:mt-0">
               <AppImage
@@ -108,12 +109,12 @@ export async function Footer() {
               </div>
             </div>
           </div>
-        </div>
+        </Container>
 
         <AppSupportBar />
         <AppSupportBar mobileVariant="download" />
 
-        <p className="bg-gray-500/10 px-4 py-4 text-center text-xs text-black">
+        <p className="bg-gray-500/15 px-4 py-4 text-center text-xs text-black">
           © کلیه حقوق این سایت متعلق به شرکت فروشگاه‌های زنجیره‌ای اتکا می‌باشد.
         </p>
       </div>
