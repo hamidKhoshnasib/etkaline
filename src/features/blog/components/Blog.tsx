@@ -7,10 +7,24 @@ import FeaturedBlog from "./FeaturedBlog";
 import { categories, gridPosts, popularPosts, featuredPost } from "./data";
 import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
 import { Container } from "@/components/ui/Container";
+import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 
-export default async function BlogPage() {
+async function BlogPromoBanners() {
   const blogBanners = await getBlogBanners();
+  return blogBanners.map((banner) => (
+    <BlogPromoBanner
+      key={banner.id}
+      title={banner.title}
+      subtitle={banner.content}
+      image={banner.image}
+      href={banner.href}
+      width={banner.width}
+      height={banner.height}
+    />
+  ));
+}
 
+export default function BlogPage() {
   return (
     <Container as="main" className="space-y-6 py-6">
       {/* ── Latest posts grid + sidebar ─────────────────────────────── */}
@@ -39,17 +53,9 @@ export default async function BlogPage() {
       </section>
 
       {/* ── Promotional banner ──────────────────────────────────────── */}
-      {blogBanners.map((banner) => (
-        <BlogPromoBanner
-          key={banner.id}
-          title={banner.title}
-          subtitle={banner.content}
-          image={banner.image}
-          href={banner.href}
-          width={banner.width}
-          height={banner.height}
-        />
-      ))}
+      <SectionErrorBoundary title="دریافت بنرهای مجله ممکن نشد.">
+        <BlogPromoBanners />
+      </SectionErrorBoundary>
 
       {/* ── Featured article + sidebar ──────────────────────────────── */}
       <section className="flex flex-col gap-6 lg:flex-row">

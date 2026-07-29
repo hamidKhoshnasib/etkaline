@@ -24,7 +24,7 @@ export default function HeroSwiper({ banners }: HeroSwiperProps) {
 
   return (
     <section
-      className="relative h-40 w-full px-2 sm:h-48 lg:h-[460px] lg:px-0"
+      className="relative mt-[7px] h-40 w-full px-2 sm:h-48 lg:mt-6 lg:h-[460px] lg:px-0"
       aria-label="بنرهای صفحهٔ اصلی"
     >
       <Swiper

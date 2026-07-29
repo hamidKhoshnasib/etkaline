@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   Bell,
   ChevronLeft,
@@ -40,7 +41,7 @@ const ACCOUNT_LINKS: ReadonlyArray<AccountLink> = [
 const SECONDARY_ITEMS = [
   { label: "پشتیبانی", icon: Headphones, badge: "۲" },
   { label: "دعوت از دوستان", icon: UserPlus },
-  { label: "آخرین ورود و خروج", icon: Clock3 },
+  { label: "آخرین ورود و خروج", href: "/account/login-logs", icon: Clock3 },
 ] as const;
 
 function SidebarItem({
@@ -48,20 +49,43 @@ function SidebarItem({
   icon: Icon,
   badge,
   mobileHidden = false,
+  href,
+  active = false,
+  onSelect,
 }: {
   label: string;
   icon: typeof Headphones;
   badge?: string;
   mobileHidden?: boolean;
+  href?: string;
+  active?: boolean;
+  onSelect?: () => void;
 }) {
+  const className = cn(
+    "min-h-16 w-full items-center gap-3 px-5 text-start transition-colors lg:min-h-12 lg:rounded-xl lg:px-3",
+    active
+      ? "from-primary/15 text-primary-hover border-primary min-h-14 border-s-4 bg-linear-to-l to-transparent font-medium lg:min-h-12"
+      : "text-muted-foreground hover:bg-muted",
+    mobileHidden ? "hidden lg:flex" : "flex",
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        <Icon aria-hidden="true" />
+        <span className="flex-1">{label}</span>
+        {badge && (
+          <span className="bg-primary-hover flex size-5 items-center justify-center rounded-full text-xs text-white">
+            {badge}
+          </span>
+        )}
+        <ChevronLeft aria-hidden="true" />
+      </Link>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      className={cn(
-        "text-muted-foreground hover:bg-muted min-h-16 w-full items-center gap-3 px-5 text-start transition-colors lg:min-h-12 lg:rounded-xl lg:px-3",
-        mobileHidden ? "hidden lg:flex" : "flex",
-      )}
-    >
+    <button type="button" className={className} onClick={onSelect}>
       <Icon aria-hidden="true" />
       <span className="flex-1">{label}</span>
       {badge && (
@@ -76,6 +100,7 @@ function SidebarItem({
 
 export function AccountSidebar() {
   const pathname = usePathname();
+  const [selectedSecondaryItem, setSelectedSecondaryItem] = useState<string | null>(null);
   const { data: profile, isLoading, sessionStatus } = useProfile();
   const isProfileHome = pathname === "/account/profile" || pathname === "/account";
   const isProfileLoading = sessionStatus === "loading" || isLoading;
@@ -171,9 +196,22 @@ export function AccountSidebar() {
             })}
 
             <div>
-              {SECONDARY_ITEMS.map((item, index) => (
-                <SidebarItem key={item.label} {...item} mobileHidden={index === 2} />
-              ))}
+              {SECONDARY_ITEMS.map((item, index) => {
+                const itemHref = "href" in item ? item.href : undefined;
+
+                return (
+                  <SidebarItem
+                    key={item.label}
+                    {...item}
+                    mobileHidden={index === 2}
+                    active={
+                      selectedSecondaryItem === item.label ||
+                      (itemHref !== undefined && pathname.startsWith(itemHref))
+                    }
+                    onSelect={() => setSelectedSecondaryItem(item.label)}
+                  />
+                );
+              })}
             </div>
 
             <button

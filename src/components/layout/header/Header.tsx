@@ -8,10 +8,18 @@ import { HomeAdvertisement } from "./HomeAdvertisement";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { getMenuCategories } from "@/features/catalog/api/get-menu-categories";
 import { getExtraPages } from "@/features/extra-pages/api/get-extra-pages";
+import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 
-export async function Header() {
+async function HeaderNavigation() {
   const [categories, extraPages] = await Promise.all([getMenuCategories(), getExtraPages()]);
+  return <NavBar categories={categories} extraPages={extraPages.headerItems} />;
+}
 
+async function MobileNavigation() {
+  return <MobileBottomNav categories={await getMenuCategories()} />;
+}
+
+export function Header() {
   return (
     <>
       <HomeAdvertisement />
@@ -26,10 +34,20 @@ export async function Header() {
               <HeaderAuth />
             </div>
           </Container>
-          <NavBar categories={categories} extraPages={extraPages.headerItems} />
+          <SectionErrorBoundary
+            title="دریافت منوی سایت ممکن نشد."
+            className="min-h-0 rounded-none border-x-0 py-2"
+          >
+            <HeaderNavigation />
+          </SectionErrorBoundary>
         </div>
       </header>
-      <MobileBottomNav categories={categories} />
+      <SectionErrorBoundary
+        title="دریافت دسته‌بندی‌ها ممکن نشد."
+        className="min-h-0 rounded-none border-x-0 py-2"
+      >
+        <MobileNavigation />
+      </SectionErrorBoundary>
     </>
   );
 }

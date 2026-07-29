@@ -3,14 +3,15 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, MapPin } from "lucide-react";
+
 import { AddressPicker } from "./AddressPicker";
-import type { MenuCategory } from "@/features/catalog/model/menu-category";
-import { useAddresses } from "@/features/address/api/use-addresses";
+import { MegaMenu } from "./MegaMenu";
+import { navLinks } from "./header.config";
 import { Container } from "@/components/ui/Container";
+import { useAddresses } from "@/features/address/api/use-addresses";
+import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import type { ExtraPageLink } from "@/features/extra-pages/api/get-extra-pages";
 import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href";
-import { navLinks } from "./header.config";
-import { MegaMenu } from "./MegaMenu";
 
 const [categoriesLink, ...otherNavLinks] = navLinks;
 const CategoryIcon = categoriesLink.icon;
@@ -54,11 +55,9 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
 
   return (
     <div className="absolute z-40 w-full rounded-t-[32px] bg-white">
-      {/* Nav row */}
       <Container className="h-15">
         <div className="flex h-full items-center justify-between">
           <nav className="flex h-full items-center gap-6">
-            {/* Categories trigger (no link — opens mega menu on hover) */}
             <div
               className="relative flex h-full items-center"
               onMouseEnter={open}
@@ -102,8 +101,8 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
             ))}
           </nav>
 
-          {/* Address picker */}
           <AddressPicker
+            showMissingAddressPrompt
             trigger={
               <button
                 className="label-medium flex items-center gap-1.5 text-gray-700"
@@ -118,7 +117,6 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
         </div>
       </Container>
 
-      {/* Mega menu */}
       {isOpen && (
         <MegaMenu
           categories={categories}

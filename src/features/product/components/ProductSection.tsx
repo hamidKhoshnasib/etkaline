@@ -16,6 +16,9 @@ interface ProductSectionProps {
   description?: string;
   showMoreLink?: string;
   items: ProductItem[];
+  cardClassName?: string;
+  disableCardHover?: boolean;
+  stickCardPriceToBottom?: boolean;
 }
 
 export default function ProductSection({
@@ -23,6 +26,9 @@ export default function ProductSection({
   description,
   showMoreLink,
   items,
+  cardClassName,
+  disableCardHover = false,
+  stickCardPriceToBottom = true,
 }: ProductSectionProps) {
   return (
     <section className="w-full rounded-2xl border border-[#E2E8F0] bg-white p-3 lg:rounded-[28px] lg:p-5">
@@ -38,7 +44,9 @@ export default function ProductSection({
             price={item.price}
             originalPrice={item.originalPrice}
             discount={item.discount}
-            className="h-full w-full"
+            className={cardClassName ?? "h-full w-full"}
+            disableHover={disableCardHover}
+            stickPriceToBottom={stickCardPriceToBottom}
           />
         )}
       />

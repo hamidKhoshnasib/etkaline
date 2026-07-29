@@ -43,44 +43,44 @@ export async function getBannersByLayoutId(layoutId: number): Promise<LayoutBann
   }
 
   const url = new URL(`/api/Banners/GetBannersByLayoutId/${layoutId}`, API_BASE_URL);
+  url.searchParams.set("LayoutId", String(layoutId));
 
-  try {
-    const response = await fetch(url, {
-      headers: await getServerApiHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(url, {
+    headers: await getServerApiHeaders(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      throw new Error(`Layout banners request failed with status ${response.status}`);
-    }
-
-    const payload = (await response.json()) as LayoutBannersResponse;
-    if (!payload.isSuccess || !Array.isArray(payload.value)) {
-      throw new Error(payload.message || payload.errors?.[0] || "Invalid layout banners response");
-    }
-
-    return payload.value
-      .flatMap((banner) => {
-        const image = banner.picUrl || banner.pic;
-        if (!image || !Number.isSafeInteger(banner.id)) {
-          return [];
-        }
-
-        return [
-          {
-            id: banner.id,
-            title: banner.title,
-            image,
-            width: banner.width > 0 ? banner.width : 600,
-            height: banner.height > 0 ? banner.height : 300,
-            href: getInternalHref(banner.link),
-            order: banner.order,
-          },
-        ];
-      })
-      .sort((first, second) => first.order - second.order);
-  } catch {
-    return [];
+  if (!response.ok) {
+    throw new Error(`Layout banners request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as LayoutBannersResponse;
+  if (!payload.isSuccess || !Array.isArray(payload.value)) {
+    throw new Error(payload.message || payload.errors?.[0] || "Invalid layout banners response");
+  }
+
+  return payload.value
+    .flatMap((banner) => {
+      const image = banner.picUrl || banner.pic;
+      if (!image || !Number.isSafeInteger(banner.id)) {
+        return [];
+      }
+
+      return [
+        {
+          id: banner.id,
+          title: banner.title,
+          image,
+          width:
+            Number.isInteger(banner.width) && banner.width > 0 && banner.width <= 12
+              ? banner.width
+              : 12,
+          height: banner.height > 0 ? banner.height : 300,
+          href: getInternalHref(banner.link),
+          order: banner.order,
+        },
+      ];
+    })
+    .sort((first, second) => first.order - second.order);
 }

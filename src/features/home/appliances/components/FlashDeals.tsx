@@ -11,7 +11,7 @@ import Bazel from "@/assets/icons/bazell.svg";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppImage } from "@/components/ui/image";
-import { formatProductPrice } from "@/features/product/lib/format-price";
+import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import ProductSwiper from "@/features/product/components/ProductSwiper";
 import type { Product } from "@/features/product/model/product";
@@ -98,7 +98,7 @@ function MobileDealCard({ product }: { product: Product }) {
         <div className="flex h-10 shrink-0 flex-col">
           {product.discount && product.originalPrice ? (
             <div className="flex h-5 min-w-0 items-center justify-between px-[3px]">
-              <Badge variant="offer">{product.discount.toLocaleString("fa-IR")}٪</Badge>
+              <Badge variant="offer">{formatDiscountPercent(product.discount)}٪</Badge>
               <s className="truncate text-xs leading-[19.6px] text-slate-500">
                 {formatProductPrice(product.originalPrice)}
               </s>
@@ -157,7 +157,7 @@ function MobileFlashDeals({
             key={activeFilter}
             dir="rtl"
             slidesPerView="auto"
-            spaceBetween={8}
+            spaceBetween={20}
             onSwiper={(swiper) => {
               swiperRef.current = swiper;
             }}
@@ -191,7 +191,7 @@ function MobileFlashDeals({
         size="icon-md"
         onClick={() => swiperRef.current?.slidePrev()}
         aria-label="محصولات قبلی"
-        className="absolute right-[18px] bottom-2.5 size-11 rounded-full"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute right-[18px] bottom-2.5 size-11 rounded-full ring-0"
       >
         <MoveRight />
       </Button>
@@ -201,7 +201,7 @@ function MobileFlashDeals({
         size="icon-md"
         onClick={() => swiperRef.current?.slideNext()}
         aria-label="محصولات بعدی"
-        className="absolute bottom-2.5 left-[17px] size-11 rounded-full"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute bottom-2.5 left-[17px] size-11 rounded-full ring-0"
       >
         <MoveLeft />
       </Button>

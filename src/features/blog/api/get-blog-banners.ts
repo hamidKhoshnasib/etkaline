@@ -95,20 +95,20 @@ function parseBlogBanners(value: unknown): BlogBanner[] {
 }
 
 export async function getBlogBanners(): Promise<BlogBanner[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/Banners/GetBlogBanners`, {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: ["blog-banners"] },
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(`${API_BASE_URL}/api/Banners/GetBlogBanners`, {
+    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
+    next: { revalidate: 300, tags: ["blog-banners"] },
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as BlogBannersResponse;
-    return payload.isSuccess ? parseBlogBanners(payload.value) : [];
-  } catch {
-    return [];
+  if (!response.ok) {
+    throw new Error(`Blog banners request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as BlogBannersResponse;
+  if (!payload.isSuccess) {
+    throw new Error("Blog banners response was unsuccessful");
+  }
+
+  return parseBlogBanners(payload.value);
 }

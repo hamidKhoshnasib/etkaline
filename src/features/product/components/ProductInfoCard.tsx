@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ScaleIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
+import { formatDiscountPercent } from "@/features/product/lib/format-price";
 import type { CartItem } from "@/features/cart/model/cart";
 import { cn } from "@/lib/utils";
 
@@ -95,7 +96,7 @@ export function ProductInfoCard({
       <div className="flex items-start justify-between">
         {discount && (
           <div className="bg-primary-hover flex size-12 items-center justify-center rounded-md text-sm font-bold text-white">
-            %{discount}
+            %{formatDiscountPercent(discount)}
           </div>
         )}
         <div className="flex flex-col items-end">

@@ -68,38 +68,37 @@ function parseFiles(value: unknown): ExtraPageFile[] {
 }
 
 export async function getExtraPage(id: number): Promise<ExtraPage | null> {
-  try {
-    const response = await fetch(new URL(`/api/ExtraPages/${id}`, getServerApiBaseUrl()), {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: [`extra-page:${id}`] },
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(new URL(`/api/ExtraPages/${id}`, getServerApiBaseUrl()), {
+    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
+    next: { revalidate: 300, tags: [`extra-page:${id}`] },
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = (await response.json()) as { isSuccess?: unknown; value?: unknown };
-    if (payload.isSuccess !== true || !payload.value || typeof payload.value !== "object") {
-      return null;
-    }
-
-    const value = payload.value as Record<string, unknown>;
-    const pageId = value.id;
-    const title = getText(value.title);
-    if (pageId !== id || !title || value.isEnabled !== true) {
-      return null;
-    }
-
-    return {
-      id,
-      title,
-      text: typeof value.text === "string" ? value.text : "",
-      metaTitle: getText(value.metaTitle),
-      seoDescription: getText(value.seoDesc),
-      files: parseFiles(value.files),
-    };
-  } catch {
+  if (response.status === 404) {
     return null;
   }
+  if (!response.ok) {
+    throw new Error(`Extra page request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as { isSuccess?: unknown; value?: unknown };
+  if (payload.isSuccess !== true || !payload.value || typeof payload.value !== "object") {
+    return null;
+  }
+
+  const value = payload.value as Record<string, unknown>;
+  const pageId = value.id;
+  const title = getText(value.title);
+  if (pageId !== id || !title || value.isEnabled !== true) {
+    return null;
+  }
+
+  return {
+    id,
+    title,
+    text: typeof value.text === "string" ? value.text : "",
+    metaTitle: getText(value.metaTitle),
+    seoDescription: getText(value.seoDesc),
+    files: parseFiles(value.files),
+  };
 }

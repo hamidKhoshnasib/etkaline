@@ -31,11 +31,11 @@ export function FilterSidebar({
   onToggleValue,
 }: FilterSidebarProps) {
   return (
-    <aside className="hidden w-56 shrink-0 lg:block xl:w-60">
+    <aside className="hidden w-[270px] shrink-0 lg:block">
       <div className="flex items-center justify-between pb-5">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-700">فیلترها</span>
-          <FilterIcon className="text-primary size-5" />
+          <FilterIcon className="text-secondary size-5" />
+          <span className="text-secondary font-bold">فیلترها</span>
         </div>
 
         <button

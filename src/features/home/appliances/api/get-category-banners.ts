@@ -9,7 +9,7 @@ export interface CategoryBanner {
   id: number;
   title: string;
   image: string;
-  href: string | null;
+  href: string;
 }
 
 interface CategoryBannersResponse {
@@ -41,7 +41,7 @@ function toBannerHref(value: unknown): string | null {
     return null;
   }
 
-  if (href.startsWith("/") && !href.startsWith("//")) {
+  if ((href.startsWith("/") && !href.startsWith("//")) || href.startsWith("#")) {
     return href;
   }
 
@@ -75,7 +75,7 @@ function parseCategoryBanners(value: unknown): CategoryBanner[] {
           id: banner.id,
           title: readText(banner.title) ?? "دسته‌بندی",
           image,
-          href: toBannerHref(banner.link),
+          href: toBannerHref(banner.link) ?? "#",
           order: typeof banner.order === "number" ? banner.order : index,
         },
       ];
@@ -85,20 +85,23 @@ function parseCategoryBanners(value: unknown): CategoryBanner[] {
 }
 
 export async function getCategoryBanners(): Promise<CategoryBanner[]> {
-  try {
-    const response = await fetch(new URL("/api/Banners/GetCategoryBanners", API_BASE_URL), {
-      headers: await getServerApiHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
+  const url = new URL("/api/Banners/GetByType", API_BASE_URL);
+  url.searchParams.set("Type", "3");
 
-    if (!response.ok) {
-      return [];
-    }
+  const response = await fetch(url, {
+    headers: await getServerApiHeaders(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    const payload = (await response.json()) as CategoryBannersResponse;
-    return payload.isSuccess ? parseCategoryBanners(payload.value) : [];
-  } catch {
-    return [];
+  if (!response.ok) {
+    throw new Error(`Category banners request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as CategoryBannersResponse;
+  if (!payload.isSuccess) {
+    throw new Error("Category banners response was unsuccessful");
+  }
+
+  return parseCategoryBanners(payload.value);
 }

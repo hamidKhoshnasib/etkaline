@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { useHomeAdvertisement } from "@/features/home/appliances/api/use-home-advertisement";
 import { Container } from "@/components/ui/Container";
 
-function getSafeHref(link: string): string | null {
+function getSafeHref(link: string | null): string | null {
+  if (!link) {
+    return null;
+  }
+
   const trimmedLink = link.trim();
 
   if (trimmedLink.startsWith("/") && !trimmedLink.startsWith("//")) {

@@ -28,7 +28,7 @@ export default function ProductSwiper<T extends { id: number | string }>({
     1024: { slidesPerView: 5 },
     1280: { slidesPerView: 7 },
   },
-  spaceBetween = 8,
+  spaceBetween = 20,
   slidesPerView = 3,
   btnVariant = "secondary-gray",
 }: ProductSwiperProps<T>) {
@@ -40,7 +40,7 @@ export default function ProductSwiper<T extends { id: number | string }>({
         variant={btnVariant}
         size="icon-md"
         onClick={() => swiperRef.current?.slidePrev()}
-        className="absolute top-1/2 right-1 z-10 -translate-y-1/2"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded-full ring-0"
       >
         <MoveRight />
       </Button>
@@ -67,7 +67,7 @@ export default function ProductSwiper<T extends { id: number | string }>({
         variant={btnVariant}
         size="icon-md"
         onClick={() => swiperRef.current?.slideNext()}
-        className="absolute top-1/2 left-1 z-10 -translate-y-1/2"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute top-1/2 left-1 z-10 -translate-y-1/2 rounded-full ring-0"
       >
         <MoveLeft />
       </Button>

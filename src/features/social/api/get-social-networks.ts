@@ -75,28 +75,24 @@ function parseSocialNetwork(value: unknown): SocialNetwork | null {
 }
 
 export async function getSocialNetworks(): Promise<SocialNetwork[]> {
-  try {
-    const response = await fetch(new URL("/api/SocialNetworks", getServerApiBaseUrl()), {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: ["social-networks"] },
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(new URL("/api/SocialNetworks", getServerApiBaseUrl()), {
+    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
+    next: { revalidate: 300, tags: ["social-networks"] },
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as { isSuccess?: unknown; value?: unknown };
-
-    if (payload.isSuccess !== true || !Array.isArray(payload.value)) {
-      return [];
-    }
-
-    return payload.value
-      .map(parseSocialNetwork)
-      .filter((socialNetwork): socialNetwork is SocialNetwork => socialNetwork !== null)
-      .sort((first, second) => first.order - second.order || first.id - second.id);
-  } catch {
-    return [];
+  if (!response.ok) {
+    throw new Error(`Social networks request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as { isSuccess?: unknown; value?: unknown };
+
+  if (payload.isSuccess !== true || !Array.isArray(payload.value)) {
+    throw new Error("Social networks response was unsuccessful");
+  }
+
+  return payload.value
+    .map(parseSocialNetwork)
+    .filter((socialNetwork): socialNetwork is SocialNetwork => socialNetwork !== null)
+    .sort((first, second) => first.order - second.order || first.id - second.id);
 }

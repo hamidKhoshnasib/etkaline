@@ -2,6 +2,7 @@
 
 import { useApiQuery } from "@/hooks/use-api-query";
 import type { AuthToken, EtkalaUser } from "@/types/auth";
+import { useSession } from "next-auth/react";
 
 export interface Address {
   id: string;
@@ -139,10 +140,13 @@ function parseAddresses(response: AddressesResponse): Address[] {
 }
 
 export function useAddresses() {
+  const { status } = useSession();
+
   return useApiQuery<AddressesResponse, Address[]>({
     url: "/api/Addresses",
     queryKey: ["address", "list"],
     select: parseAddresses,
+    enabled: status === "authenticated",
     staleTime: 60_000,
     retry: false,
   });

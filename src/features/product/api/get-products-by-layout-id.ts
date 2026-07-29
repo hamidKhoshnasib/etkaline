@@ -31,24 +31,20 @@ export async function getProductsByLayoutId(layoutId: number, count = 12): Promi
   url.searchParams.set("LayoutId", String(layoutId));
   url.searchParams.set("Count", String(count));
 
-  try {
-    const response = await fetch(url, {
-      headers: await getServerApiHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(url, {
+    headers: await getServerApiHeaders(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      throw new Error(`Layout products request failed with status ${response.status}`);
-    }
-
-    const payload = (await response.json()) as LayoutProductsResponse;
-    if (!payload.isSuccess || !Array.isArray(payload.value)) {
-      throw new Error(payload.message || payload.errors?.[0] || "Invalid layout products response");
-    }
-
-    return payload.value.map(mapBackendLayoutProduct);
-  } catch {
-    return [];
+  if (!response.ok) {
+    throw new Error(`Layout products request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as LayoutProductsResponse;
+  if (!payload.isSuccess || !Array.isArray(payload.value)) {
+    throw new Error(payload.message || payload.errors?.[0] || "Invalid layout products response");
+  }
+
+  return payload.value.map(mapBackendLayoutProduct);
 }

@@ -11,6 +11,7 @@ import Image36 from "@/assets/images/image 36.png";
 import Image37 from "@/assets/images/image 37.png";
 import Swiper1 from "@/assets/images/swiper1.png";
 import { Container } from "@/components/ui/Container";
+import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 
 const sampleArticles = [
   {
@@ -47,20 +48,35 @@ const sampleArticles = [
   },
 ];
 
-export default async function HomePage() {
-  const [banners, categoryBanners, brands] = await Promise.all([
-    getHomeBanners(),
-    getCategoryBanners(),
-    getHomeBrands(),
-  ]);
+async function HomeHero() {
+  return <HeroSwiper banners={await getHomeBanners()} />;
+}
 
+async function HomeCategories() {
+  return <CategoryStrip banners={await getCategoryBanners()} />;
+}
+
+async function HomeBrands() {
+  const brands = await getHomeBrands();
+  return brands.length ? <PopularBrands brands={brands} /> : null;
+}
+
+export default function HomePage() {
   return (
     <main>
-      <HeroSwiper banners={banners} />
+      <SectionErrorBoundary title="دریافت بنرهای صفحهٔ اصلی ممکن نشد.">
+        <HomeHero />
+      </SectionErrorBoundary>
       <Container className="mt-5 space-y-6 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
-        <CategoryStrip banners={categoryBanners} />
-        <DynamicHomeLayout />
-        {brands.length ? <PopularBrands brands={brands} /> : null}
+        <SectionErrorBoundary title="دریافت دسته‌بندی‌ها ممکن نشد.">
+          <HomeCategories />
+        </SectionErrorBoundary>
+        <SectionErrorBoundary title="دریافت چیدمان صفحهٔ اصلی ممکن نشد.">
+          <DynamicHomeLayout />
+        </SectionErrorBoundary>
+        <SectionErrorBoundary title="دریافت برندها ممکن نشد.">
+          <HomeBrands />
+        </SectionErrorBoundary>
         <MagSection articles={sampleArticles} showMoreLink="/blog" />
       </Container>
     </main>

@@ -8,8 +8,9 @@ import { getContactDetails } from "@/features/contact/api/get-contact-us";
 import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
 import { Container } from "@/components/ui/Container";
+import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 
-export default async function ContactUsPage() {
+async function ContactUsContent() {
   const [contactDetails, socialNetworks] = await Promise.all([
     getContactDetails(),
     getSocialNetworks(),
@@ -128,5 +129,13 @@ export default async function ContactUsPage() {
         </div>
       </div>
     </Container>
+  );
+}
+
+export default function ContactUsPage() {
+  return (
+    <SectionErrorBoundary title="دریافت اطلاعات تماس ممکن نشد." className="mx-auto max-w-7xl">
+      <ContactUsContent />
+    </SectionErrorBoundary>
   );
 }

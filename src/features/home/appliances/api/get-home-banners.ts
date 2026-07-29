@@ -87,20 +87,20 @@ export async function getHomeBanners(): Promise<HomeBanner[]> {
   url.searchParams.set("PlatformType", "1");
   url.searchParams.set("Count", "5");
 
-  try {
-    const response = await fetch(url, {
-      headers: await getServerApiHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(url, {
+    headers: await getServerApiHeaders(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as HomeBannersResponse;
-    return payload.isSuccess ? parseHomeBanners(payload.value) : [];
-  } catch {
-    return [];
+  if (!response.ok) {
+    throw new Error(`Home banners request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as HomeBannersResponse;
+  if (!payload.isSuccess) {
+    throw new Error("Home banners response was unsuccessful");
+  }
+
+  return parseHomeBanners(payload.value);
 }

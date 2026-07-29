@@ -15,6 +15,7 @@ import {
   type HomeLayoutItem,
   type HomePlatformType,
 } from "@/features/home/appliances/api/get-home-layout";
+import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import CategoryBanners from "./CategoryBanners";
 import FlashDeals from "./FlashDeals";
 
@@ -48,21 +49,22 @@ function renderLayoutItem(
 
   switch (item.componentType) {
     case HOME_COMPONENT_TYPE.BANNER:
-      return <CategoryBanners key={item.id} banners={banners} />;
+      return <CategoryBanners banners={banners} />;
     case HOME_COMPONENT_TYPE.SINGLE_ROW_SLIDER:
       return (
         <ProductSection
-          key={item.id}
           title={item.title}
           description={description}
           showMoreLink="/products"
           items={products}
+          cardClassName={item.id === 1 ? "h-[226px] w-full lg:h-[310px]" : undefined}
+          disableCardHover={item.id === 1}
+          stickCardPriceToBottom={item.id === 1}
         />
       );
     case HOME_COMPONENT_TYPE.TWO_ROW_GRID:
       return (
         <ProductSectionList
-          key={item.id}
           title={item.title}
           description={description}
           showMoreLink="/products"
@@ -72,7 +74,6 @@ function renderLayoutItem(
     case HOME_COMPONENT_TYPE.GRID_2X2:
       return (
         <CategoryGridCard
-          key={item.id}
           title={item.title}
           description={description}
           showMoreLink="/products"
@@ -80,22 +81,17 @@ function renderLayoutItem(
         />
       );
     case HOME_COMPONENT_TYPE.OFFER:
-      return <FlashDeals key={item.id} items={products} />;
+      return <FlashDeals items={products} />;
     default:
       return null;
   }
 }
 
-function hasLayoutContent(
-  item: HomeLayoutItem,
-  products: Awaited<ReturnType<typeof getProductsByLayoutId>>,
-  banners: LayoutBanner[],
-) {
-  if (isProductLayout(item)) {
-    return products.length > 0;
-  }
+async function DynamicHomeLayoutItem({ item }: { item: HomeLayoutItem }) {
+  const products = isProductLayout(item) ? await getProductsByLayoutId(item.id) : [];
+  const banners = isBannerLayout(item) ? await getBannersByLayoutId(item.id) : [];
 
-  return !isBannerLayout(item) || banners.length > 0;
+  return renderLayoutItem(item, products, banners);
 }
 
 export default async function DynamicHomeLayout() {
@@ -104,38 +100,33 @@ export default async function DynamicHomeLayout() {
   const platformType: HomePlatformType =
     device.type === "mobile" || device.type === "tablet" ? 2 : 1;
   const layout = await getHomeLayout(2, platformType);
-  const layoutItems = await Promise.all(
-    layout.map(async (item) => ({
-      item,
-      products: isProductLayout(item) ? await getProductsByLayoutId(item.id) : [],
-      banners: isBannerLayout(item) ? await getBannersByLayoutId(item.id) : [],
-    })),
-  );
-
-  const visibleLayoutItems = layoutItems.filter(({ item, products, banners }) =>
-    hasLayoutContent(item, products, banners),
-  );
   const renderedLayoutItems = [];
 
-  for (let index = 0; index < visibleLayoutItems.length; index += 1) {
-    const layoutItem = visibleLayoutItems[index];
+  for (let index = 0; index < layout.length; index += 1) {
+    const layoutItem = layout[index];
 
-    if (layoutItem.item.componentType !== HOME_COMPONENT_TYPE.GRID_2X2) {
+    if (layoutItem.componentType !== HOME_COMPONENT_TYPE.GRID_2X2) {
       renderedLayoutItems.push(
-        renderLayoutItem(layoutItem.item, layoutItem.products, layoutItem.banners),
+        <SectionErrorBoundary key={layoutItem.id} title={`دریافت «${layoutItem.title}» ممکن نشد.`}>
+          <DynamicHomeLayoutItem item={layoutItem} />
+        </SectionErrorBoundary>,
       );
       continue;
     }
 
     const gridItems = [layoutItem];
-    while (visibleLayoutItems[index + 1]?.item.componentType === HOME_COMPONENT_TYPE.GRID_2X2) {
+    while (layout[index + 1]?.componentType === HOME_COMPONENT_TYPE.GRID_2X2) {
       index += 1;
-      gridItems.push(visibleLayoutItems[index]);
+      gridItems.push(layout[index]);
     }
 
     renderedLayoutItems.push(
-      <div key={`category-grid-${gridItems[0].item.id}`} className="grid gap-4 lg:grid-cols-4">
-        {gridItems.map(({ item, products, banners }) => renderLayoutItem(item, products, banners))}
+      <div key={`category-grid-${gridItems[0].id}`} className="grid gap-4 lg:grid-cols-4">
+        {gridItems.map((item) => (
+          <SectionErrorBoundary key={item.id} title={`دریافت «${item.title}» ممکن نشد.`}>
+            <DynamicHomeLayoutItem item={item} />
+          </SectionErrorBoundary>
+        ))}
       </div>,
     );
   }

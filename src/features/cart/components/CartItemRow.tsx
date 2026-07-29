@@ -5,6 +5,7 @@ import { Minus, Plus, Palette, ShieldCheck, Trash2, RotateCcw } from "lucide-rea
 import { cn } from "@/lib/utils";
 import Price from "@/features/cart/checkout/Price";
 import { type CartItem, toPersian } from "@/features/cart/fixtures/cart";
+import { formatDiscountPercent } from "@/features/product/lib/format-price";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -53,7 +54,7 @@ export default function CartItemRow({ item, onQuantityChange }: CartItemRowProps
           {item.discount && item.originalPrice && (
             <>
               <span className="label-small rounded bg-[#F57F17] px-1.5 py-0.5 text-white">
-                {toPersian(item.discount)}٪
+                {formatDiscountPercent(item.discount)}٪
               </span>
               <s className="label-small text-gray-400">
                 {item.originalPrice.toLocaleString("fa-IR")}

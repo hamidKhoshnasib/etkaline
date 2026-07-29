@@ -7,7 +7,7 @@ import * as React from "react";
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import ProductCardLeftActionIcon from "@/assets/icons/product-card-left-action.svg";
 import { AppImage } from "@/components/ui/image";
-import { formatProductPrice } from "@/features/product/lib/format-price";
+import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductCardData } from "@/features/product/model/product";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,8 @@ interface ProductCardProps extends ProductCardData {
   outOfStock?: boolean;
   onCompare?: () => void;
   onAddToCart?: () => void;
+  disableHover?: boolean;
+  stickPriceToBottom?: boolean;
   variant?: "default" | "mobile" | "catalog-mobile";
   className?: string;
   imageClassName?: string;
@@ -29,9 +31,10 @@ interface ProductCardLinkProps {
   productUrl?: string;
   title: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-function ProductCardLink({ id, productUrl, title, children }: ProductCardLinkProps) {
+function ProductCardLink({ id, productUrl, title, children, className }: ProductCardLinkProps) {
   const href =
     productUrl ?? (id === undefined ? null : `/products/${encodeURIComponent(String(id))}`);
   if (!href) {
@@ -42,7 +45,10 @@ function ProductCardLink({ id, productUrl, title, children }: ProductCardLinkPro
     <Link
       href={href}
       aria-label={`مشاهده ${title}`}
-      className="focus-visible:outline-primary block focus-visible:outline-2 focus-visible:outline-offset-2"
+      className={cn(
+        "focus-visible:outline-primary block focus-visible:outline-2 focus-visible:outline-offset-2",
+        className,
+      )}
     >
       {children}
     </Link>
@@ -74,7 +80,7 @@ function MobileProductCard({
               <div className="flex items-center gap-1.5">
                 <s className="label-small text-gray-400">{formatProductPrice(originalPrice)}</s>
                 <span className="label-small rounded bg-orange-500 px-1 py-0.5 text-white">
-                  {discount}٪
+                  {formatDiscountPercent(discount)}٪
                 </span>
               </div>
             )}
@@ -124,7 +130,7 @@ function CatalogMobileProductCard({
           />
           {discount ? (
             <span className="absolute top-0 right-0 rounded-lg bg-orange-500 px-2 py-1 text-xs font-bold text-white">
-              {discount}٪
+              {formatDiscountPercent(discount)}٪
             </span>
           ) : null}
         </div>
@@ -158,6 +164,8 @@ function ProductCard({
   discount,
   outOfStock = false,
   onCompare,
+  disableHover = false,
+  stickPriceToBottom = false,
   variant = "default",
   className,
   imageClassName,
@@ -183,12 +191,18 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-[#E2E8F0] bg-white lg:rounded-2xl",
-        "hover:border-primary transition-all",
+        "relative overflow-hidden rounded-xl border border-[#E2E8F0] bg-white lg:rounded-2xl",
+        !disableHover && "group hover:border-primary transition-all",
+        stickPriceToBottom && "flex flex-col",
         className,
       )}
     >
-      <ProductCardLink id={id} productUrl={productUrl} title={title}>
+      <ProductCardLink
+        id={id}
+        productUrl={productUrl}
+        title={title}
+        className={stickPriceToBottom ? "flex flex-1 flex-col" : undefined}
+      >
         <div className="relative overflow-hidden bg-gray-50">
           <AppImage
             src={image}
@@ -196,7 +210,7 @@ function ProductCard({
             width={180}
             height={190}
             className={cn(
-              "h-28 w-full object-contain p-2 lg:h-auto lg:w-auto lg:p-0",
+              "h-[119px] w-full object-contain p-2 lg:h-[190px] lg:p-0",
               imageClassName,
             )}
           />
@@ -209,17 +223,22 @@ function ProductCard({
           )}
         </div>
 
-        <div className="mt-2 px-1.5 pb-2 lg:mt-3 lg:px-2">
+        <div
+          className={cn(
+            "mt-2 px-1.5 pb-2 lg:mt-3 lg:px-2",
+            stickPriceToBottom && "flex flex-1 flex-col",
+          )}
+        >
           <p className="line-clamp-2 h-8 text-[11px] leading-4 text-gray-700 lg:h-10 lg:text-sm lg:leading-5">
             {title}
           </p>
 
-          <div className="mt-3 w-full">
+          <div className={cn("mt-3 w-full", stickPriceToBottom && "mt-auto pt-3")}>
             <div className="flex h-12.5 flex-col">
               {discount && originalPrice && (
                 <div className="flex items-center justify-between gap-1.5">
                   <span className="bg-primary-hover rounded-lg px-1 py-0.5 text-[12px] text-white">
-                    {discount}٪
+                    {formatDiscountPercent(discount)}٪
                   </span>
                   <s className="text-[12px] text-gray-400">{formatProductPrice(originalPrice)}</s>
                 </div>
@@ -235,7 +254,7 @@ function ProductCard({
         </div>
       </ProductCardLink>
 
-      {!outOfStock && (
+      {!outOfStock && !disableHover && (
         <>
           <button
             type="button"

@@ -15,7 +15,8 @@ export function mapHomeBrand(brand: BackendBrand): HomeBrand | null {
   if ((typeof id !== "string" && typeof id !== "number") || typeof name !== "string") {
     return null;
   }
-  const imageUrl = typeof image === "string" ? image : "/favicon.ico";
+  const imageUrl =
+    typeof image === "string" && image.trim() ? image : "/images/image-placeholder.svg";
   const slug = typeof brand.slug === "string" ? brand.slug : String(id);
   return { id, name, image: imageUrl, href: `/brand/${encodeURIComponent(slug)}` };
 }

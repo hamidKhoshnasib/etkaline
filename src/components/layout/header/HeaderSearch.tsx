@@ -8,21 +8,51 @@ import { Spinner } from "@/components/ui/spinner";
 import { useSearchbar } from "@/features/search/api/use-searchbar";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
-const recentSearches = [
-  "ماشین لباسشویی",
-  "تلویزیون ۵۰ اینچ",
-  "ماکروویو",
-  "جاروبرقی",
-  "قهوه ساز",
-  "ظرفشویی",
-  "بخاری برقی",
-  "اندروید باکس",
-  "یخچال",
-];
+const RECENT_SEARCHES_STORAGE_KEY = "etkaline:recent-searches";
+const RECENT_SEARCHES_LIMIT = 10;
+
+function getStoredRecentSearches(): string[] {
+  try {
+    const storedSearches = window.localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY);
+    if (!storedSearches) {
+      return [];
+    }
+
+    const parsedSearches: unknown = JSON.parse(storedSearches);
+    if (!Array.isArray(parsedSearches)) {
+      return [];
+    }
+
+    const searches = parsedSearches.flatMap((search): string[] => {
+      if (typeof search !== "string") {
+        return [];
+      }
+
+      const normalizedSearch = search.trim();
+      return normalizedSearch ? [normalizedSearch] : [];
+    });
+
+    return [...new Set(searches)].slice(0, RECENT_SEARCHES_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+function persistRecentSearches(searches: string[]) {
+  try {
+    window.localStorage.setItem(RECENT_SEARCHES_STORAGE_KEY, JSON.stringify(searches));
+  } catch {
+    // Search still works when browser storage is unavailable.
+  }
+}
 
 export function HeaderSearch() {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() =>
+    typeof window === "undefined" ? [] : getStoredRecentSearches(),
+  );
+  const recentSearchesRef = useRef(recentSearches);
   const searchRef = useRef<HTMLDivElement>(null);
   const normalizedQuery = query.trim();
   const debouncedQuery = useDebouncedValue(normalizedQuery);
@@ -35,9 +65,29 @@ export function HeaderSearch() {
 
   const showResults = isOpen && normalizedQuery.length > 0;
   const isSearching = hasSearchQuery && (isFetching || !isCurrentQuery);
-  const hasResults = Boolean(
-    data && (data.categories.length || data.products.length || data.brands.length),
-  );
+  const hasResults = Boolean(data && (data.categories.length || data.products.length));
+
+  const saveRecentSearch = (search: string) => {
+    const normalizedSearch = search.trim();
+    if (!normalizedSearch) {
+      return;
+    }
+
+    const nextSearches = [
+      normalizedSearch,
+      ...recentSearchesRef.current.filter((item) => item !== normalizedSearch),
+    ].slice(0, RECENT_SEARCHES_LIMIT);
+
+    recentSearchesRef.current = nextSearches;
+    persistRecentSearches(nextSearches);
+    setRecentSearches(nextSearches);
+  };
+
+  const handleNavigation = () => {
+    saveRecentSearch(normalizedQuery);
+    setQuery("");
+    setIsOpen(false);
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -142,7 +192,7 @@ export function HeaderSearch() {
                         <Link
                           key={category.id}
                           href={`/categories/${encodeURIComponent(String(category.id))}`}
-                          onClick={() => setIsOpen(false)}
+                          onClick={handleNavigation}
                           className="hover:text-primary focus-visible:outline-ring flex items-center justify-between py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
                         >
                           <div className="flex gap-2">
@@ -160,31 +210,29 @@ export function HeaderSearch() {
                     title="کالاها"
                     items={data.products}
                     getItemHref={(item) => `/products/${encodeURIComponent(String(item.id))}`}
-                    onNavigate={() => setIsOpen(false)}
+                    onNavigate={handleNavigation}
                   />
-                ) : null}
-
-                {data.brands.length ? (
-                  <SearchResultSection title="برندها" items={data.brands} onSelect={setQuery} />
                 ) : null}
               </div>
             ) : null}
 
-            <section className="border-border mt-4 border-t pt-4">
-              <h3 className="mb-3 text-sm font-bold">جستجوهای اخیر</h3>
-              <div className="flex flex-wrap gap-2">
-                {recentSearches.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => setQuery(item)}
-                    className="bg-muted hover:bg-muted/80 focus-visible:outline-ring rounded-full px-3 py-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </section>
+            {recentSearches.length ? (
+              <section className="border-border mt-4 border-t pt-4">
+                <h3 className="mb-3 text-sm font-bold">جستجوهای اخیر</h3>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setQuery(item)}
+                      className="bg-muted hover:bg-muted/80 focus-visible:outline-ring rounded-full px-3 py-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : null}
       </div>

@@ -8,7 +8,7 @@ const homeQueryKey = createFeatureQueryKey("home", "appliance");
 
 export interface HomeAdvertisement {
   text: string;
-  link: string;
+  link: string | null;
   targetType: number;
   targetTypeFa: string;
   targetId: number | null;
@@ -26,7 +26,7 @@ function isAdvertisement(value: unknown): value is HomeAdvertisement {
   return (
     typeof advertisement.text === "string" &&
     advertisement.text.trim().length > 0 &&
-    typeof advertisement.link === "string" &&
+    (advertisement.link === null || typeof advertisement.link === "string") &&
     typeof advertisement.targetType === "number" &&
     typeof advertisement.targetTypeFa === "string" &&
     (advertisement.targetId === null || typeof advertisement.targetId === "number") &&

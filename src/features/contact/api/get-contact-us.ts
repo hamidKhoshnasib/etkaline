@@ -28,20 +28,20 @@ function parseContactDetails(value: unknown): ContactDetails | null {
 }
 
 export async function getContactDetails(): Promise<ContactDetails | null> {
-  try {
-    const response = await fetch(new URL("/api/ContactUs", getServerApiBaseUrl()), {
-      headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-      next: { revalidate: 300, tags: ["contact-details"] },
-      signal: AbortSignal.timeout(15_000),
-    });
+  const response = await fetch(new URL("/api/ContactUs", getServerApiBaseUrl()), {
+    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
+    next: { revalidate: 300, tags: ["contact-details"] },
+    signal: AbortSignal.timeout(15_000),
+  });
 
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = (await response.json()) as { isSuccess?: unknown; value?: unknown };
-    return payload.isSuccess === true ? parseContactDetails(payload.value) : null;
-  } catch {
-    return null;
+  if (!response.ok) {
+    throw new Error(`Contact details request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as { isSuccess?: unknown; value?: unknown };
+  if (payload.isSuccess !== true) {
+    throw new Error("Contact details response was unsuccessful");
+  }
+
+  return parseContactDetails(payload.value);
 }

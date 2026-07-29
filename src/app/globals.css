@@ -255,14 +255,6 @@
     color: #f52222;
   }
 
-  .auth-dialog-banner {
-    background:
-      radial-gradient(circle at 55% 38%, rgb(255 199 0 / 85%) 0, transparent 17%),
-      radial-gradient(circle at 16% 72%, rgb(219 0 255 / 85%) 0, transparent 22%),
-      radial-gradient(circle at 85% 65%, rgb(154 0 255 / 70%) 0, transparent 20%),
-      linear-gradient(145deg, #1d063b 0%, #7500a8 35%, #d000ff 67%, #8d00cc 100%);
-  }
-
   .body-large-bold {
     font-size: 1rem;
     line-height: 1.5rem;

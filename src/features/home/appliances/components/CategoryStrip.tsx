@@ -28,7 +28,7 @@ export default function CategoryStrip({ banners }: CategoryStripProps) {
           </>
         );
 
-        return href ? (
+        return (
           <Link
             key={id}
             href={href}
@@ -36,13 +36,6 @@ export default function CategoryStrip({ banners }: CategoryStripProps) {
           >
             {content}
           </Link>
-        ) : (
-          <div
-            key={id}
-            className="flex w-16 shrink-0 snap-start flex-col items-center gap-1.5 lg:w-auto lg:gap-2"
-          >
-            {content}
-          </div>
         );
       })}
     </div>

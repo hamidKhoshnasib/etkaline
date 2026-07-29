@@ -14,7 +14,7 @@ interface ApiCategory {
   title: string;
   parentId: number | null;
   order: number;
-  iconName: string;
+  iconName: string | null;
   subCategories: ApiCategory[];
 }
 
@@ -34,7 +34,7 @@ function parseCategory(value: unknown): ApiCategory | null {
     !isInteger(category.order) ||
     typeof category.title !== "string" ||
     !category.title.trim() ||
-    typeof category.iconName !== "string"
+    (category.iconName !== null && typeof category.iconName !== "string")
   ) {
     return null;
   }
@@ -44,7 +44,7 @@ function parseCategory(value: unknown): ApiCategory | null {
     title: category.title.trim(),
     parentId: category.parentId,
     order: category.order,
-    iconName: category.iconName,
+    iconName: typeof category.iconName === "string" ? category.iconName : null,
     subCategories: Array.isArray(category.subCategories)
       ? category.subCategories
           .map(parseCategory)
@@ -64,7 +64,7 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
         id: category.id,
         title: category.title,
         href: `/categories/${category.id}`,
-        iconName: category.iconName,
+        iconName: category.iconName ?? "",
         children: [],
       });
       parents.set(category.id, category.parentId);
@@ -99,29 +99,25 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
 }
 
 export async function getMenuCategories(): Promise<MenuCategory[]> {
-  try {
-    const response = await fetch(new URL("/api/Categories", getServerApiBaseUrl()), {
-      headers: await getServerApiHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as CategoriesResponse;
-    if (!payload.isSuccess || !Array.isArray(payload.value)) {
-      return [];
-    }
-
-    return buildMenuCategories(
-      payload.value
-        .map(parseCategory)
-        .filter((category): category is ApiCategory => category !== null),
-    );
-  } catch {
-    return [];
+  const response = await fetch(new URL("/api/Categories", getServerApiBaseUrl()), {
+    headers: await getServerApiHeaders(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) {
+    throw new Error(`Menu categories request failed with status ${response.status}`);
   }
+
+  const payload = (await response.json()) as CategoriesResponse;
+  if (!payload.isSuccess || !Array.isArray(payload.value)) {
+    throw new Error("Menu categories response was unsuccessful");
+  }
+
+  return buildMenuCategories(
+    payload.value
+      .map(parseCategory)
+      .filter((category): category is ApiCategory => category !== null),
+  );
 }
 
 function findCategoryById(categories: MenuCategory[], categoryId: number): MenuCategory | null {

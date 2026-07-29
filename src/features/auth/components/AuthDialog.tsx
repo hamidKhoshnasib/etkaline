@@ -5,8 +5,8 @@ import { Info, PencilLine, RefreshCw } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { CLIENT_SESSION_SYNC_EVENT } from "@/lib/axios-client";
+import { useLoginBanner } from "@/features/auth/api/use-login-banner";
 
-import EtkalineLogo from "@/assets/icons/logo.svg";
 import { Button } from "@/components/ui/button";
 import { AppImage } from "@/components/ui/image";
 import {
@@ -136,6 +136,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState<AuthLoadingState>(null);
   const otpInputRef = React.useRef<HTMLInputElement>(null);
+  const { data: loginBanner } = useLoginBanner(open);
 
   const normalizedMobile = normalizeMobileValue(mobile);
   const mobileIsValid = validateMobile(mobile);
@@ -332,11 +333,14 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
         showCloseButton={false}
         className="inset-x-0 start-0 top-auto bottom-0 h-[min(580px,calc(100dvh-1rem))] max-h-none max-w-none translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-x-hidden overflow-y-auto rounded-t-[28px] rounded-b-none p-0 sm:start-1/2 sm:top-1/2 sm:bottom-auto sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-[440px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] rtl:translate-x-0 rtl:sm:translate-x-1/2"
       >
-        <div className="auth-dialog-banner flex h-30 shrink-0 items-center justify-center rounded-t-[28px] text-white sm:h-40 sm:rounded-t-[32px]">
-          <div className="flex flex-col items-center gap-1 drop-shadow-lg">
-            <EtkalineLogo className="w-44" aria-label="اتکالاین" />
-            <span className="text-xs font-medium">پر تخفیف و آنلاین</span>
-          </div>
+        <div className="relative h-30 shrink-0 overflow-hidden rounded-t-[28px] sm:h-40 sm:rounded-t-[32px]">
+          <AppImage
+            src={loginBanner?.image ?? "/images/auth-dialog-banner.png"}
+            alt=""
+            fill
+            sizes="(max-width: 639px) 100vw, 440px"
+            className="object-cover"
+          />
         </div>
 
         <div className="flex min-h-0 flex-col px-6 pt-8 pb-6 sm:min-h-[375px] sm:px-7">

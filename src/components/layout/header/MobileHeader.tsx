@@ -31,6 +31,7 @@ export function MobileHeader() {
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           <AddressPicker
+            showMissingAddressPrompt
             trigger={
               <button
                 className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-[#FFD600] bg-white px-2.5 sm:flex-none sm:px-4"

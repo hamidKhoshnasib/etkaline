@@ -1,6 +1,14 @@
 "use client";
 
-import { cloneElement, useId, useState, type MouseEventHandler, type ReactElement } from "react";
+import {
+  cloneElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type MouseEventHandler,
+  type ReactElement,
+} from "react";
 import { MapPin, MoveRight, Pencil, Plus, Search, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -39,6 +47,8 @@ import { setClientSessionSnapshot } from "@/lib/axios-client";
 
 type AddressStep = "addresses" | "location" | "details" | "store";
 
+const ADDRESS_PROMPT_STORAGE_KEY = "etkaline:address-prompt-shown";
+
 const AddressMap = dynamic(() => import("./AddressMap").then((module) => module.AddressMap), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full rounded-2xl" />,
@@ -50,6 +60,7 @@ interface AddressPickerProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   editingAddress?: Address | null;
+  showMissingAddressPrompt?: boolean;
 }
 
 function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
@@ -68,11 +79,13 @@ export function AddressPicker({
   open: controlledOpen,
   onOpenChange,
   editingAddress: externalEditingAddress,
+  showMissingAddressPrompt = false,
 }: AddressPickerProps) {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const hasAutoPromptedRef = useRef(false);
   const [step, setStep] = useState<AddressStep>("addresses");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedStore, setSelectedStore] = useState("");
@@ -82,7 +95,7 @@ export function AddressPicker({
   const formId = useId();
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
-  const requiresAddress = status === "authenticated" && !session.user.applianceStoreId;
+  const hasNoApplianceStore = status === "authenticated" && !session.user.applianceStoreId;
   const isExternallyEditing = Boolean(externalEditingAddress);
   const activeEditingAddress = externalEditingAddress ?? editingAddress;
   const activeCityId = externalEditingAddress?.cityId ?? cityId;
@@ -92,11 +105,27 @@ export function AddressPicker({
   const activeStep: AddressStep = isExternallyEditing ? "details" : step;
   const isOpen = controlledOpen ?? open;
 
-  function handleOpenChange(nextOpen: boolean) {
-    if (requiresAddress && !nextOpen) {
+  useEffect(() => {
+    if (!showMissingAddressPrompt || !hasNoApplianceStore || hasAutoPromptedRef.current) {
+      if (!hasNoApplianceStore) {
+        hasAutoPromptedRef.current = false;
+      }
       return;
     }
 
+    const promptStorageKey = `${ADDRESS_PROMPT_STORAGE_KEY}:${session.user.backendId}`;
+    hasAutoPromptedRef.current = true;
+
+    if (window.sessionStorage.getItem(promptStorageKey)) {
+      return;
+    }
+
+    window.sessionStorage.setItem(promptStorageKey, "true");
+    const promptTimer = window.setTimeout(() => setOpen(true), 0);
+    return () => window.clearTimeout(promptTimer);
+  }, [hasNoApplianceStore, session?.user.backendId, showMissingAddressPrompt]);
+
+  function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     onOpenChange?.(nextOpen);
     if (!nextOpen) {
@@ -113,6 +142,8 @@ export function AddressPicker({
 
   async function handleSaveAddress(payload: AddressPayload) {
     try {
+      const isCreatingAddress = !activeEditingAddress;
+
       if (activeEditingAddress) {
         const id = Number(activeEditingAddress.id);
         if (!Number.isInteger(id)) {
@@ -135,8 +166,12 @@ export function AddressPicker({
 
       await queryClient.invalidateQueries({ queryKey: ["address"] });
       setEditingAddress(null);
-      setStep("addresses");
-      handleOpenChange(false);
+      if (isCreatingAddress) {
+        setStep("store");
+      } else {
+        setStep("addresses");
+        handleOpenChange(false);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ثبت آدرس ناموفق بود.");
     }
@@ -180,7 +215,7 @@ export function AddressPicker({
   }[activeStep];
 
   return (
-    <Dialog open={isOpen || requiresAddress} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={configuredTrigger} />}
       <DialogContent
         showCloseButton={false}
@@ -240,17 +275,15 @@ export function AddressPicker({
                 افزودن آدرس جدید
               </Button>
             )}
-            {!requiresAddress && (
-              <Button
-                aria-label="بستن انتخاب آدرس"
-                className={activeStep === "addresses" ? "sr-only" : "text-muted-foreground"}
-                size="icon-sm"
-                variant="ghost"
-                onClick={() => handleOpenChange(false)}
-              >
-                <X data-icon="inline-end" />
-              </Button>
-            )}
+            <Button
+              aria-label="بستن انتخاب آدرس"
+              className="text-muted-foreground"
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => handleOpenChange(false)}
+            >
+              <X data-icon="inline-end" />
+            </Button>
           </div>
         </DialogHeader>
 
