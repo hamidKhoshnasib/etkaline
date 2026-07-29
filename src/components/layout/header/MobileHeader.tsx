@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, MapPin, ChevronDown, Search } from "lucide-react";
-import EtkalineLogo from "@/assets/icons/logo.svg";
+import EtkalineMobileLogo from "@/assets/icons/logo-mobile.svg";
 import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 import { useAddresses } from "@/features/address/api/use-addresses";
 import { AddressPicker } from "./AddressPicker";
@@ -26,7 +26,7 @@ export function MobileHeader() {
       {/* ── Top row: logo + address/notification ─────────────────────── */}
       <div className="flex items-center gap-3 px-4 py-3">
         <Link href="/" aria-label="اتکالاین" className="text-secondary shrink-0">
-          <EtkalineLogo className="block h-[29.15px] w-[134.19px]" />
+          <EtkalineMobileLogo className="block h-8 w-[135px]" />
         </Link>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
