@@ -33,7 +33,7 @@ function WishlistProducts({
     return (
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-busy="true">
         {Array.from({ length: 5 }, (_, index) => (
-          <ProductCardSkeleton key={index} variant="wishlist" />
+          <ProductCardSkeleton key={index} variant="catalog" />
         ))}
       </div>
     );

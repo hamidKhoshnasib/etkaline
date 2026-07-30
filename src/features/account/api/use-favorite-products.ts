@@ -46,7 +46,7 @@ function parseFavoriteProducts(
 ): FavoriteProductsPage {
   const result = getRecord(response.value);
   if (response.isSuccess !== true || !result || !Array.isArray(result.products)) {
-    return { page: fallbackPage, pageLength: 5, pageCount: 0, totalCount: 0, products: [] };
+    return { page: fallbackPage, pageLength: 10, pageCount: 0, totalCount: 0, products: [] };
   }
 
   const products = result.products.flatMap((item) => {
@@ -77,7 +77,7 @@ function parseFavoriteProducts(
       },
     ];
   });
-  const pageLength = getNumber(result.pageLength) ?? 5;
+  const pageLength = getNumber(result.pageLength) ?? 10;
   const totalCount = getNumber(result.totalCount) ?? products.length;
   const pageCount =
     getNumber(result.pageCount) ?? (pageLength > 0 ? Math.ceil(totalCount / pageLength) : 0);
@@ -94,8 +94,8 @@ function parseFavoriteProducts(
 export function useFavoriteProducts(page: number) {
   return useApiQuery<FavoriteProductsResponse, FavoriteProductsPage>({
     url: "/api/Favorites",
-    queryKey: ["favorites", "products", { page, pageLength: 5 }],
-    axiosConfig: { params: { Page: page, PageLength: 5 } },
+    queryKey: ["favorites", "products", { page, pageLength: 10 }],
+    axiosConfig: { params: { Page: page, PageLength: 10 } },
     select: (response) => parseFavoriteProducts(response, page),
     staleTime: 60_000,
     retry: false,
