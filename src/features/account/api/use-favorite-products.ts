@@ -15,6 +15,14 @@ export interface FavoriteProduct {
   picUrl: string | null;
 }
 
+export interface FavoriteProductsPage {
+  page: number;
+  pageLength: number;
+  pageCount: number;
+  totalCount: number;
+  products: FavoriteProduct[];
+}
+
 interface FavoriteProductsResponse {
   value?: unknown;
   isSuccess?: unknown;
@@ -32,13 +40,16 @@ function getRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }
 
-function parseFavoriteProducts(response: FavoriteProductsResponse): FavoriteProduct[] {
+function parseFavoriteProducts(
+  response: FavoriteProductsResponse,
+  fallbackPage: number,
+): FavoriteProductsPage {
   const result = getRecord(response.value);
   if (response.isSuccess !== true || !result || !Array.isArray(result.products)) {
-    return [];
+    return { page: fallbackPage, pageLength: 10, pageCount: 0, totalCount: 0, products: [] };
   }
 
-  return result.products.flatMap((item) => {
+  const products = result.products.flatMap((item) => {
     const value = getRecord(item);
     if (!value) {
       return [];
@@ -66,14 +77,26 @@ function parseFavoriteProducts(response: FavoriteProductsResponse): FavoriteProd
       },
     ];
   });
+  const pageLength = getNumber(result.pageLength) ?? 10;
+  const totalCount = getNumber(result.totalCount) ?? products.length;
+  const pageCount =
+    getNumber(result.pageCount) ?? (pageLength > 0 ? Math.ceil(totalCount / pageLength) : 0);
+
+  return {
+    page: getNumber(result.page) ?? fallbackPage,
+    pageLength,
+    pageCount,
+    totalCount,
+    products,
+  };
 }
 
-export function useFavoriteProducts() {
-  return useApiQuery<FavoriteProductsResponse, FavoriteProduct[]>({
+export function useFavoriteProducts(page: number) {
+  return useApiQuery<FavoriteProductsResponse, FavoriteProductsPage>({
     url: "/api/Favorites",
-    queryKey: ["favorites", "products", { page: 1, pageLength: 300 }],
-    axiosConfig: { params: { Page: 1, PageLength: 300 } },
-    select: parseFavoriteProducts,
+    queryKey: ["favorites", "products", { page, pageLength: 10 }],
+    axiosConfig: { params: { Page: page, PageLength: 10 } },
+    select: (response) => parseFavoriteProducts(response, page),
     staleTime: 60_000,
     retry: false,
   });
