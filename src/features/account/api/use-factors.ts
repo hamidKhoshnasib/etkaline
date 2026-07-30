@@ -104,12 +104,13 @@ function parseProducts(value: unknown): MockOrderProduct[] {
   });
 }
 
-function parseFactor(value: unknown): MockOrder | null {
+export function parseFactor(value: unknown): MockOrder | null {
   if (!isRecord(value)) {
     return null;
   }
 
   const factorNumber = getText(value.factorNumber);
+  const id = getInteger(value.id);
   const statusCode = getInteger(value.status);
   const status = statusCode === null ? undefined : FACTOR_STATUS_MAP[statusCode];
   if (!factorNumber || !status) {
@@ -127,7 +128,7 @@ function parseFactor(value: unknown): MockOrder | null {
   const { date, time } = getDateParts(value.createDate, value.createDateFa);
 
   return {
-    id: factorNumber,
+    id: String(id ?? factorNumber),
     orderNumber: factorNumber,
     date,
     time,
@@ -145,7 +146,7 @@ function parseFactor(value: unknown): MockOrder | null {
       address: getText(address.fullAddress) || "—",
       postalCode: getText(address.postalCode) || "—",
     },
-    products: parseProducts(value.products),
+    products: parseProducts(value.products ?? value.basketItems),
   };
 }
 
@@ -161,17 +162,20 @@ function parseFactors(response: FactorsResponse): FactorsData {
   };
 }
 
-export function useFactors({ factorNumber }: { factorNumber?: string } = {}) {
+export function useFactors({
+  factorNumber,
+  status = factorNumber ? undefined : 3,
+}: { factorNumber?: string; status?: number } = {}) {
   const params = {
-    Page: 0,
-    PageLength: 100,
-    Statuses: [0, 1, 2, 3],
+    Page: 1,
+    PageLength: 300,
+    ...(status === undefined ? {} : { Status: status }),
     ...(factorNumber ? { FactorNum: factorNumber } : {}),
   };
 
   return useApiQuery<FactorsResponse, FactorsData>({
     url: "/api/Factors",
-    queryKey: ["factors", { factorNumber, page: 0, pageLength: 100, statuses: [0, 1, 2, 3] }],
+    queryKey: ["factors", { factorNumber, page: 1, pageLength: 300, status }],
     axiosConfig: {
       params,
     },

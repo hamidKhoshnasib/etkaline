@@ -1,19 +1,34 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ChevronRightIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BackButton } from "@/components/ui/back-button";
 
 interface MobilePageHeaderProps {
   title: string;
-  leftContent?: ReactNode;
+  fallbackHref: string;
+  endContent?: ReactNode;
+  fixed?: boolean;
 }
 
-export function MobilePageHeader({ title, leftContent }: MobilePageHeaderProps) {
+export function MobilePageHeader({
+  title,
+  fallbackHref,
+  endContent,
+  fixed = false,
+}: MobilePageHeaderProps) {
   return (
-    <header className="bg-background text-secondary fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b px-4 text-sm font-bold lg:hidden">
-      <ChevronRightIcon className="size-5" />
+    <header
+      className={cn(
+        "bg-background text-secondary relative flex h-18 items-center justify-center border-b text-sm font-bold lg:hidden",
+        fixed && "fixed inset-x-0 top-0 z-40 h-16",
+      )}
+    >
+      <BackButton className="absolute start-4" fallbackHref={fallbackHref} />
       <h1 className="text-base font-bold">{title}</h1>
-      <div className="flex min-w-5 justify-end">{leftContent ?? <span className="size-5" />}</div>
+      <div className="absolute end-4 flex min-w-8 justify-end">
+        {endContent ?? <span className="size-5" />}
+      </div>
     </header>
   );
 }

@@ -28,33 +28,39 @@ function getNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function getRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
 function parseFavoriteProducts(response: FavoriteProductsResponse): FavoriteProduct[] {
-  if (response.isSuccess !== true || !Array.isArray(response.value)) {
+  const result = getRecord(response.value);
+  if (response.isSuccess !== true || !result || !Array.isArray(result.products)) {
     return [];
   }
 
-  return response.value.flatMap((item) => {
-    if (!item || typeof item !== "object") {
+  return result.products.flatMap((item) => {
+    const value = getRecord(item);
+    if (!value) {
       return [];
     }
 
-    const value = item as Record<string, unknown>;
     const id = getNumber(value.id);
     const title = getText(value.title);
     if (!id || !Number.isInteger(id) || !title) {
       return [];
     }
 
+    const storeInfo = getRecord(value.storeInfo);
     return [
       {
         id,
         title,
         urlTitle: getText(value.urlTitle),
-        mainPrice: getNumber(value.mainPrice) ?? 0,
-        offPrice: getNumber(value.offPrice) ?? 0,
-        offPercent: getNumber(value.offPrecent) ?? 0,
-        inventory: getNumber(value.inventory) ?? 0,
-        isExist: value.isExist === true,
+        mainPrice: getNumber(storeInfo?.mainPrice) ?? 0,
+        offPrice: getNumber(storeInfo?.offPrice) ?? 0,
+        offPercent: getNumber(storeInfo?.offPercent) ?? 0,
+        inventory: getNumber(value.inventory) ?? 1,
+        isExist: value.isExist !== false,
         pic: getText(value.pic),
         picUrl: getText(value.picUrl),
       },
@@ -64,8 +70,9 @@ function parseFavoriteProducts(response: FavoriteProductsResponse): FavoriteProd
 
 export function useFavoriteProducts() {
   return useApiQuery<FavoriteProductsResponse, FavoriteProduct[]>({
-    url: "/api/Favorites/FavoritProducts",
-    queryKey: ["favorites", "products"],
+    url: "/api/Favorites",
+    queryKey: ["favorites", "products", { page: 1, pageLength: 300 }],
+    axiosConfig: { params: { Page: 1, PageLength: 300 } },
     select: parseFavoriteProducts,
     staleTime: 60_000,
     retry: false,

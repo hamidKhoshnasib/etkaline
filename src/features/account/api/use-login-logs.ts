@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
@@ -54,6 +55,14 @@ function responseMessage(response: LoginLogsResponse) {
   return text(response.message) || firstError || "دریافت تاریخچه ورود و خروج ممکن نشد.";
 }
 
+function requestErrorMessage(error: unknown) {
+  if (axios.isAxiosError<LoginLogsResponse>(error) && error.response?.data) {
+    return responseMessage(error.response.data);
+  }
+
+  return getErrorMessage(error);
+}
+
 function parseLoginLogs(response: LoginLogsResponse): LoginLogsPage {
   if (response.isSuccess !== true || !isRecord(response.value)) {
     throw new Error(responseMessage(response));
@@ -89,20 +98,20 @@ function parseLoginLogs(response: LoginLogsResponse): LoginLogsPage {
   };
 }
 
-export function useLoginLogs(page: number, enabled: boolean) {
+export function useLoginLogs(page: number, isSuccess: boolean, enabled: boolean) {
   const { status } = useSession();
 
   return useQuery<LoginLogsPage, Error>({
-    queryKey: ["profile", "login-logs", page],
+    queryKey: ["profile", "login-logs", { isSuccess, page }],
     enabled: enabled && status === "authenticated",
     queryFn: async () => {
       try {
         const { data } = await axiosClient.get<LoginLogsResponse>("/api/Profile/GetLoginLogs", {
-          params: { Page: page, PageLength: 20 },
+          params: { Page: page, PageLength: 30, IsSuccess: isSuccess },
         });
         return parseLoginLogs(data);
       } catch (error) {
-        throw new Error(getErrorMessage(error));
+        throw new Error(requestErrorMessage(error));
       }
     },
     retry: false,

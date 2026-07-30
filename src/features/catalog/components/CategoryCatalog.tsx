@@ -172,8 +172,10 @@ export default function CategoryCatalog({
       <h1 className="sr-only">{title}</h1>
 
       <MobilePageHeader
+        fixed
+        fallbackHref="/"
         title={title.replace("محصولات ", "")}
-        leftContent={
+        endContent={
           <button
             type="button"
             onClick={() => setIsMobileFilterOpen(true)}

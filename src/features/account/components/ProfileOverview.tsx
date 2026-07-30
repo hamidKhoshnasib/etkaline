@@ -2,10 +2,12 @@
 
 import { AlertCircle, CreditCard, Mail, Pencil, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants, Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -16,12 +18,14 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import {
   profileQueryKeys,
   useProfile,
   useUpdateProfile,
   type Profile,
 } from "@/features/account/api/use-profile";
+import { cn } from "@/lib/utils";
 
 type ProfileDetail = {
   label: string;
@@ -79,7 +83,15 @@ export function ProfileOverviewSkeleton() {
   );
 }
 
-function ProfileEditForm({ profile, onSaved }: { profile: Profile; onSaved: () => void }) {
+function ProfileEditForm({
+  profile,
+  onSaved,
+  routeMode = false,
+}: {
+  profile: Profile;
+  onSaved: () => void;
+  routeMode?: boolean;
+}) {
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
   const [firstName, setFirstName] = useState(profile.firstName);
@@ -111,7 +123,10 @@ function ProfileEditForm({ profile, onSaved }: { profile: Profile; onSaved: () =
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
       <div className="flex items-center justify-between gap-3 px-4 lg:px-0">
-        <h1 id="profile-overview-title" className="text-secondary text-lg font-bold">
+        <h1
+          id="profile-overview-title"
+          className={cn("text-secondary text-lg font-bold", routeMode && "hidden lg:block")}
+        >
           ویرایش حساب کاربری
         </h1>
         <Button size="lg" type="submit" disabled={updateProfile.isPending}>
@@ -178,74 +193,132 @@ function ProfileEditForm({ profile, onSaved }: { profile: Profile; onSaved: () =
   );
 }
 
-export function ProfileOverview() {
+export function ProfileOverview({ editPage = false }: { editPage?: boolean }) {
   const { data: profile, error, isLoading, sessionStatus } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
 
   if (sessionStatus === "loading" || isLoading) {
-    return <ProfileOverviewSkeleton />;
+    return (
+      <div className={cn(!editPage && "hidden lg:block")}>
+        <ProfileOverviewSkeleton />
+      </div>
+    );
   }
 
   if (!profile || error) {
     return (
-      <Empty className="bg-card min-h-72">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <AlertCircle aria-hidden="true" />
-          </EmptyMedia>
-          <EmptyTitle>اطلاعات پروفایل در دسترس نیست</EmptyTitle>
-          <EmptyDescription>
-            {error?.message ||
-              "برای مشاهده اطلاعات حساب، دوباره وارد شوید یا چند لحظه دیگر تلاش کنید."}
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <div className={cn(!editPage && "hidden lg:block")}>
+        <Empty className="bg-card min-h-72">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <AlertCircle aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>اطلاعات پروفایل در دسترس نیست</EmptyTitle>
+            <EmptyDescription>
+              {error?.message ||
+                "برای مشاهده اطلاعات حساب، دوباره وارد شوید یا چند لحظه دیگر تلاش کنید."}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </div>
     );
   }
 
   if (isEditing) {
     return (
-      <ProfileEditForm key={profile.id} profile={profile} onSaved={() => setIsEditing(false)} />
+      <div>
+        {editPage && (
+          <MobilePageHeader fallbackHref="/account/profile" title="ویرایش حساب کاربری" />
+        )}
+        <ProfileEditForm
+          key={profile.id}
+          profile={profile}
+          routeMode={editPage}
+          onSaved={() => {
+            if (editPage) {
+              router.replace("/account/profile");
+              return;
+            }
+
+            setIsEditing(false);
+          }}
+        />
+      </div>
     );
   }
 
   return (
-    <section
-      className="flex min-w-0 flex-col gap-3 lg:gap-4"
-      aria-labelledby="profile-overview-title"
-    >
-      <div className="flex items-center justify-between gap-3 px-4 lg:px-0">
-        <h1 id="profile-overview-title" className="text-secondary text-lg font-bold">
-          حساب کاربری
-        </h1>
-        <Button
-          variant="outline-primary"
-          size="lg"
-          type="button"
-          onClick={() => setIsEditing(true)}
-        >
-          <Pencil data-icon="inline-start" />
-          ویرایش اطلاعات
-        </Button>
-      </div>
-
-      <dl className="flex flex-col gap-1.5">
-        {profileDetails(profile).map(({ icon: Icon, label, value, direction }) => (
-          <div
-            key={label}
-            dir="rtl"
-            className="bg-card ring-foreground/5 flex min-h-17 items-center gap-4 rounded-xl px-4 py-3 ring-1 lg:px-5"
+    <>
+      {editPage && <MobilePageHeader fallbackHref="/account/profile" title="ویرایش حساب کاربری" />}
+      <section
+        className={cn(
+          "flex min-w-0 flex-col gap-3 lg:gap-4",
+          editPage ? "px-4 py-6 lg:px-0 lg:py-0" : "hidden lg:flex",
+        )}
+        aria-labelledby="profile-overview-title"
+      >
+        <div className="flex items-center justify-between gap-3 px-4 lg:px-0">
+          <h1
+            id="profile-overview-title"
+            className={cn("text-secondary text-lg font-bold", editPage && "hidden lg:block")}
           >
-            <Icon className="text-muted-foreground shrink-0" aria-hidden="true" />
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-start">
-              <dt className="text-muted-foreground text-sm">{label}</dt>
-              <dd className="truncate text-right font-semibold text-[#475569]" dir={direction}>
-                {value}
-              </dd>
+            حساب کاربری
+          </h1>
+          {editPage ? (
+            <Button
+              variant="outline-primary"
+              size="lg"
+              type="button"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil data-icon="inline-start" />
+              ویرایش اطلاعات
+            </Button>
+          ) : (
+            <>
+              <Link
+                href="/account/profile/edit"
+                className={cn(
+                  buttonVariants({ variant: "outline-primary", size: "lg" }),
+                  "lg:hidden",
+                )}
+              >
+                <Pencil data-icon="inline-start" />
+                ویرایش اطلاعات
+              </Link>
+              <Button
+                className="hidden lg:inline-flex"
+                variant="outline-primary"
+                size="lg"
+                type="button"
+                onClick={() => setIsEditing(true)}
+              >
+                <Pencil data-icon="inline-start" />
+                ویرایش اطلاعات
+              </Button>
+            </>
+          )}
+        </div>
+
+        <dl className="flex flex-col gap-1.5">
+          {profileDetails(profile).map(({ icon: Icon, label, value, direction }) => (
+            <div
+              key={label}
+              dir="rtl"
+              className="bg-card ring-foreground/5 flex min-h-17 items-center gap-4 rounded-xl px-4 py-3 ring-1 lg:px-5"
+            >
+              <Icon className="text-muted-foreground shrink-0" aria-hidden="true" />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-start">
+                <dt className="text-muted-foreground text-sm">{label}</dt>
+                <dd className="truncate text-right font-semibold text-[#475569]" dir={direction}>
+                  {value}
+                </dd>
+              </div>
             </div>
-          </div>
-        ))}
-      </dl>
-    </section>
+          ))}
+        </dl>
+      </section>
+    </>
   );
 }

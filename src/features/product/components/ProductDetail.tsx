@@ -267,7 +267,7 @@ export default function ProductDetail({
 
   return (
     <Container as="main" className="space-y-6 pt-20 pb-28 lg:space-y-10 lg:px-0 lg:py-6">
-      <MobilePageHeader title="یخچال و فریزر" />
+      <MobilePageHeader fixed fallbackHref="/" title="یخچال و فریزر" />
       <ProductBreadcrumbs crumbs={product.breadcrumbs} />
       <div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
         <div className="w-full min-w-0 space-y-8 lg:w-auto lg:flex-1 lg:space-y-12">
