@@ -1,5 +1,7 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { axiosClient, getErrorMessage } from "@/lib/axios-client";
 import { useApiQuery } from "@/hooks/use-api-query";
 
 export interface ProductComment {
@@ -23,6 +25,20 @@ export interface ProductCommentsResult {
 interface CommentsResponse {
   value?: unknown;
   isSuccess?: unknown;
+}
+
+interface CreateCommentResponse {
+  value?: number;
+  isSuccess?: boolean;
+  errors?: string[];
+  message?: string;
+}
+
+export interface CreateProductCommentInput {
+  productId: number;
+  text: string;
+  score: number;
+  recommend: boolean;
 }
 
 function getText(value: unknown): string | null {
@@ -96,5 +112,34 @@ export function useProductComments(productId: number, page: number, pageLength =
     enabled: Number.isSafeInteger(productId) && productId > 0,
     staleTime: 60_000,
     retry: false,
+  });
+}
+
+export function useCreateProductComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation<CreateCommentResponse, Error, CreateProductCommentInput>({
+    mutationFn: async ({ productId, text, score, recommend }) => {
+      let data: CreateCommentResponse;
+
+      try {
+        ({ data } = await axiosClient.post<CreateCommentResponse>("/api/Comments/Create", {
+          productId,
+          text,
+          score,
+          recommend,
+        }));
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
+
+      if (!data.isSuccess) {
+        throw new Error(data.message || data.errors?.[0] || "ثبت دیدگاه ناموفق بود.");
+      }
+
+      return data;
+    },
+    onSuccess: (_, { productId }) =>
+      queryClient.invalidateQueries({ queryKey: ["product-comments", productId] }),
   });
 }

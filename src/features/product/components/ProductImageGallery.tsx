@@ -12,6 +12,7 @@ interface ProductImageGalleryProps {
   productId: number;
   images: string[];
   title: string;
+  isFavorite: boolean;
 }
 
 const ACTIONS = [
@@ -23,9 +24,14 @@ const ACTIONS = [
 
 const NO_IMAGE_URL = "/images/image-placeholder.svg";
 
-export function ProductImageGallery({ productId, images, title }: ProductImageGalleryProps) {
+export function ProductImageGallery({
+  productId,
+  images,
+  title,
+  isFavorite,
+}: ProductImageGalleryProps) {
   const [active, setActive] = useState(0);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(isFavorite);
   const bookmarkAfterLoginRef = useRef(false);
   const { status } = useSession();
   const { isPending, mutateAsync } = useToggleFavorite();

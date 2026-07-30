@@ -120,22 +120,32 @@ export async function getMenuCategories(): Promise<MenuCategory[]> {
   );
 }
 
-function findCategoryById(categories: MenuCategory[], categoryId: number): MenuCategory | null {
+function findCategoryPathById(
+  categories: MenuCategory[],
+  categoryId: number,
+  parents: MenuCategory[] = [],
+): MenuCategory[] | null {
   for (const category of categories) {
     if (category.id === categoryId) {
-      return category;
+      return [...parents, category];
     }
-    const child = findCategoryById(category.children, categoryId);
-    if (child) {
-      return child;
+    const childPath = findCategoryPathById(category.children, categoryId, [...parents, category]);
+    if (childPath) {
+      return childPath;
     }
   }
   return null;
 }
 
-export async function getMenuCategoryById(categoryId: number): Promise<MenuCategory | null> {
+export async function getMenuCategoryPathById(categoryId: number): Promise<MenuCategory[] | null> {
   if (!Number.isInteger(categoryId) || categoryId <= 0) {
     return null;
   }
-  return findCategoryById(await getMenuCategories(), categoryId);
+
+  return findCategoryPathById(await getMenuCategories(), categoryId);
+}
+
+export async function getMenuCategoryById(categoryId: number): Promise<MenuCategory | null> {
+  const categoryPath = await getMenuCategoryPathById(categoryId);
+  return categoryPath?.[categoryPath.length - 1] ?? null;
 }

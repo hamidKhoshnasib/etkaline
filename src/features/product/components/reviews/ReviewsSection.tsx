@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, SortDescIcon, StarIcon } from "lucide-react";
+import { Heart, InfoIcon, SortDescIcon, StarIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AuthDialog } from "@/features/auth";
 import { useProductComments } from "@/features/product/api/use-product-comments";
 import { cn } from "@/lib/utils";
 import { ReviewCard } from "./ReviewCard";
+import { ReviewComposerDialog } from "./ReviewComposerDialog";
 
 function toPersian(n: number): string {
   return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
@@ -29,7 +33,9 @@ interface ReviewsSectionProps {
 
 export function ReviewsSection({ productId, averageRating, totalRatings }: ReviewsSectionProps) {
   const [sort, setSort] = useState("priority");
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const { status } = useSession();
   const { data, error, isLoading } = useProductComments(productId, page);
   const comments = data?.comments ?? [];
   const approvedCommentCount = data?.totalCount ?? totalRatings;
@@ -40,15 +46,18 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
   const displayedAverageRating = apiAverageRating ?? averageRating;
 
   return (
-    <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-8">
+    <section
+      id="product-reviews"
+      className="flex scroll-mt-40 flex-col gap-8 lg:flex-row lg:items-start lg:gap-8"
+    >
       {/* Rating summary panel */}
-      <aside className="w-full shrink-0 lg:w-52">
-        <h3 className="mb-4 text-right text-base font-bold text-gray-800">
+      <aside className="w-full shrink-0 lg:w-[222px]">
+        <h3 className="mb-5 text-right text-base font-bold text-gray-800">
           امتیاز و دیدگاه کاربران
         </h3>
 
         <div className="mb-3 flex items-center justify-between lg:block">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-slate-600">
             میانگین امتیاز: {toPersian(Number(displayedAverageRating.toFixed(1)))}
           </span>
         </div>
@@ -59,7 +68,7 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
               <StarIcon
                 key={i}
                 className={cn(
-                  "size-3.5",
+                  "size-3",
                   i < Math.round(displayedAverageRating)
                     ? "fill-yellow-400 text-yellow-400"
                     : "fill-gray-200 text-gray-200",
@@ -74,16 +83,39 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
 
         <p className="mb-3 text-sm">شما هم درباره این کالا دیدگاه ثبت کنید</p>
 
-        <button className="border-primary text-secondary hover:bg-primary/10 mb-4 w-full rounded-lg border py-2.5 text-sm font-medium transition-colors">
-          ثبت دیدگاه
-        </button>
+        {status === "authenticated" ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="border-primary text-secondary hover:bg-primary/10 mb-4 h-10 w-full rounded-lg"
+            onClick={() => setIsComposerOpen(true)}
+          >
+            ثبت دیدگاه
+          </Button>
+        ) : (
+          <AuthDialog
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                className="border-primary text-secondary hover:bg-primary/10 mb-4 h-10 w-full rounded-lg"
+                disabled={status === "loading"}
+              >
+                ثبت دیدگاه
+              </Button>
+            }
+          />
+        )}
 
-        <p className="text-xs leading-6 text-gray-400">
-          برای ثبت دیدگاه ابتدا باید{" "}
-          <span className="text-primary cursor-pointer hover:underline">وارد شوید</span>
-          {" / "}
-          <span className="text-primary cursor-pointer hover:underline">ثبت نام شوید</span>
-        </p>
+        {status !== "authenticated" && (
+          <p className="flex items-start gap-2 text-xs leading-6 text-gray-400">
+            <InfoIcon className="mt-0.5 size-5 shrink-0 text-slate-800" aria-hidden="true" />
+            <span>
+              برای ثبت دیدگاه ابتدا باید <span className="text-primary">وارد شوید</span> /{" "}
+              <span className="text-primary">ثبت نام شوید</span>
+            </span>
+          </p>
+        )}
       </aside>
 
       {/* Reviews list */}
@@ -116,7 +148,7 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
         <div className="bg-border mb-5 h-px" />
 
         {/* Review cards */}
-        <div className="flex flex-col gap-4 lg:max-w-[620px]">
+        <div className="flex flex-col gap-4">
           {isLoading &&
             Array.from({ length: 2 }, (_, index) => (
               <Skeleton key={index} className="h-52 rounded-2xl" />
@@ -127,7 +159,7 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
             </p>
           )}
           {!isLoading && !error && comments.length === 0 && (
-            <Empty className="min-h-52 border">
+            <Empty className="min-h-52 w-full">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Heart aria-hidden="true" />
@@ -152,13 +184,18 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
           {!isLoading && !error && data && data.pageCount > 1 && (
             <Pagination
               className="self-center"
-              page={data.page + 1}
+              page={data.page}
               total={data.pageCount}
-              onChange={(nextPage) => setPage(nextPage - 1)}
+              onChange={setPage}
             />
           )}
         </div>
       </div>
-    </div>
+      <ReviewComposerDialog
+        productId={productId}
+        open={isComposerOpen}
+        onOpenChange={setIsComposerOpen}
+      />
+    </section>
   );
 }

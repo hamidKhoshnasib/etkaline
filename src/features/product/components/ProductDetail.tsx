@@ -45,6 +45,7 @@ interface ProductViewModel {
   id: number;
   storeProductId: number | null;
   title: string;
+  isFavorite: boolean;
   price: number;
   originalPrice?: number;
   discount?: number;
@@ -74,6 +75,7 @@ const PRODUCT: ProductViewModel = {
   storeProductId: null,
   title:
     "یخچال فریزر سامسونگ ۳۶ اینچ ۲۸ فوت مکعبی درب فرانسوی با یخساز (RF28R7201SR/AA) - استیل ضد زنگ",
+  isFavorite: false,
   price: 330000000,
   originalPrice: 420000000,
   discount: 30,
@@ -138,6 +140,7 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
     id: product.productId || PRODUCT.id,
     storeProductId: store?.storeProductId ?? null,
     title: product.title,
+    isFavorite: product.isFavorite,
     price,
     originalPrice,
     discount: store?.offPercent || undefined,
@@ -273,9 +276,11 @@ export default function ProductDetail({
         <div className="w-full min-w-0 space-y-8 lg:w-auto lg:flex-1 lg:space-y-12">
           <section className="flex flex-col gap-6 lg:gap-10 xl:flex-row">
             <ProductImageGallery
+              key={product.id}
               productId={product.id}
               images={product.images}
               title={product.title}
+              isFavorite={product.isFavorite}
             />
 
             <ProductSummary

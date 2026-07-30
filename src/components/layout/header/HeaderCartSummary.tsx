@@ -60,7 +60,7 @@ export function HeaderCartSummary() {
           />
         }
       >
-        <ShoppingCart className="size-5" strokeWidth={1.8} aria-hidden="true" />
+        <ShoppingCart className="size-5 text-[#94A3B8]" strokeWidth={1.8} aria-hidden="true" />
         {itemCount > 0 && (
           <span className="bg-primary text-primary-foreground absolute inset-s-1 top-1 flex size-4 items-center justify-center rounded-full text-[10px] font-bold">
             {itemCount > 99 ? "۹۹+" : formatPrice(itemCount)}
@@ -164,21 +164,23 @@ export function HeaderCartSummary() {
           ) : null}
         </div>
 
-        <footer className="flex items-center justify-between border-t bg-white px-6 py-4">
-          <div>
-            <p className="text-secondary text-sm font-bold">
-              مجموع: {formatPrice(totalPrice)} تومان
-            </p>
-            <p className="text-secondary/70 mt-1 text-xs">{itemCount} کالا</p>
-          </div>
-          <Button
-            render={<Link href="/cart" />}
-            disabled={isPending || isError || items.length === 0}
-            className="bg-primary text-secondary hover:bg-primary/85 h-11 rounded-full px-5"
-          >
-            تکمیل خرید
-          </Button>
-        </footer>
+        {items.length > 0 && (
+          <footer className="flex items-center justify-between border-t bg-white px-6 py-4">
+            <div>
+              <p className="text-secondary text-sm font-bold">
+                مجموع: {formatPrice(totalPrice)} تومان
+              </p>
+              <p className="text-secondary/70 mt-1 text-xs">{itemCount} کالا</p>
+            </div>
+            <Button
+              render={<Link href="/cart" />}
+              disabled={isPending || isError}
+              className="bg-primary text-secondary hover:bg-primary/85 h-11 rounded-full px-5"
+            >
+              تکمیل خرید
+            </Button>
+          </footer>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, MapPin, ChevronDown, Search } from "lucide-react";
+import { MapPin, ChevronDown, Search } from "lucide-react";
 import EtkalineMobileLogo from "@/assets/icons/logo-mobile.svg";
 import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 import { useAddresses } from "@/features/address/api/use-addresses";
 import { AddressPicker } from "./AddressPicker";
+import { NotificationsMenu } from "./NotificationsMenu";
 
 export function MobileHeader() {
   const pathname = usePathname();
@@ -46,12 +47,10 @@ export function MobileHeader() {
             }
           />
 
-          <button
-            aria-label="اعلان‌ها"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#FFD600] bg-white"
-          >
-            <Bell size={18} strokeWidth={2} className="text-secondary" />
-          </button>
+          <NotificationsMenu
+            className="size-10 shrink-0 border border-[#FFD600]"
+            iconClassName="text-[#94A3B8] stroke-2"
+          />
         </div>
       </div>
 

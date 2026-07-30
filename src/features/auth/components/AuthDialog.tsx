@@ -38,6 +38,7 @@ type AuthStep = "login" | "verify";
 
 interface AuthDialogProps {
   trigger: React.ReactElement;
+  listenForOpenEvent?: boolean;
 }
 
 interface LastLoginResponse {
@@ -125,7 +126,7 @@ async function authRequest<T>(url: string, init?: RequestInit) {
   return payload;
 }
 
-export function AuthDialog({ trigger }: AuthDialogProps) {
+export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<AuthStep>("login");
   const [mobile, setMobile] = React.useState("");
@@ -165,6 +166,10 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
   }, []);
 
   React.useEffect(() => {
+    if (!listenForOpenEvent) {
+      return;
+    }
+
     const openDialog = () => {
       setOpen(true);
       void loadCaptcha();
@@ -173,7 +178,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
     return () => {
       window.removeEventListener("etkala:open-auth", openDialog);
     };
-  }, [loadCaptcha]);
+  }, [listenForOpenEvent, loadCaptcha]);
 
   React.useEffect(() => {
     if (!open || step !== "verify" || secondsLeft <= 0) {

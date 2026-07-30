@@ -41,6 +41,11 @@ interface CatalogBreadcrumbEntry {
   href?: string;
 }
 
+interface CategoryPathEntry {
+  id: number;
+  title: string;
+}
+
 function CatalogBreadcrumbSeparator() {
   return (
     <BreadcrumbSeparator className="[&>svg]:size-3.5!">
@@ -49,11 +54,21 @@ function CatalogBreadcrumbSeparator() {
   );
 }
 
-function CatalogBreadcrumbs({ title }: { title: string }) {
+function CatalogBreadcrumbs({
+  title,
+  categoryPath,
+}: {
+  title: string;
+  categoryPath: CategoryPathEntry[];
+}) {
   const crumbs: CatalogBreadcrumbEntry[] = [
     { label: "خانه", href: "/" },
-    { label: "لوازم خانگی", href: "/categories" },
-    { label: title.replace("محصولات ", "") },
+    ...(categoryPath.length > 0
+      ? categoryPath.map((category, index) => ({
+          label: category.title,
+          href: index === categoryPath.length - 1 ? undefined : `/categories/${category.id}`,
+        }))
+      : [{ label: title.replace("محصولات ", "") }]),
   ];
 
   return (
@@ -87,11 +102,13 @@ function CatalogBreadcrumbs({ title }: { title: string }) {
 interface CategoryCatalogProps {
   title?: string;
   categoryId?: number;
+  categoryPath?: CategoryPathEntry[];
 }
 
 export default function CategoryCatalog({
   title = "همه محصولات",
   categoryId = 0,
+  categoryPath = [],
 }: CategoryCatalogProps) {
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
@@ -185,7 +202,7 @@ export default function CategoryCatalog({
         }
       />
 
-      <CatalogBreadcrumbs title={title} />
+      <CatalogBreadcrumbs title={title} categoryPath={categoryPath} />
 
       <MobileFilterSheet
         open={isMobileFilterOpen}

@@ -1,6 +1,7 @@
 "use client";
 
 import { MinusIcon, Trash2Icon, PlusIcon, ShoppingCartIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { useAddToBasket } from "@/features/cart/api/add-to-basket";
@@ -30,6 +31,7 @@ export function AddToCartButton({
   quantityClassName,
   showIcon = false,
 }: AddToCartButtonProps) {
+  const { status } = useSession();
   const { isPending, mutateAsync } = useAddToBasket();
   const cartItems = useSyncExternalStore(
     subscribeToMockCart,
@@ -40,6 +42,11 @@ export function AddToCartButton({
 
   async function handleAddToCart() {
     if (isPending || storeProductId === null) {
+      return;
+    }
+
+    if (status !== "authenticated") {
+      window.dispatchEvent(new Event("etkala:open-auth"));
       return;
     }
 

@@ -17,6 +17,11 @@ export function UserImagesSection({ images }: UserImagesSectionProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const swiperRef = useRef<SwiperType | null>(null);
 
+  const closeGallery = () => {
+    swiperRef.current = null;
+    setSelectedImageIndex(null);
+  };
+
   return (
     <div>
       <h3 className="mb-4 text-right text-base font-bold text-gray-800">تصاویر ارسالی کاربران</h3>
@@ -42,11 +47,17 @@ export function UserImagesSection({ images }: UserImagesSectionProps) {
 
       <Dialog
         open={selectedImageIndex !== null}
-        onOpenChange={(open) => !open && setSelectedImageIndex(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeGallery();
+          }
+        }}
       >
         <DialogContent
           className="max-w-[calc(100%-2rem)] rounded-none border-none bg-transparent p-0 shadow-none ring-0 sm:max-w-3xl"
           overlayClassName="bg-black/50 supports-backdrop-filter:backdrop-blur-sm"
+          overlayProps={{ onClick: closeGallery }}
+          showCloseButton={false}
         >
           <DialogTitle className="sr-only">نمایش بزرگ تصویر ارسالی کاربر</DialogTitle>
           <DialogDescription className="sr-only">
@@ -60,7 +71,6 @@ export function UserImagesSection({ images }: UserImagesSectionProps) {
                 onSwiper={(swiper) => {
                   swiperRef.current = swiper;
                 }}
-                onSlideChange={(swiper) => setSelectedImageIndex(swiper.realIndex)}
                 className="h-[80vh] w-full"
               >
                 {images.map((src, index) => (
@@ -83,7 +93,7 @@ export function UserImagesSection({ images }: UserImagesSectionProps) {
                     type="button"
                     variant="secondary"
                     size="icon"
-                    className="bg-background hover:bg-background absolute top-1/2 left-3 -translate-y-1/2 rounded-full shadow-md transition-none active:not-aria-[haspopup]:translate-y-0!"
+                    className="bg-background hover:bg-background absolute top-1/2 left-3 z-20 -translate-y-1/2 rounded-full text-black shadow-md transition-none active:not-aria-[haspopup]:translate-y-0!"
                     style={{ transform: "translateY(-50%)" }}
                     onClick={() => swiperRef.current?.slideNext()}
                     aria-label="نمایش تصویر بعدی"
@@ -94,7 +104,7 @@ export function UserImagesSection({ images }: UserImagesSectionProps) {
                     type="button"
                     variant="secondary"
                     size="icon"
-                    className="bg-background hover:bg-background absolute top-1/2 right-3 -translate-y-1/2 rounded-full shadow-md transition-none active:not-aria-[haspopup]:translate-y-0!"
+                    className="bg-background hover:bg-background absolute top-1/2 right-3 z-20 -translate-y-1/2 rounded-full text-black shadow-md transition-none active:not-aria-[haspopup]:translate-y-0!"
                     style={{ transform: "translateY(-50%)" }}
                     onClick={() => swiperRef.current?.slidePrev()}
                     aria-label="نمایش تصویر قبلی"

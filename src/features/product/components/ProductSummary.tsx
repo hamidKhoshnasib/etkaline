@@ -20,11 +20,6 @@ interface ProductSummaryProps {
   shortDescription: string;
 }
 
-const TABS = [
-  { id: "specs", label: "مشخصات تکمیلی" },
-  { id: "reviews", label: "نظرات" },
-];
-
 function toPersian(n: number): string {
   return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
 }
@@ -44,9 +39,8 @@ export function ProductSummary({
         {title}
       </h1>
 
-      {/* Rating + tabs row */}
+      {/* Rating */}
       <div className="mb-5 flex flex-col flex-wrap gap-3 lg:mb-6">
-        {/* Rating */}
         <div className="flex items-center gap-1.5">
           <div className="flex">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -63,19 +57,6 @@ export function ProductSummary({
           </div>
           <span className="text-sm font-semibold text-gray-700">{rating}</span>
           <span className="text-sm text-gray-500">({toPersian(reviewCount)} نظر)</span>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center gap-2">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className="bg-muted text-muted-foreground hover:bg-muted/70 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors"
-            >
-              {tab.label}
-            </button>
-          ))}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, LogOut, User } from "lucide-react";
+import { ChevronDown, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AuthDialog, WelcomeDialog } from "@/features/auth";
 import { HeaderCartSummary } from "./HeaderCartSummary";
+import { NotificationsMenu } from "./NotificationsMenu";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();
@@ -62,6 +63,7 @@ export function HeaderAuth() {
         </div>
       ) : (
         <AuthDialog
+          listenForOpenEvent
           trigger={
             <button
               type="button"
@@ -75,13 +77,7 @@ export function HeaderAuth() {
           }
         />
       )}
-      <button
-        type="button"
-        aria-label="اعلان‌ها"
-        className="flex size-12.5 items-center justify-center rounded-full bg-white"
-      >
-        <Bell size={18} strokeWidth={2.5} className="text-gray-400" />
-      </button>
+      <NotificationsMenu className="size-12.5" iconClassName="text-[#94A3B8] stroke-[2.5]" />
     </div>
   );
 }

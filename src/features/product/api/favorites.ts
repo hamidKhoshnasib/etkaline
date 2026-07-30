@@ -24,8 +24,8 @@ async function toggleFavorite({ productId, isBookmarked }: ToggleFavoriteInput) 
 
   try {
     ({ data } = isBookmarked
-      ? await axiosClient.delete<FavoriteResponse>(`/api/Favorites/RemoveFavorite/${productId}`)
-      : await axiosClient.post<FavoriteResponse>("/api/Favorites/AddFavorite", { productId }));
+      ? await axiosClient.delete<FavoriteResponse>("/api/Favorites", { data: { productId } })
+      : await axiosClient.post<FavoriteResponse>("/api/Favorites", { productId }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }

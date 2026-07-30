@@ -47,7 +47,7 @@ export function MegaMenu({
                 type="button"
                 onMouseEnter={() => onActiveCategoryChange(id)}
                 onFocus={() => onActiveCategoryChange(id)}
-                className={`label-large flex w-full items-center gap-2 pb-4 transition-colors ${
+                className={`label-large flex w-full cursor-default items-center gap-2 pb-4 transition-colors ${
                   active ? "text-primary-hover" : "hover:text-primary-hover text-gray-700"
                 }`}
               >

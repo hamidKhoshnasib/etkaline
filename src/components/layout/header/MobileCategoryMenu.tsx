@@ -57,7 +57,7 @@ export function MobileCategoryMenu({ categories, isOpen, onClose }: MobileCatego
                   aria-pressed={isSelected}
                   onClick={() => setSelectedCategoryId(id)}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-xl px-2 py-3 text-right text-base font-medium transition-colors",
+                    "flex w-full cursor-default items-center justify-between gap-2 rounded-xl px-2 py-3 text-right text-base font-medium transition-colors",
                     isSelected ? "text-auth-accent" : "text-secondary",
                   )}
                 >

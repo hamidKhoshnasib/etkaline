@@ -19,6 +19,7 @@ interface ProductPropertyValue {
 export interface ProductDetailData {
   productId: number;
   title: string;
+  isFavorite: boolean;
   shortReview: string;
   expertReview: string;
   category: {
@@ -124,6 +125,7 @@ function parseProductDetail(value: unknown): ProductDetailData | null {
   return {
     productId: value.productId,
     title: stringValue(value.title),
+    isFavorite: booleanValue(value.isFavorite),
     shortReview: stringValue(value.shortReview),
     expertReview: stringValue(value.expertReview),
     category,

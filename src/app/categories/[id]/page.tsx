@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CategoryCatalog } from "@/features/catalog";
-import { getMenuCategoryById } from "@/features/catalog/api/get-menu-categories";
+import {
+  getMenuCategoryById,
+  getMenuCategoryPathById,
+} from "@/features/catalog/api/get-menu-categories";
 import { SITE_NAME, SITE_URL } from "@/config/site";
 
 interface CategoryProductsPageProps {
@@ -51,10 +54,17 @@ export default async function CategoryProductsPage({ params }: CategoryProductsP
     notFound();
   }
 
-  const category = await getMenuCategoryById(categoryId);
-  if (!category) {
+  const categoryPath = await getMenuCategoryPathById(categoryId);
+  const category = categoryPath?.[categoryPath.length - 1];
+  if (!category || !categoryPath) {
     notFound();
   }
 
-  return <CategoryCatalog title={`محصولات ${category.title}`} categoryId={category.id} />;
+  return (
+    <CategoryCatalog
+      title={`محصولات ${category.title}`}
+      categoryId={category.id}
+      categoryPath={categoryPath.map(({ id, title }) => ({ id, title }))}
+    />
+  );
 }
