@@ -39,7 +39,7 @@ const ACCOUNT_LINKS: ReadonlyArray<AccountLink> = [
 ];
 
 const SECONDARY_ITEMS = [
-  { label: "پشتیبانی", icon: Headphones, badge: "۲" },
+  { label: "پشتیبانی", href: "/account/support", icon: Headphones, badge: "۲" },
   { label: "دعوت از دوستان", icon: UserPlus },
   { label: "آخرین ورود و خروج", href: "/account/login-logs", icon: Clock3 },
 ] as const;
@@ -64,14 +64,14 @@ function SidebarItem({
   const className = cn(
     "min-h-16 w-full items-center gap-3 px-5 text-start transition-colors lg:min-h-12 lg:rounded-xl lg:px-3",
     active
-      ? "from-primary/15 text-primary-hover border-primary min-h-14 border-s-4 bg-linear-to-l to-transparent font-medium lg:min-h-12"
+      ? "text-muted-foreground hover:bg-muted lg:from-primary/15 lg:text-primary-hover lg:border-primary lg:min-h-12 lg:border-s-4 lg:bg-linear-to-l lg:to-transparent lg:font-medium"
       : "text-muted-foreground hover:bg-muted",
     mobileHidden ? "hidden lg:flex" : "flex",
   );
 
   if (href) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} className={className} onClick={onSelect}>
         <Icon aria-hidden="true" />
         <span className="flex-1">{label}</span>
         {badge && (
@@ -100,11 +100,16 @@ function SidebarItem({
 
 export function AccountSidebar() {
   const pathname = usePathname();
-  const [selectedSecondaryItem, setSelectedSecondaryItem] = useState<string | null>(null);
+  const [selectedSecondaryItem, setSelectedSecondaryItem] = useState<{
+    label: string;
+    pathname: string;
+  } | null>(null);
   const { data: profile, isLoading, sessionStatus } = useProfile();
   const isProfileHome = pathname === "/account/profile" || pathname === "/account";
   const isProfileLoading = sessionStatus === "loading" || isLoading;
   const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
+  const selectedItem =
+    selectedSecondaryItem?.pathname === pathname ? selectedSecondaryItem.label : null;
 
   return (
     <div
@@ -114,7 +119,7 @@ export function AccountSidebar() {
       )}
     >
       <Card className="gap-0 rounded-none border-x-0 border-t-0 py-0 shadow-none lg:gap-4 lg:rounded-2xl lg:border">
-        <CardHeader className="grid min-h-27 grid-cols-[1fr_auto] items-center gap-2 px-5 py-6 lg:min-h-0 lg:px-6 lg:pt-6 lg:pb-4">
+        <CardHeader className="grid min-h-24 grid-cols-[1fr_auto] items-center gap-2 px-5 py-6 lg:min-h-0 lg:px-6 lg:pt-6 lg:pb-4">
           <div>
             {isProfileLoading ? (
               <div className="space-y-2" aria-label="در حال دریافت اطلاعات پروفایل">
@@ -133,9 +138,18 @@ export function AccountSidebar() {
             )}
           </div>
           <Link
-            href="/account/profile"
+            href="/account/profile/edit"
+            onClick={() => setSelectedSecondaryItem(null)}
             aria-label="ویرایش پروفایل"
-            className="text-muted-foreground hover:text-primary-hover rounded-lg p-1 transition-colors"
+            className="text-muted-foreground hover:text-primary-hover rounded-lg p-1 transition-colors lg:hidden"
+          >
+            <Pencil aria-hidden="true" />
+          </Link>
+          <Link
+            href="/account/profile"
+            onClick={() => setSelectedSecondaryItem(null)}
+            aria-label="ویرایش پروفایل"
+            className="text-muted-foreground hover:text-primary-hover hidden rounded-lg p-1 transition-colors lg:block"
           >
             <Pencil aria-hidden="true" />
           </Link>
@@ -170,16 +184,18 @@ export function AccountSidebar() {
           <nav aria-label="ناوبری حساب کاربری" className="flex flex-col lg:gap-1">
             {ACCOUNT_LINKS.map(({ label, href, icon: Icon, badge }) => {
               const isActive =
-                pathname.startsWith(href) || (isProfileHome && href === "/account/orders");
+                selectedItem === null &&
+                (pathname.startsWith(href) || (isProfileHome && href === "/account/orders"));
 
               return (
                 <Link
                   key={href}
                   href={href}
+                  onClick={() => setSelectedSecondaryItem(null)}
                   className={cn(
                     "flex min-h-16 items-center gap-3 px-5 text-sm transition-colors lg:min-h-12 lg:rounded-xl lg:px-3 lg:text-base",
                     isActive
-                      ? "from-primary/15 text-primary-hover border-primary min-h-14 border-s-4 bg-linear-to-l to-transparent font-medium lg:min-h-12"
+                      ? "text-muted-foreground hover:bg-muted lg:from-primary/15 lg:text-primary-hover lg:border-primary lg:min-h-12 lg:border-s-4 lg:bg-linear-to-l lg:to-transparent lg:font-medium"
                       : "text-muted-foreground hover:bg-muted",
                   )}
                 >
@@ -196,19 +212,19 @@ export function AccountSidebar() {
             })}
 
             <div>
-              {SECONDARY_ITEMS.map((item, index) => {
+              {SECONDARY_ITEMS.map((item) => {
                 const itemHref = "href" in item ? item.href : undefined;
 
                 return (
                   <SidebarItem
                     key={item.label}
                     {...item}
-                    mobileHidden={index === 2}
                     active={
-                      selectedSecondaryItem === item.label ||
-                      (itemHref !== undefined && pathname.startsWith(itemHref))
+                      selectedItem !== null
+                        ? selectedItem === item.label
+                        : itemHref !== undefined && pathname.startsWith(itemHref)
                     }
-                    onSelect={() => setSelectedSecondaryItem(item.label)}
+                    onSelect={() => setSelectedSecondaryItem({ label: item.label, pathname })}
                   />
                 );
               })}

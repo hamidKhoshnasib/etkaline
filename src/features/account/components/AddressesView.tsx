@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressPicker } from "@/components/layout/header/AddressPicker";
+import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { useDeleteAddress } from "@/features/address/api/use-address-mutations";
 import { type Address, type ApiResult, useAddresses } from "@/features/address/api/use-addresses";
 
@@ -160,92 +161,95 @@ export function AddressesView() {
   }
 
   return (
-    <section className="bg-muted/60 min-h-full px-4 py-6 lg:bg-transparent lg:px-0 lg:py-0">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <h1 className="text-secondary text-lg font-bold">آدرس‌های من</h1>
-        <AddressPicker
-          startInCreateMode
-          trigger={
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="border-primary-hover text-primary-hover bg-transparent"
-            >
-              <Plus data-icon="inline-start" />
-              افزودن آدرس جدید
-            </Button>
-          }
-        />
-      </div>
-
-      {editingAddress && (
-        <AddressPicker
-          editingAddress={editingAddress}
-          open
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) {
-              setEditingAddress(null);
+    <section className="bg-muted/60 min-h-full lg:bg-transparent lg:px-0 lg:py-0">
+      <MobilePageHeader fallbackHref="/account/profile" title="آدرس‌های من" />
+      <div className="px-4 py-6 lg:px-0 lg:py-0">
+        <div className="mb-5 flex items-center justify-end gap-4 lg:justify-between">
+          <h1 className="text-secondary hidden text-lg font-bold lg:block">آدرس‌های من</h1>
+          <AddressPicker
+            startInCreateMode
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="border-primary-hover text-primary-hover bg-transparent"
+              >
+                <Plus data-icon="inline-start" />
+                افزودن آدرس جدید
+              </Button>
             }
-          }}
-          trigger={
-            <Button aria-hidden="true" className="sr-only" tabIndex={-1} type="button">
-              ویرایش آدرس
-            </Button>
-          }
-        />
-      )}
-
-      {isLoading ? (
-        <AddressesSkeleton />
-      ) : error ? (
-        <Empty className="bg-card min-h-48">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <MapPin aria-hidden="true" />
-            </EmptyMedia>
-            <EmptyTitle>دریافت آدرس‌ها ناموفق بود</EmptyTitle>
-            <EmptyDescription>{error.message}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : addresses.length === 0 ? (
-        <Empty className="bg-card min-h-48">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <MapPin aria-hidden="true" />
-            </EmptyMedia>
-            <EmptyTitle>هنوز آدرسی ثبت نکرده‌اید</EmptyTitle>
-            <EmptyDescription>برای ثبت آدرس جدید از دکمهٔ بالا استفاده کنید.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <div className="flex flex-col gap-5">
-          {addresses.map((address) => (
-            <Card key={address.id} className="min-h-48 gap-2 rounded-xl py-0 shadow-none">
-              <CardHeader className="grid grid-cols-[1fr_auto] items-start px-5 pt-5 pb-0">
-                <CardTitle className="text-secondary font-bold">{address.title}</CardTitle>
-                <CardAction className="col-start-2 row-start-1">
-                  <AddressActions
-                    isDeleting={deleteAddress.isPending}
-                    onEdit={() => setEditingAddress(address)}
-                    onDelete={() => handleDeleteAddress(address.id)}
-                  />
-                </CardAction>
-              </CardHeader>
-              <CardContent className="flex flex-col px-5 pb-5">
-                <AddressInfoRow icon={UserRound}>گیرنده: {address.recipient}</AddressInfoRow>
-                <AddressInfoRow icon={MapPin}>{address.address}</AddressInfoRow>
-                <AddressInfoRow icon={Map}>
-                  <bdi dir="ltr">{address.postalCode}</bdi>
-                </AddressInfoRow>
-                <AddressInfoRow icon={Smartphone}>
-                  <bdi dir="ltr">{address.phone}</bdi>
-                </AddressInfoRow>
-              </CardContent>
-            </Card>
-          ))}
+          />
         </div>
-      )}
+
+        {editingAddress && (
+          <AddressPicker
+            editingAddress={editingAddress}
+            open
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen) {
+                setEditingAddress(null);
+              }
+            }}
+            trigger={
+              <Button aria-hidden="true" className="sr-only" tabIndex={-1} type="button">
+                ویرایش آدرس
+              </Button>
+            }
+          />
+        )}
+
+        {isLoading ? (
+          <AddressesSkeleton />
+        ) : error ? (
+          <Empty className="bg-card min-h-48">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MapPin aria-hidden="true" />
+              </EmptyMedia>
+              <EmptyTitle>دریافت آدرس‌ها ناموفق بود</EmptyTitle>
+              <EmptyDescription>{error.message}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : addresses.length === 0 ? (
+          <Empty className="bg-card min-h-48">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MapPin aria-hidden="true" />
+              </EmptyMedia>
+              <EmptyTitle>هنوز آدرسی ثبت نکرده‌اید</EmptyTitle>
+              <EmptyDescription>برای ثبت آدرس جدید از دکمهٔ بالا استفاده کنید.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {addresses.map((address) => (
+              <Card key={address.id} className="min-h-48 gap-2 rounded-xl py-0 shadow-none">
+                <CardHeader className="grid grid-cols-[1fr_auto] items-start px-5 pt-5 pb-0">
+                  <CardTitle className="text-secondary font-bold">{address.title}</CardTitle>
+                  <CardAction className="col-start-2 row-start-1">
+                    <AddressActions
+                      isDeleting={deleteAddress.isPending}
+                      onEdit={() => setEditingAddress(address)}
+                      onDelete={() => handleDeleteAddress(address.id)}
+                    />
+                  </CardAction>
+                </CardHeader>
+                <CardContent className="flex flex-col px-5 pb-5">
+                  <AddressInfoRow icon={UserRound}>گیرنده: {address.recipient}</AddressInfoRow>
+                  <AddressInfoRow icon={MapPin}>{address.address}</AddressInfoRow>
+                  <AddressInfoRow icon={Map}>
+                    <bdi dir="ltr">{address.postalCode}</bdi>
+                  </AddressInfoRow>
+                  <AddressInfoRow icon={Smartphone}>
+                    <bdi dir="ltr">{address.phone}</bdi>
+                  </AddressInfoRow>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

@@ -13,7 +13,10 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLoginLogs } from "@/features/account/api/use-login-logs";
+
+type LoginLogTab = "successful" | "failed";
 
 function LoginLogsSkeleton() {
   return (
@@ -29,10 +32,19 @@ function LoginLogsSkeleton() {
   );
 }
 
-export function LoginLogsPanel({ active = true }: { active?: boolean }) {
-  const [page, setPage] = useState(0);
-  const { data, error, isPending } = useLoginLogs(page, active);
-
+function LoginLogsContent({
+  data,
+  error,
+  isPending,
+  page,
+  onPageChange,
+}: {
+  data: ReturnType<typeof useLoginLogs>["data"];
+  error: ReturnType<typeof useLoginLogs>["error"];
+  isPending: boolean;
+  page: number;
+  onPageChange: (page: number) => void;
+}) {
   if (isPending) {
     return <LoginLogsSkeleton />;
   }
@@ -103,21 +115,21 @@ export function LoginLogsPanel({ active = true }: { active?: boolean }) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setPage((currentPage) => currentPage + 1)}
-            disabled={page + 1 >= data.pageCount}
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= data.pageCount}
           >
             <ChevronLeft data-icon="inline-start" />
             بعدی
           </Button>
           <span className="text-muted-foreground text-sm">
-            صفحه {page + 1} از {data.pageCount}
+            صفحه {page} از {data.pageCount}
           </span>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))}
-            disabled={page === 0}
+            onClick={() => onPageChange(Math.max(1, page - 1))}
+            disabled={page === 1}
           >
             قبلی
             <ChevronRight data-icon="inline-end" />
@@ -125,5 +137,54 @@ export function LoginLogsPanel({ active = true }: { active?: boolean }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export function LoginLogsPanel({ active = true }: { active?: boolean }) {
+  const [tab, setTab] = useState<LoginLogTab>("successful");
+  const [page, setPage] = useState(1);
+  const isSuccess = tab === "successful";
+  const query = useLoginLogs(page, isSuccess, active);
+
+  function handleTabChange(value: string) {
+    if (value !== "successful" && value !== "failed") {
+      return;
+    }
+
+    setTab(value);
+    setPage(1);
+  }
+
+  return (
+    <Tabs
+      value={tab}
+      onValueChange={handleTabChange}
+      className="-mx-4 gap-0 overflow-hidden bg-transparent p-0 lg:mx-0 lg:rounded-2xl lg:border lg:bg-white"
+    >
+      <TabsList
+        variant="line"
+        aria-label="وضعیت ورودها"
+        className="bg-muted mx-4 mt-2 w-[calc(100%-2rem)] justify-start gap-0 rounded-full! border-0 p-0 group-data-horizontal/tabs:h-12 lg:mx-0 lg:mt-0 lg:w-full lg:rounded-none! lg:border-b lg:bg-transparent lg:px-4 lg:group-data-horizontal/tabs:h-14"
+      >
+        <TabsTrigger
+          value="successful"
+          className="data-active:bg-primary! data-active:text-secondary h-full max-w-none rounded-full px-5 after:hidden data-active:rounded-full! data-active:font-bold lg:max-w-40 lg:rounded-none lg:after:bottom-[-1px] lg:after:block lg:after:bg-[#FFCD49] lg:data-active:rounded-none! lg:data-active:bg-transparent!"
+        >
+          ورود موفق
+        </TabsTrigger>
+        <TabsTrigger
+          value="failed"
+          className="data-active:bg-primary! data-active:text-secondary h-full max-w-none rounded-full px-5 after:hidden data-active:rounded-full! data-active:font-bold lg:max-w-40 lg:rounded-none lg:after:bottom-[-1px] lg:after:block lg:after:bg-[#FFCD49] lg:data-active:rounded-none! lg:data-active:bg-transparent!"
+        >
+          ورود ناموفق
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="successful" className="p-4 lg:p-3">
+        <LoginLogsContent {...query} page={page} onPageChange={setPage} />
+      </TabsContent>
+      <TabsContent value="failed" className="p-4 lg:p-3">
+        <LoginLogsContent {...query} page={page} onPageChange={setPage} />
+      </TabsContent>
+    </Tabs>
   );
 }

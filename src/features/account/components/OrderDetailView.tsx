@@ -17,6 +17,7 @@ import { AppImage } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { formatMockPrice, type MockOrder } from "@/features/account/model/mock-orders";
@@ -59,23 +60,15 @@ function MobileFinancialRow({ label, children }: { label: string; children: Reac
 function MobileOrderDetail({ order }: { order: MockOrder }) {
   return (
     <div className="bg-muted/60 min-h-screen pb-6 lg:hidden">
-      <header className="relative flex h-18 items-center justify-center border-b bg-white">
-        <Link
-          href="/account/orders"
-          aria-label="بازگشت به سفارش‌ها"
-          className="text-secondary absolute start-4 rounded-lg p-2"
-        >
-          <ChevronRight aria-hidden="true" />
-        </Link>
-        <h1 className="text-secondary text-lg font-bold">جزئیات سفارش</h1>
-        <button
-          type="button"
-          aria-label="گزینه‌های بیشتر"
-          className="text-muted-foreground absolute end-4 rounded-lg p-2"
-        >
-          <EllipsisVertical aria-hidden="true" />
-        </button>
-      </header>
+      <MobilePageHeader
+        fallbackHref="/account/orders"
+        title="جزئیات سفارش"
+        endContent={
+          <Button aria-label="گزینه‌های بیشتر" size="icon-sm" type="button" variant="ghost">
+            <EllipsisVertical data-icon="inline-start" aria-hidden="true" />
+          </Button>
+        }
+      />
 
       <div className="relative px-4 pt-3">
         <Button

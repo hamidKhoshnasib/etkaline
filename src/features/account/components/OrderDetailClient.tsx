@@ -2,7 +2,7 @@
 
 import { ShoppingBag } from "lucide-react";
 
-import { useFactors } from "@/features/account/api/use-factors";
+import { useFactorDetails } from "@/features/account/api/use-factor-details";
 import { OrderDetailView } from "@/features/account/components/OrderDetailView";
 import { OrdersSkeleton } from "@/features/account/components/OrdersSkeleton";
 import {
@@ -13,14 +13,13 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-export function OrderDetailClient({ factorNumber }: { factorNumber: string }) {
-  const { data, error, isLoading } = useFactors({ factorNumber });
+export function OrderDetailClient({ factorId }: { factorId: string }) {
+  const { data: order, error, isLoading } = useFactorDetails(factorId);
 
   if (isLoading) {
     return <OrdersSkeleton />;
   }
 
-  const order = data?.orders[0];
   if (error || !order) {
     return (
       <Empty className="bg-background min-h-80 border">

@@ -8,8 +8,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ChevronRight, ShoppingBag } from "lucide-react";
-import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
+import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { useFactors } from "@/features/account/api/use-factors";
 import { OrderCard } from "@/features/account/components/OrderCard";
 import { OrderStats } from "@/features/account/components/OrderStats";
@@ -54,16 +54,7 @@ export function OrdersDashboard() {
 
   return (
     <div className="bg-muted/60 flex min-w-0 flex-col gap-0 lg:gap-4 lg:bg-transparent">
-      <div className="relative flex h-18 items-center justify-center bg-white lg:hidden">
-        <Link
-          href="/account/profile"
-          aria-label="بازگشت به پروفایل"
-          className="text-secondary absolute start-4 rounded-lg p-2"
-        >
-          <ChevronRight aria-hidden="true" />
-        </Link>
-        <h1 className="text-secondary text-lg font-bold">سفارش‌های من</h1>
-      </div>
+      <MobilePageHeader fallbackHref="/account/profile" title="سفارش‌های من" />
 
       {isLoading ? (
         <OrdersSkeleton />
