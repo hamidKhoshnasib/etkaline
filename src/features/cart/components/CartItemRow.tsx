@@ -15,13 +15,16 @@ interface CartItemRowProps {
 export default function CartItemRow({ item, onQuantityChange }: CartItemRowProps) {
   const dec = () => onQuantityChange(item.id, item.quantity - 1);
   const inc = () => onQuantityChange(item.id, item.quantity + 1);
+  const image = item.image.includes("via.placeholder.com")
+    ? "/images/image-placeholder.svg"
+    : item.image;
 
   return (
     <div className="flex gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-4">
       {/* Image */}
       <div className="size-24 shrink-0 overflow-hidden rounded-xl bg-gray-50">
         <AppImage
-          src={item.image}
+          src={image}
           alt={item.title}
           width={96}
           height={96}

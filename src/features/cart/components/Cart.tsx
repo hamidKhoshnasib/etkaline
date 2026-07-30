@@ -46,7 +46,7 @@ export default function CartPage() {
   return (
     <Container
       as="main"
-      className="grid grid-cols-1 gap-6 pt-6 pb-12 lg:grid-cols-[minmax(0,1fr)_360px]"
+      className="grid grid-cols-1 gap-6 pt-6 pb-12 lg:grid-cols-[minmax(0,1fr)_307.5px]"
     >
       <div className="min-w-0">
         {step === "cart" && <CartStep items={items} onQuantityChange={handleQuantityChange} />}

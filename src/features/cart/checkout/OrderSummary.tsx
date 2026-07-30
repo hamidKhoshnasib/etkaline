@@ -39,7 +39,7 @@ export default function OrderSummary({
   const title = step === "cart" ? "مجموع فاکتور" : "جزئیات فاکتور";
 
   return (
-    <aside className="sticky top-6 h-fit rounded-2xl border border-[#E2E8F0] bg-white p-5">
+    <aside className="h-fit rounded-2xl border border-[#E2E8F0] bg-white p-5 lg:sticky lg:top-36 lg:w-[307.5px]">
       <h2 className="title-medium-bold text-secondary mb-2 text-center">{title}</h2>
 
       <div className="divide-y divide-[#EEF1F4]">
