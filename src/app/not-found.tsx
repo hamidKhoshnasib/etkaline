@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export default function NotFound() {
   return (
     <main className="flex min-h-[calc(100dvh-16rem)] items-center justify-center px-4 py-12 sm:px-6">
-      <section className="w-full max-w-xl rounded-3xl  px-6 py-10 text-center sm:px-12 sm:py-14">
+      <section className="w-full max-w-xl rounded-3xl bg-white px-6 py-10 text-center shadow-sm sm:px-12 sm:py-14">
         <div className="bg-primary/15 text-primary relative mx-auto flex size-24 items-center justify-center rounded-3xl sm:size-28">
           <SearchXIcon className="size-12 sm:size-14" strokeWidth={1.7} aria-hidden="true" />
         </div>
