@@ -1,10 +1,10 @@
 "use client";
 
-import { AlertCircle, ChevronLeft, ChevronRight, History } from "lucide-react";
+import { AlertCircle, History } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/Pagination";
 import {
   Empty,
   EmptyDescription,
@@ -25,8 +25,22 @@ function LoginLogsSkeleton() {
       aria-busy="true"
       aria-label="در حال دریافت تاریخچه ورود و خروج"
     >
-      {Array.from({ length: 4 }, (_, index) => (
-        <Skeleton key={index} className="h-28 w-full rounded-xl" />
+      {Array.from({ length: 5 }, (_, index) => (
+        <article key={index} className="bg-card rounded-xl border p-4" aria-hidden="true">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+          <Skeleton className="mt-3 h-4 w-2/3" />
+        </article>
       ))}
     </div>
   );
@@ -110,31 +124,12 @@ function LoginLogsContent({
       ))}
 
       {data.pageCount > 1 ? (
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= data.pageCount}
-          >
-            <ChevronLeft data-icon="inline-start" />
-            بعدی
-          </Button>
-          <span className="text-muted-foreground text-sm">
-            صفحه {page} از {data.pageCount}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(Math.max(1, page - 1))}
-            disabled={page === 1}
-          >
-            قبلی
-            <ChevronRight data-icon="inline-end" />
-          </Button>
-        </div>
+        <Pagination
+          page={page}
+          total={data.pageCount}
+          onChange={onPageChange}
+          className="justify-center pt-4"
+        />
       ) : null}
     </div>
   );

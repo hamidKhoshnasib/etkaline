@@ -107,7 +107,7 @@ export function useLoginLogs(page: number, isSuccess: boolean, enabled: boolean)
     queryFn: async () => {
       try {
         const { data } = await axiosClient.get<LoginLogsResponse>("/api/Profile/GetLoginLogs", {
-          params: { Page: page, PageLength: 30, IsSuccess: isSuccess },
+          params: { Page: page, PageLength: 5, IsSuccess: isSuccess },
         });
         return parseLoginLogs(data);
       } catch (error) {
