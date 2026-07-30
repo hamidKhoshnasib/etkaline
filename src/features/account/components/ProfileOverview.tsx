@@ -1,6 +1,15 @@
 "use client";
 
-import { AlertCircle, CreditCard, Mail, Pencil, Phone, ShieldCheck, UserRound } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  CreditCard,
+  Mail,
+  Pencil,
+  Phone,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -122,14 +131,22 @@ function ProfileEditForm({
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
-      <div className="flex items-center justify-between gap-3 px-4 lg:px-0">
+      <div
+        className={cn("flex items-center justify-between gap-3 px-4 lg:px-0", routeMode && "px-0")}
+      >
         <h1
           id="profile-overview-title"
           className={cn("text-secondary text-lg font-bold", routeMode && "hidden lg:block")}
         >
           ویرایش حساب کاربری
         </h1>
-        <Button size="lg" type="submit" disabled={updateProfile.isPending}>
+        <Button
+          className={cn(routeMode && "w-36")}
+          size="lg"
+          type="submit"
+          disabled={updateProfile.isPending}
+        >
+          <Check data-icon="inline-start" className={cn(updateProfile.isPending && "hidden")} />
           {updateProfile.isPending ? "در حال ثبت" : "تایید"}
         </Button>
       </div>
@@ -227,23 +244,25 @@ export function ProfileOverview({ editPage = false }: { editPage?: boolean }) {
 
   if (isEditing) {
     return (
-      <div>
+      <div className={cn(editPage && "min-h-full lg:pt-2")}>
         {editPage && (
           <MobilePageHeader fallbackHref="/account/profile" title="ویرایش حساب کاربری" />
         )}
-        <ProfileEditForm
-          key={profile.id}
-          profile={profile}
-          routeMode={editPage}
-          onSaved={() => {
-            if (editPage) {
-              router.replace("/account/profile");
-              return;
-            }
+        <div className={cn(editPage && "px-4 py-6 lg:px-0 lg:py-0")}>
+          <ProfileEditForm
+            key={profile.id}
+            profile={profile}
+            routeMode={editPage}
+            onSaved={() => {
+              if (editPage) {
+                router.replace("/account/profile");
+                return;
+              }
 
-            setIsEditing(false);
-          }}
-        />
+              setIsEditing(false);
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -267,6 +286,7 @@ export function ProfileOverview({ editPage = false }: { editPage?: boolean }) {
           </h1>
           {editPage ? (
             <Button
+              className="w-36"
               variant="outline-primary"
               size="lg"
               type="button"
