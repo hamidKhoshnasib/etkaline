@@ -11,17 +11,17 @@ export interface ProductSearchRequest {
   pageLength: number;
   sortType: number;
   categoryId: number;
-  tagId: number;
-  layoutTagId: number;
-  brandIds: number[];
-  minPrice: number;
-  maxPrice: number;
-  searchText: string;
-  justExist: boolean;
-  justOffer: boolean;
-  justDiscounted: boolean;
-  currentProductId: number;
-  valueIds: number[];
+  tagId?: number;
+  layoutTagId?: number;
+  brandIds?: number[];
+  minPrice?: number;
+  maxPrice?: number;
+  searchText?: string;
+  justExist?: boolean;
+  justOffer?: boolean;
+  justDiscounted?: boolean;
+  currentProductId?: number;
+  valueIds?: number[];
 }
 
 export interface ProductSearchResult {
@@ -92,13 +92,24 @@ function parseProductSearch(raw: unknown, request: ProductSearchRequest): Produc
         if (!product) {
           return [];
         }
+        const storeInfo = recordValue(product.storeInfo);
         const id = firstNumber(product, ["id", "productId", "storeProductId"]);
         const title = firstString(product, ["title", "productTitle"]);
-        const image = firstString(product, ["picUrl", "image", "imageUrl", "pic"]);
-        const mainPrice = firstNumber(product, ["mainPrice", "price"]);
-        const offPrice = firstNumber(product, ["offPrice", "finalPrice"]);
-        const discount = firstNumber(product, ["offPercent", "discount", "discountPercent"]);
-        if (id === null || !title || !image || mainPrice === null) {
+        const image =
+          firstString(product, ["picUrl", "image", "imageUrl", "pic"]) ??
+          "/images/placeholder-product.png";
+        const mainPrice =
+          firstNumber(product, ["mainPrice", "price"]) ??
+          (storeInfo ? firstNumber(storeInfo, ["mainPrice", "price"]) : null);
+        const offPrice =
+          firstNumber(product, ["offPrice", "finalPrice"]) ??
+          (storeInfo ? firstNumber(storeInfo, ["offPrice", "finalPrice"]) : null);
+        const discount =
+          firstNumber(product, ["offPercent", "discount", "discountPercent"]) ??
+          (storeInfo
+            ? firstNumber(storeInfo, ["offPercent", "discount", "discountPercent"])
+            : null);
+        if (id === null || !title || mainPrice === null) {
           return [];
         }
         const price = offPrice && offPrice > 0 ? offPrice : mainPrice;

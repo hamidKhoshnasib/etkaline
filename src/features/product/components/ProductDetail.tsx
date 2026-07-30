@@ -67,6 +67,7 @@ const PRODUCT_BREADCRUMBS: ProductBreadcrumbEntry[] = [
 ];
 
 const PRODUCT_IMAGES = [Image35.src, Image36.src, Image37.src, Swiper1.src];
+const NO_IMAGE_URL = "/images/image-placeholder.svg";
 
 const PRODUCT: ProductViewModel = {
   id: 6,
@@ -147,7 +148,7 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
       ...propertySpecs,
     ].slice(0, 3),
     colors: colors.length > 0 ? colors : PRODUCT.colors,
-    images: images.length > 0 ? images : PRODUCT.images,
+    images: images.length > 0 ? images : [NO_IMAGE_URL],
     shortDescription: product.shortReview || PRODUCT.shortDescription,
     description: product.expertReview || PRODUCT.description,
     userImages: PRODUCT.userImages,
@@ -293,7 +294,7 @@ export default function ProductDetail({
 
           <ReviewsSection productId={product.id} averageRating={4} totalRatings={40} />
         </div>
-        <div className="hidden w-[260px] shrink-0 lg:block">
+        <div className="hidden w-[300px] shrink-0 lg:block">
           <ProductInfoCard
             price={product.price}
             originalPrice={product.originalPrice}

@@ -37,10 +37,12 @@ export default function ProductSwiper<T extends { id: number | string }>({
   return (
     <div className="relative">
       <Button
+        type="button"
         variant={btnVariant}
         size="icon-md"
         onClick={() => swiperRef.current?.slidePrev()}
-        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded-full ring-0"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded-full ring-0 transition-none active:not-aria-[haspopup]:translate-y-0!"
+        style={{ transform: "translateY(-50%)" }}
       >
         <MoveRight />
       </Button>
@@ -64,10 +66,12 @@ export default function ProductSwiper<T extends { id: number | string }>({
       </Swiper>
 
       <Button
+        type="button"
         variant={btnVariant}
         size="icon-md"
         onClick={() => swiperRef.current?.slideNext()}
-        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute top-1/2 left-1 z-10 -translate-y-1/2 rounded-full ring-0"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute top-1/2 left-1 z-10 -translate-y-1/2 rounded-full ring-0 transition-none active:not-aria-[haspopup]:translate-y-0!"
+        style={{ transform: "translateY(-50%)" }}
       >
         <MoveLeft />
       </Button>

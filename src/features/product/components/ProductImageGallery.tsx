@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import Image35 from "@/assets/images/image 35.png";
 import { AppImage } from "@/components/ui/image";
 import { ShareIcon, HeartIcon, GitCompareIcon, PresentationIcon } from "lucide-react";
 import { useToggleFavorite } from "@/features/product/api/favorites";
@@ -21,6 +20,8 @@ const ACTIONS = [
   { id: "compare", icon: GitCompareIcon, label: "مقایسه" },
   { id: "presentation", icon: PresentationIcon, label: "معرفی" },
 ] as const;
+
+const NO_IMAGE_URL = "/images/image-placeholder.svg";
 
 export function ProductImageGallery({ productId, images, title }: ProductImageGalleryProps) {
   const [active, setActive] = useState(0);
@@ -84,7 +85,7 @@ export function ProductImageGallery({ productId, images, title }: ProductImageGa
       {/* Main image + actions */}
       <div className="relative overflow-hidden rounded-2xl bg-gray-50 lg:bg-transparent">
         <AppImage
-          src={images[active] ?? Image35.src}
+          src={images[active] ?? NO_IMAGE_URL}
           alt={title}
           width={432}
           height={350}

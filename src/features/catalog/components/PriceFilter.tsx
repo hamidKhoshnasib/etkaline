@@ -12,6 +12,7 @@ const INITIAL_MAX_PRICE = 1_000_000_000;
 interface PriceFilterProps {
   onApply: (range: { minPrice: number; maxPrice: number }) => void;
   onRangeChange?: (range: { minPrice: number; maxPrice: number }) => void;
+  maxPriceLimit?: number;
   variant?: "sidebar" | "sheet";
   showApplyButton?: boolean;
 }
@@ -36,17 +37,21 @@ function clamp(value: number, min: number, max: number) {
 export function PriceFilter({
   onApply,
   onRangeChange,
+  maxPriceLimit,
   variant = "sidebar",
   showApplyButton = true,
 }: PriceFilterProps) {
+  const priceCeiling = Math.max(PRICE_STEP, maxPriceLimit ?? PRICE_CEILING);
+  const initialMinPrice = Math.min(INITIAL_MIN_PRICE, priceCeiling - PRICE_STEP);
+  const initialMaxPrice = Math.min(INITIAL_MAX_PRICE, priceCeiling);
   const [open, setOpen] = useState(variant === "sheet");
-  const [minPrice, setMinPrice] = useState(INITIAL_MIN_PRICE);
-  const [maxPrice, setMaxPrice] = useState(INITIAL_MAX_PRICE);
-  const [minInput, setMinInput] = useState(formatPrice(INITIAL_MIN_PRICE));
-  const [maxInput, setMaxInput] = useState(formatPrice(INITIAL_MAX_PRICE));
+  const [minPrice, setMinPrice] = useState(initialMinPrice);
+  const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
+  const [minInput, setMinInput] = useState(formatPrice(initialMinPrice));
+  const [maxInput, setMaxInput] = useState(formatPrice(initialMaxPrice));
 
-  const minPercent = ((minPrice - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
-  const maxPercent = ((maxPrice - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
+  const minPercent = ((minPrice - PRICE_FLOOR) / (priceCeiling - PRICE_FLOOR)) * 100;
+  const maxPercent = ((maxPrice - PRICE_FLOOR) / (priceCeiling - PRICE_FLOOR)) * 100;
 
   const updateMinPrice = (value: number) => {
     const nextMinPrice = clamp(value, PRICE_FLOOR, maxPrice - PRICE_STEP);
@@ -56,7 +61,7 @@ export function PriceFilter({
   };
 
   const updateMaxPrice = (value: number) => {
-    const nextMaxPrice = clamp(value, minPrice + PRICE_STEP, PRICE_CEILING);
+    const nextMaxPrice = clamp(value, minPrice + PRICE_STEP, priceCeiling);
     setMaxPrice(nextMaxPrice);
     setMaxInput(formatPrice(nextMaxPrice));
     onRangeChange?.({ minPrice, maxPrice: nextMaxPrice });
@@ -94,7 +99,7 @@ export function PriceFilter({
                 aria-label="حداقل قیمت"
                 type="range"
                 min={PRICE_FLOOR}
-                max={PRICE_CEILING}
+                max={priceCeiling}
                 step={PRICE_STEP}
                 value={minPrice}
                 onChange={(event) => updateMinPrice(Number(event.target.value))}
@@ -104,7 +109,7 @@ export function PriceFilter({
                 aria-label="حداکثر قیمت"
                 type="range"
                 min={PRICE_FLOOR}
-                max={PRICE_CEILING}
+                max={priceCeiling}
                 step={PRICE_STEP}
                 value={maxPrice}
                 onChange={(event) => updateMaxPrice(Number(event.target.value))}

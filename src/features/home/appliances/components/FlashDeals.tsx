@@ -191,7 +191,8 @@ function MobileFlashDeals({
         size="icon-md"
         onClick={() => swiperRef.current?.slidePrev()}
         aria-label="محصولات قبلی"
-        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute right-[18px] bottom-2.5 size-11 rounded-full ring-0"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute right-[18px] bottom-2.5 size-11 rounded-full ring-0 transition-none active:not-aria-[haspopup]:translate-y-0!"
+        style={{ transform: "none" }}
       >
         <MoveRight />
       </Button>
@@ -201,7 +202,8 @@ function MobileFlashDeals({
         size="icon-md"
         onClick={() => swiperRef.current?.slideNext()}
         aria-label="محصولات بعدی"
-        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute bottom-2.5 left-[17px] size-11 rounded-full ring-0"
+        className="bg-background text-foreground hover:bg-background hover:text-foreground border-border absolute bottom-2.5 left-[17px] size-11 rounded-full ring-0 transition-none active:not-aria-[haspopup]:translate-y-0!"
+        style={{ transform: "none" }}
       >
         <MoveLeft />
       </Button>

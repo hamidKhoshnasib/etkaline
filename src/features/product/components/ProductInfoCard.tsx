@@ -91,7 +91,7 @@ export function ProductInfoCard({
   storeProductId,
 }: ProductInfoCardProps) {
   return (
-    <div className="sticky top-36 w-full shrink-0 rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="sticky top-36 w-full shrink-0 rounded-[16px] border border-gray-200 bg-white p-4">
       {/* Price */}
       <div className="flex items-start justify-between">
         {discount && (

@@ -22,6 +22,7 @@ interface ProductCardProps extends ProductCardData {
   variant?: "default" | "mobile" | "catalog-mobile";
   className?: string;
   imageClassName?: string;
+  imageContainerClassName?: string;
   priceClassName?: string;
   priceIconClassName?: string;
 }
@@ -116,11 +117,11 @@ function CatalogMobileProductCard({
     <ProductCardLink id={id} productUrl={productUrl} title={title}>
       <article
         className={cn(
-          "flex h-36 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm",
+          "flex h-[130px] gap-2 overflow-hidden rounded-[8px] border border-slate-200 bg-white p-2",
           className,
         )}
       >
-        <div className="relative flex w-[39%] shrink-0 items-center justify-center overflow-hidden">
+        <div className="relative flex h-full w-[113px] shrink-0 items-center justify-center overflow-hidden">
           <AppImage
             src={image}
             alt={`عکس-${title}`}
@@ -135,15 +136,15 @@ function CatalogMobileProductCard({
           ) : null}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col px-2 py-1">
-          <p className="text-secondary line-clamp-2 text-center text-base leading-6 font-medium">
+        <div className="flex min-w-0 flex-1 flex-col py-1">
+          <p className="text-secondary line-clamp-2 w-full text-right title-medium leading-6">
             {title}
           </p>
-          <div className="mt-auto flex flex-col gap-1">
+          <div className="mt-auto flex flex-col items-end gap-1">
             {originalPrice ? (
               <s className="text-sm text-slate-400">{formatProductPrice(originalPrice)}</s>
             ) : null}
-            <div className="text-secondary flex items-center gap-1">
+            <div className="text-secondary flex items-center gap-1" dir="ltr">
               <TomanIcon className="size-4 shrink-0" />
               <span className="text-base font-bold">{formatProductPrice(price)}</span>
             </div>
@@ -169,6 +170,7 @@ function ProductCard({
   variant = "default",
   className,
   imageClassName,
+  imageContainerClassName,
   priceClassName,
   priceIconClassName,
 }: ProductCardProps) {
@@ -203,7 +205,7 @@ function ProductCard({
         title={title}
         className={stickPriceToBottom ? "flex flex-1 flex-col" : undefined}
       >
-        <div className="relative overflow-hidden bg-gray-50">
+        <div className={cn("relative overflow-hidden bg-gray-50", imageContainerClassName)}>
           <AppImage
             src={image}
             alt={`عکس-${title}`}

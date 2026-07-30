@@ -18,11 +18,12 @@ interface MobileFilterSheetProps {
   onOpenChange: (open: boolean) => void;
   onlyAvailable: boolean;
   selectedValueIds: number[];
+  maxPriceLimit?: number;
   properties: SearchableProperty[];
   onApply: (filters: {
     onlyAvailable: boolean;
-    minPrice: number;
-    maxPrice: number;
+    minPrice?: number;
+    maxPrice?: number;
     valueIds: number[];
   }) => void;
 }
@@ -32,11 +33,12 @@ export function MobileFilterSheet({
   onOpenChange,
   onlyAvailable,
   selectedValueIds,
+  maxPriceLimit,
   properties,
   onApply,
 }: MobileFilterSheetProps) {
   const [draftAvailable, setDraftAvailable] = useState(onlyAvailable);
-  const [draftPrice, setDraftPrice] = useState({ minPrice: 100_000_000, maxPrice: 1_000_000_000 });
+  const [draftPrice, setDraftPrice] = useState<{ minPrice: number; maxPrice: number } | null>(null);
   const [draftValueIds, setDraftValueIds] = useState(selectedValueIds);
   const [dragOffset, setDragOffset] = useState(0);
   const dragStartY = useRef<number | null>(null);
@@ -106,6 +108,8 @@ export function MobileFilterSheet({
               </div>
 
               <PriceFilter
+                key={maxPriceLimit ?? 0}
+                maxPriceLimit={maxPriceLimit}
                 variant="sheet"
                 showApplyButton={false}
                 onApply={() => undefined}
@@ -128,7 +132,11 @@ export function MobileFilterSheet({
             type="button"
             className="mt-4 h-12 w-full rounded-full text-base font-bold"
             onClick={() => {
-              onApply({ onlyAvailable: draftAvailable, ...draftPrice, valueIds: draftValueIds });
+              onApply({
+                onlyAvailable: draftAvailable,
+                ...(draftPrice ?? {}),
+                valueIds: draftValueIds,
+              });
               onOpenChange(false);
             }}
           >

@@ -96,7 +96,7 @@ export default function CategoryCatalog({
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
-  const [priceRange, setPriceRange] = useState({ minPrice: 0, maxPrice: 0 });
+  const [priceRange, setPriceRange] = useState<{ minPrice: number; maxPrice: number } | null>(null);
   const [priceFilterResetKey, setPriceFilterResetKey] = useState(0);
   const [selectedValueIds, setSelectedValueIds] = useState<number[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -106,21 +106,15 @@ export default function CategoryCatalog({
     pageLength: PAGE_LENGTH,
     sortType: SORT_TYPE_BY_ID[sort] ?? SORT_TYPE_BY_ID.newest,
     categoryId,
-    tagId: 0,
-    layoutTagId: 0,
-    brandIds: [],
-    minPrice: priceRange.minPrice,
-    maxPrice: priceRange.maxPrice,
-    searchText: "",
-    justExist: onlyAvailable,
-    justOffer: false,
-    justDiscounted: false,
-    currentProductId: 0,
-    valueIds: selectedValueIds,
+    ...(priceRange ?? {}),
+    ...(onlyAvailable ? { justExist: true } : {}),
+    ...(selectedValueIds.length > 0 ? { valueIds: selectedValueIds } : {}),
   };
 
-  const { data, error, isPending } = useProductSearch(request);
+  const { data, error, isFetching, isPending } = useProductSearch(request);
   const { data: properties = [] } = useSearchableCategoryProperties(categoryId);
+  const maxPriceLimit = data?.maxPrice && data.maxPrice > 0 ? data.maxPrice : undefined;
+  const isLoadingProducts = isPending || isFetching;
 
   const updateSort = (nextSort: string) => {
     setSort(nextSort);
@@ -139,7 +133,7 @@ export default function CategoryCatalog({
 
   const clearFilters = () => {
     setOnlyAvailable(false);
-    setPriceRange({ minPrice: 0, maxPrice: 0 });
+    setPriceRange(null);
     setPriceFilterResetKey((value) => value + 1);
     setSelectedValueIds([]);
     setPage(1);
@@ -154,12 +148,16 @@ export default function CategoryCatalog({
 
   const applyMobileFilters = (filters: {
     onlyAvailable: boolean;
-    minPrice: number;
-    maxPrice: number;
+    minPrice?: number;
+    maxPrice?: number;
     valueIds: number[];
   }) => {
     setOnlyAvailable(filters.onlyAvailable);
-    setPriceRange({ minPrice: filters.minPrice, maxPrice: filters.maxPrice });
+    setPriceRange(
+      filters.minPrice === undefined || filters.maxPrice === undefined
+        ? null
+        : { minPrice: filters.minPrice, maxPrice: filters.maxPrice },
+    );
     setSelectedValueIds(filters.valueIds);
     setPage(1);
   };
@@ -169,7 +167,7 @@ export default function CategoryCatalog({
   return (
     <Container
       as="main"
-      className="min-h-screen bg-[#F8FAFC] pt-16 pb-24 lg:bg-transparent lg:px-6 lg:py-6 lg:pb-6"
+      className="min-h-screen pt-16 pb-24 lg:bg-transparent lg:px-6 lg:py-6 lg:pb-6"
     >
       <h1 className="sr-only">{title}</h1>
 
@@ -194,6 +192,7 @@ export default function CategoryCatalog({
         onOpenChange={setIsMobileFilterOpen}
         onlyAvailable={onlyAvailable}
         selectedValueIds={selectedValueIds}
+        maxPriceLimit={maxPriceLimit}
         properties={properties}
         onApply={applyMobileFilters}
       />
@@ -204,6 +203,7 @@ export default function CategoryCatalog({
           onToggleAvailable={updateAvailability}
           onApplyPrice={applyPriceRange}
           priceFilterResetKey={priceFilterResetKey}
+          maxPriceLimit={maxPriceLimit}
           onClearFilters={clearFilters}
           properties={properties}
           selectedValueIds={selectedValueIds}
@@ -215,39 +215,42 @@ export default function CategoryCatalog({
 
           <div className="mb-5 hidden h-px bg-slate-200 lg:block" />
 
-          {isPending ? (
+          {isLoadingProducts ? (
             <div
-              className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-x-2 sm:gap-y-7 lg:grid-cols-6 lg:gap-x-3 lg:gap-y-9"
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2 lg:grid-cols-4 lg:gap-2 lg:gap-y-3 xl:grid-cols-6"
               aria-busy="true"
               aria-label="در حال بارگذاری محصولات"
             >
               {Array.from({ length: PAGE_LENGTH }, (_, index) => (
-                <ProductCardSkeleton key={index} />
+                <ProductCardSkeleton key={index} variant="catalog" />
               ))}
             </div>
           ) : null}
 
-          {!isPending && error ? (
+          {!isLoadingProducts && error ? (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               دریافت محصولات ممکن نشد. لطفاً دوباره تلاش کنید.
             </p>
           ) : null}
 
-          {!isPending && !error && data?.products.length === 0 ? (
+          {!isLoadingProducts && !error && data?.products.length === 0 ? (
             <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
               محصولی با این فیلترها پیدا نشد.
             </p>
           ) : null}
 
-          {!isPending && !error && data?.products.length ? (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-x-2 sm:gap-y-7 lg:grid-cols-6 lg:gap-x-3 lg:gap-y-9">
+          {!isLoadingProducts && !error && data?.products.length ? (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2 lg:grid-cols-4 lg:gap-2 lg:gap-y-3 xl:grid-cols-6">
               {data.products.map((product) => (
                 <Fragment key={product.id}>
-                  <ProductCard {...product} variant="catalog-mobile" className="lg:hidden" />
+                  <div className="lg:hidden">
+                    <ProductCard {...product} variant="catalog-mobile" />
+                  </div>
                   <ProductCard
                     {...product}
-                    className="hidden border-none! lg:block lg:h-[308px]"
+                    className="hidden border-none! bg-[#F1F5F9]! lg:block lg:h-[310px]"
                     imageClassName="object-cover lg:h-[190px]"
+                    imageContainerClassName="bg-[#F1F5F9]!"
                   />
                 </Fragment>
               ))}

@@ -14,6 +14,7 @@ interface FilterSidebarProps {
   onToggleAvailable: (value: boolean) => void;
   onApplyPrice: (range: { minPrice: number; maxPrice: number }) => void;
   priceFilterResetKey: number;
+  maxPriceLimit?: number;
   onClearFilters: () => void;
   properties: SearchableProperty[];
   selectedValueIds: number[];
@@ -25,6 +26,7 @@ export function FilterSidebar({
   onToggleAvailable,
   onApplyPrice,
   priceFilterResetKey,
+  maxPriceLimit,
   onClearFilters,
   properties,
   selectedValueIds,
@@ -53,7 +55,11 @@ export function FilterSidebar({
         <Toggle checked={onlyAvailable} onChange={onToggleAvailable} />
       </div>
 
-      <PriceFilter key={priceFilterResetKey} onApply={onApplyPrice} />
+      <PriceFilter
+        key={`${priceFilterResetKey}-${maxPriceLimit ?? 0}`}
+        maxPriceLimit={maxPriceLimit}
+        onApply={onApplyPrice}
+      />
 
       {properties.map((property) => (
         <FilterSection key={property.propertyId} label={property.propertyTitle}>
