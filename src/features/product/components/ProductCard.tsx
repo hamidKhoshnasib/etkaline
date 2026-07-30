@@ -137,7 +137,7 @@ function CatalogMobileProductCard({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col py-1">
-          <p className="text-secondary line-clamp-2 w-full text-right title-medium leading-6">
+          <p className="text-secondary title-medium line-clamp-2 w-full text-right leading-6">
             {title}
           </p>
           <div className="mt-auto flex flex-col items-end gap-1">
