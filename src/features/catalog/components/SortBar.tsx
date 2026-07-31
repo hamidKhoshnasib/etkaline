@@ -5,12 +5,12 @@ import { SortDescIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS = [
+  { id: "popular", label: "محبوب‌ترین" },
   { id: "mostdiscount", label: "پرتخفیف‌ترین" },
-  { id: "relevant", label: "مرتبط‌ترین" },
-  { id: "newest", label: "جدیدترین" },
-  { id: "mostviewed", label: "پربازدیدترین" },
-  { id: "bestselling", label: "پرفروش‌ترین" },
   { id: "cheapest", label: "ارزان‌ترین" },
+  { id: "mostexpensive", label: "گران‌ترین" },
+  { id: "specialoffer", label: "پیشنهاد ویژه" },
+  { id: "bestselling", label: "پرفروش‌ترین" },
 ];
 
 function toPersian(value: number): string {

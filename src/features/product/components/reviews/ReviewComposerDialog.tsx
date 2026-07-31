@@ -18,16 +18,23 @@ import { cn } from "@/lib/utils";
 
 interface ReviewComposerDialogProps {
   productId: number;
+  parentId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ReviewComposerDialog({ productId, open, onOpenChange }: ReviewComposerDialogProps) {
+export function ReviewComposerDialog({
+  productId,
+  parentId,
+  open,
+  onOpenChange,
+}: ReviewComposerDialogProps) {
   const [text, setText] = useState("");
   const [score, setScore] = useState(5);
   const [recommend, setRecommend] = useState(true);
   const [error, setError] = useState("");
   const createComment = useCreateProductComment();
+  const isReply = parentId !== null;
 
   const closeDialog = () => {
     onOpenChange(false);
@@ -48,8 +55,14 @@ export function ReviewComposerDialog({ productId, open, onOpenChange }: ReviewCo
 
     try {
       setError("");
-      await createComment.mutateAsync({ productId, text: normalizedText, score, recommend });
-      toast.success("دیدگاه شما برای بررسی ثبت شد.");
+      await createComment.mutateAsync({
+        productId,
+        text: normalizedText,
+        score,
+        recommend,
+        parentId: parentId ?? undefined,
+      });
+      toast.success(isReply ? "پاسخ شما برای بررسی ثبت شد." : "دیدگاه شما برای بررسی ثبت شد.");
       closeDialog();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "ثبت دیدگاه ناموفق بود.");
@@ -63,8 +76,12 @@ export function ReviewComposerDialog({ productId, open, onOpenChange }: ReviewCo
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>ثبت دیدگاه</DialogTitle>
-          <DialogDescription>نظر خود را درباره این محصول ثبت کنید.</DialogDescription>
+          <DialogTitle>{isReply ? "ثبت پاسخ" : "ثبت دیدگاه"}</DialogTitle>
+          <DialogDescription>
+            {isReply
+              ? "پاسخ خود را برای این دیدگاه ثبت کنید."
+              : "نظر خود را درباره این محصول ثبت کنید."}
+          </DialogDescription>
         </DialogHeader>
 
         <form className="space-y-5" onSubmit={handleSubmit} noValidate>
@@ -97,12 +114,14 @@ export function ReviewComposerDialog({ productId, open, onOpenChange }: ReviewCo
           </Field>
 
           <Field data-invalid={Boolean(error)}>
-            <FieldLabel htmlFor="product-review-text">متن دیدگاه</FieldLabel>
+            <FieldLabel htmlFor="product-review-text">
+              {isReply ? "متن پاسخ" : "متن دیدگاه"}
+            </FieldLabel>
             <textarea
               id="product-review-text"
               value={text}
               onChange={(event) => setText(event.target.value)}
-              placeholder="دیدگاه خود را بنویسید"
+              placeholder={isReply ? "پاسخ خود را بنویسید" : "دیدگاه خود را بنویسید"}
               className="border-input focus-visible:border-ring focus-visible:ring-ring/50 min-h-32 w-full resize-y rounded-xl border bg-transparent px-3 py-2 text-sm text-black outline-none focus-visible:ring-3"
               aria-invalid={Boolean(error)}
               disabled={createComment.isPending}
@@ -136,7 +155,7 @@ export function ReviewComposerDialog({ productId, open, onOpenChange }: ReviewCo
 
           <Button type="submit" className="h-10 w-full" disabled={createComment.isPending}>
             {createComment.isPending && <Spinner data-icon="inline-start" className="size-4" />}
-            ثبت دیدگاه
+            {isReply ? "ثبت پاسخ" : "ثبت دیدگاه"}
           </Button>
         </form>
       </DialogContent>

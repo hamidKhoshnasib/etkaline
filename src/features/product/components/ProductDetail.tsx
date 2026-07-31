@@ -1,10 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { ProductInfoCard } from "./ProductInfoCard";
 import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductSummary } from "./ProductSummary";
 import { ProductDescription } from "./ProductDescription";
-import { UserImagesSection } from "./UserImagesSection";
 import { ReviewsSection } from "./reviews/ReviewsSection";
 import { ArrowLeftIcon } from "lucide-react";
 
@@ -21,6 +22,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductDetailData } from "@/features/product/api/get-product-detail";
 import type { CartItem } from "@/features/cart/model/cart";
@@ -44,19 +46,23 @@ interface ProductBreadcrumbEntry {
 interface ProductViewModel {
   id: number;
   storeProductId: number | null;
+  storeInfos: ProductDetailData["storeInfos"];
   title: string;
   isFavorite: boolean;
   price: number;
   originalPrice?: number;
   discount?: number;
+  inventory: number;
+  isAvailable: boolean;
+  productExists: boolean;
   rating: number;
   reviewCount: number;
   specs: Array<{ label: string; value: string }>;
+  specifications: Array<{ label: string; value: string }>;
   colors: Array<{ id: string; hex: string; label: string }>;
   images: string[];
   shortDescription: string;
   description: string;
-  userImages: string[];
   breadcrumbs: ProductBreadcrumbEntry[];
 }
 
@@ -70,15 +76,26 @@ const PRODUCT_BREADCRUMBS: ProductBreadcrumbEntry[] = [
 const PRODUCT_IMAGES = [Image35.src, Image36.src, Image37.src, Swiper1.src];
 const NO_IMAGE_URL = "/images/image-placeholder.svg";
 
+function toPlainText(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 const PRODUCT: ProductViewModel = {
   id: 6,
   storeProductId: null,
+  storeInfos: [],
   title:
     "یخچال فریزر سامسونگ ۳۶ اینچ ۲۸ فوت مکعبی درب فرانسوی با یخساز (RF28R7201SR/AA) - استیل ضد زنگ",
   isFavorite: false,
   price: 330000000,
   originalPrice: 420000000,
   discount: 30,
+  inventory: 0,
+  isAvailable: false,
+  productExists: false,
   rating: 3.5,
   reviewCount: 566,
   specs: [
@@ -86,6 +103,7 @@ const PRODUCT: ProductViewModel = {
     { label: "مدل", value: "لولای راست" },
     { label: "رنگ", value: "سفید" },
   ],
+  specifications: [],
   colors: [
     { id: "white", hex: "#ffffff", label: "سفید" },
     { id: "silver", hex: "#c0c0c0", label: "نقره‌ای" },
@@ -96,13 +114,12 @@ const PRODUCT: ProductViewModel = {
     "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد کتابهای زیادی در شصت و سه درصد گذشته حال و آینده",
   description:
     "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.",
-  userImages: Array.from({ length: 11 }, (_, i) => PRODUCT_IMAGES[i % PRODUCT_IMAGES.length]),
   breadcrumbs: PRODUCT_BREADCRUMBS,
 };
 
 function createProductViewModel(product: ProductDetailData): ProductViewModel {
   const store = product.storeInfos.find((item) => item.isOffer) ?? product.storeInfos[0];
-  const price = store && store.offPrice > 0 ? store.offPrice : (store?.mainPrice ?? PRODUCT.price);
+  const price = store && store.offPrice > 0 ? store.offPrice : (store?.mainPrice ?? 0);
   const originalPrice = store && store.mainPrice > price ? store.mainPrice : undefined;
   const propertySpecs = product.properties
     .filter((property) => !property.isColor && property.propertyTitle)
@@ -111,6 +128,13 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
       return value ? [{ label: property.propertyTitle, value }] : [];
     })
     .slice(0, 2);
+  const specifications = [
+    ...(product.brand ? [{ label: "برند", value: product.brand.title }] : []),
+    ...product.properties.flatMap((property) => {
+      const value = property.valueText || property.values.map((item) => item.title).join("، ");
+      return property.propertyTitle && value ? [{ label: property.propertyTitle, value }] : [];
+    }),
+  ];
   const effectiveItems = product.effectiveProperty?.isColor ? product.effectiveProperty.items : [];
   const colors = effectiveItems.flatMap((item) => {
     const hex = item.description.trim();
@@ -137,38 +161,49 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
   ];
 
   return {
-    id: product.productId || PRODUCT.id,
+    id: product.productId,
     storeProductId: store?.storeProductId ?? null,
+    storeInfos: product.storeInfos,
     title: product.title,
     isFavorite: product.isFavorite,
     price,
     originalPrice,
     discount: store?.offPercent || undefined,
+    inventory: Math.max(0, store?.inventory ?? 0),
+    isAvailable: product.isExist && (store?.inventory ?? 0) > 0,
+    productExists: product.isExist,
     rating: PRODUCT.rating,
     reviewCount: PRODUCT.reviewCount,
     specs: [
       ...(product.brand ? [{ label: "برند", value: product.brand.title }] : []),
       ...propertySpecs,
     ].slice(0, 3),
-    colors: colors.length > 0 ? colors : PRODUCT.colors,
+    specifications,
+    colors,
     images: images.length > 0 ? images : [NO_IMAGE_URL],
-    shortDescription: product.shortReview || PRODUCT.shortDescription,
-    description: product.expertReview || PRODUCT.description,
-    userImages: PRODUCT.userImages,
+    shortDescription: toPlainText(product.shortReview),
+    description: product.expertReview,
     breadcrumbs,
   };
 }
 
-function createMockCartItem(product: ProductViewModel): CartItem {
+function createMockCartItem(
+  product: ProductViewModel,
+  store: ProductDetailData["storeInfos"][number] | undefined,
+  colorLabel: string,
+): CartItem {
+  const price = store && store.offPrice > 0 ? store.offPrice : (store?.mainPrice ?? product.price);
+  const originalPrice = store && store.mainPrice > price ? store.mainPrice : undefined;
+
   return {
-    id: product.id,
+    id: store?.storeProductId ?? product.id,
     title: product.title,
-    image: product.images[0] ?? PRODUCT.images[0],
-    color: product.colors[0]?.label ?? "بدون رنگ",
+    image: product.images[0] ?? NO_IMAGE_URL,
+    color: colorLabel,
     warranty: "گارانتی اتکالاین",
-    price: product.price,
-    originalPrice: product.originalPrice,
-    discount: product.discount,
+    price,
+    originalPrice,
+    discount: store?.offPercent || undefined,
     returnable: true,
     quantity: 1,
   };
@@ -224,6 +259,8 @@ interface MobilePurchaseFooterProps {
   originalPrice: number;
   cartItem: CartItem;
   storeProductId: number | null;
+  inventory: number;
+  isAvailable: boolean;
 }
 
 function MobilePurchaseFooter({
@@ -231,18 +268,24 @@ function MobilePurchaseFooter({
   originalPrice,
   cartItem,
   storeProductId,
+  inventory,
+  isAvailable,
 }: MobilePurchaseFooterProps) {
   return (
     <footer className="bg-background fixed inset-x-0 bottom-0 z-50 flex h-[82px] items-center justify-between gap-3 rounded-t-2xl border-t px-4 shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden">
       <AddToCartButton
         item={cartItem}
         storeProductId={storeProductId}
+        unavailable={!isAvailable}
         showIcon
         className="bg-primary text-secondary flex h-11 items-center gap-2 rounded-full px-5 text-sm font-bold"
         quantityClassName="gap-4"
       />
 
       <div className="min-w-0">
+        <p className={isAvailable ? "text-xs text-emerald-700" : "text-destructive text-xs"}>
+          {isAvailable ? `${inventory.toLocaleString("fa-IR")} عدد موجود` : "ناموجود"}
+        </p>
         <p className="text-muted-foreground text-xs line-through">
           {formatProductPrice(originalPrice)}
         </p>
@@ -255,22 +298,56 @@ function MobilePurchaseFooter({
   );
 }
 
-// slug مسیر در این مرز دریافت می‌شود تا API جزئیات محصول در مرحله بعد به آن متصل شود.
 interface ProductDetailProps {
-  slug?: string;
-  product?: ProductDetailData | null;
+  product: ProductDetailData | null;
 }
 
-export default function ProductDetail({
-  slug: _slug,
-  product: productDetail,
-}: ProductDetailProps = {}) {
-  const product = productDetail ? createProductViewModel(productDetail) : PRODUCT;
-  const cartItem = createMockCartItem(product);
+export default function ProductDetail({ product: productDetail }: ProductDetailProps) {
+  if (!productDetail) {
+    return (
+      <Container as="main" className="min-h-screen py-8">
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>محصول مورد نظر یافت نشد</EmptyTitle>
+            <EmptyDescription>اطلاعات این محصول در دسترس نیست.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </Container>
+    );
+  }
+
+  const product = createProductViewModel(productDetail);
+
+  return <ProductDetailContent key={product.id} product={product} />;
+}
+
+function ProductDetailContent({ product }: { product: ProductViewModel }) {
+  const firstColorIdWithStore = product.colors.find((color) =>
+    product.storeInfos.some((store) => String(store.effectiveValueId) === color.id),
+  )?.id;
+  const [selectedColorId, setSelectedColorId] = useState(
+    firstColorIdWithStore ?? product.colors[0]?.id ?? "",
+  );
+  const selectedStore = product.colors.length
+    ? product.storeInfos.find((store) => String(store.effectiveValueId) === selectedColorId)
+    : (product.storeInfos.find((store) => store.isOffer) ?? product.storeInfos[0]);
+  const price =
+    selectedStore && selectedStore.offPrice > 0
+      ? selectedStore.offPrice
+      : (selectedStore?.mainPrice ?? 0);
+  const originalPrice =
+    selectedStore && selectedStore.mainPrice > price ? selectedStore.mainPrice : undefined;
+  const inventory = Math.max(0, selectedStore?.inventory ?? 0);
+  const isAvailable = product.productExists && inventory > 0;
+  const selectedColorLabel =
+    product.colors.find((color) => color.id === selectedColorId)?.label ??
+    selectedStore?.effectiveValueTitle ??
+    "بدون رنگ";
+  const cartItem = createMockCartItem(product, selectedStore, selectedColorLabel);
 
   return (
-    <Container as="main" className="space-y-6 pt-20 pb-28 lg:space-y-10 lg:px-0 lg:py-6">
-      <MobilePageHeader fixed fallbackHref="/" title="یخچال و فریزر" />
+    <Container as="main" className="space-y-6 pt-20 pb-28 lg:space-y-10 lg:px-6 lg:py-6">
+      <MobilePageHeader fixed fallbackHref="/" title={product.title} />
       <ProductBreadcrumbs crumbs={product.breadcrumbs} />
       <div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
         <div className="w-full min-w-0 space-y-8 lg:w-auto lg:flex-1 lg:space-y-12">
@@ -290,31 +367,41 @@ export default function ProductDetail({
               specs={product.specs}
               colors={product.colors}
               shortDescription={product.shortDescription}
+              selectedColorId={selectedColorId}
+              onColorSelect={setSelectedColorId}
             />
           </section>
 
-          <ProductDescription productName={product.title} description={product.description} />
-
-          <UserImagesSection images={product.userImages} />
+          <ProductDescription
+            productName={product.title}
+            description={product.description}
+            specifications={product.specifications}
+          />
 
           <ReviewsSection productId={product.id} averageRating={4} totalRatings={40} />
         </div>
         <div className="hidden w-[300px] shrink-0 lg:block">
           <ProductInfoCard
-            price={product.price}
-            originalPrice={product.originalPrice}
-            discount={product.discount}
+            price={price}
+            originalPrice={originalPrice}
+            discount={selectedStore?.offPercent || undefined}
             colors={product.colors}
             cartItem={cartItem}
-            storeProductId={product.storeProductId}
+            storeProductId={selectedStore?.storeProductId ?? null}
+            inventory={inventory}
+            isAvailable={isAvailable}
+            selectedColorId={selectedColorId}
+            onColorSelect={setSelectedColorId}
           />
         </div>
       </div>
       <MobilePurchaseFooter
-        price={product.price}
-        originalPrice={product.originalPrice ?? product.price}
+        price={price}
+        originalPrice={originalPrice ?? price}
         cartItem={cartItem}
-        storeProductId={product.storeProductId}
+        storeProductId={selectedStore?.storeProductId ?? null}
+        inventory={inventory}
+        isAvailable={isAvailable}
       />
     </Container>
   );

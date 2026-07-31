@@ -28,12 +28,12 @@ import { SortBar } from "./SortBar";
 
 const PAGE_LENGTH = 30;
 const SORT_TYPE_BY_ID: Record<string, number> = {
-  newest: 1,
-  bestselling: 2,
-  mostviewed: 3,
-  relevant: 4,
-  mostdiscount: 5,
-  cheapest: 6,
+  popular: 1,
+  mostdiscount: 2,
+  cheapest: 3,
+  mostexpensive: 4,
+  specialoffer: 5,
+  bestselling: 6,
 };
 
 interface CatalogBreadcrumbEntry {
@@ -110,7 +110,7 @@ export default function CategoryCatalog({
   categoryId = 0,
   categoryPath = [],
 }: CategoryCatalogProps) {
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort] = useState("popular");
   const [page, setPage] = useState(1);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [priceRange, setPriceRange] = useState<{ minPrice: number; maxPrice: number } | null>(null);
@@ -121,7 +121,7 @@ export default function CategoryCatalog({
   const request = {
     page,
     pageLength: PAGE_LENGTH,
-    sortType: SORT_TYPE_BY_ID[sort] ?? SORT_TYPE_BY_ID.newest,
+    sortType: SORT_TYPE_BY_ID[sort] ?? SORT_TYPE_BY_ID.popular,
     categoryId,
     ...(priceRange ?? {}),
     ...(onlyAvailable ? { justExist: true } : {}),

@@ -22,6 +22,7 @@ interface AddToCartButtonProps {
   className?: string;
   quantityClassName?: string;
   showIcon?: boolean;
+  unavailable?: boolean;
 }
 
 export function AddToCartButton({
@@ -30,6 +31,7 @@ export function AddToCartButton({
   className,
   quantityClassName,
   showIcon = false,
+  unavailable = false,
 }: AddToCartButtonProps) {
   const { status } = useSession();
   const { isPending, mutateAsync } = useAddToBasket();
@@ -41,7 +43,7 @@ export function AddToCartButton({
   const cartItem = cartItems.find((cartItem) => cartItem.id === item.id);
 
   async function handleAddToCart() {
-    if (isPending || storeProductId === null) {
+    if (isPending || storeProductId === null || unavailable) {
       return;
     }
 
@@ -75,7 +77,7 @@ export function AddToCartButton({
           aria-label="افزایش تعداد"
           className="bg-primary text-secondary hover:bg-primary-hover flex size-13 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60"
           onClick={handleQuantityIncrease}
-          disabled={isPending || storeProductId === null}
+          disabled={isPending || storeProductId === null || unavailable}
         >
           <PlusIcon className="size-5" />
         </button>
@@ -108,11 +110,11 @@ export function AddToCartButton({
       type="button"
       className={cn("disabled:cursor-not-allowed disabled:opacity-60", className)}
       onClick={() => void handleAddToCart()}
-      disabled={isPending || storeProductId === null}
+      disabled={isPending || storeProductId === null || unavailable}
       aria-busy={isPending}
     >
       {showIcon && <ShoppingCartIcon className="size-4" />}
-      {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
+      {unavailable ? "ناموجود" : isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
     </button>
   );
 }

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 const API_BASE_URL =
@@ -19,7 +20,10 @@ interface ProductPropertyValue {
 export interface ProductDetailData {
   productId: number;
   title: string;
+  metaTitle: string;
+  seoDesc: string;
   isFavorite: boolean;
+  isExist: boolean;
   shortReview: string;
   expertReview: string;
   category: {
@@ -30,6 +34,8 @@ export interface ProductDetailData {
   brand: { id: number; title: string } | null;
   storeInfos: Array<{
     storeProductId: number;
+    effectiveValueId: number | null;
+    effectiveValueTitle: string | null;
     mainPrice: number;
     offPrice: number;
     offPercent: number;
@@ -66,6 +72,10 @@ function stringValue(value: unknown): string {
 
 function numberValue(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function optionalNumberValue(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function booleanValue(value: unknown): boolean {
@@ -125,7 +135,10 @@ function parseProductDetail(value: unknown): ProductDetailData | null {
   return {
     productId: value.productId,
     title: stringValue(value.title),
+    metaTitle: stringValue(value.metaTitle),
+    seoDesc: stringValue(value.seoDesc),
     isFavorite: booleanValue(value.isFavorite),
+    isExist: booleanValue(value.isExist),
     shortReview: stringValue(value.shortReview),
     expertReview: stringValue(value.expertReview),
     category,
@@ -139,6 +152,8 @@ function parseProductDetail(value: unknown): ProductDetailData | null {
           return [
             {
               storeProductId: store.storeProductId,
+              effectiveValueId: optionalNumberValue(store.effectiveValueId),
+              effectiveValueTitle: stringValue(store.effectiveValueTitle) || null,
               mainPrice: numberValue(store.mainPrice),
               offPrice: numberValue(store.offPrice),
               offPercent: numberValue(store.offPercent),
@@ -191,25 +206,27 @@ function parseProductDetail(value: unknown): ProductDetailData | null {
   };
 }
 
-export async function getProductDetail(productId: string): Promise<ProductDetailData | null> {
-  if (!/^\d+$/.test(productId)) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(new URL(`/api/Products/${productId}`, API_BASE_URL), {
-      headers: await getServerApiHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
-
-    if (!response.ok) {
+export const getProductDetail = cache(
+  async (productId: string): Promise<ProductDetailData | null> => {
+    if (!/^\d+$/.test(productId)) {
       return null;
     }
 
-    const payload = (await response.json()) as ProductDetailResponse;
-    return payload.isSuccess === true ? parseProductDetail(payload.value) : null;
-  } catch {
-    return null;
-  }
-}
+    try {
+      const response = await fetch(new URL(`/api/Products/${productId}`, API_BASE_URL), {
+        headers: await getServerApiHeaders(),
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const payload = (await response.json()) as ProductDetailResponse;
+      return payload.isSuccess === true ? parseProductDetail(payload.value) : null;
+    } catch {
+      return null;
+    }
+  },
+);

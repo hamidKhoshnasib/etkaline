@@ -18,6 +18,8 @@ interface ProductSummaryProps {
   specs: Spec[];
   colors: ProductColor[];
   shortDescription: string;
+  selectedColorId?: string;
+  onColorSelect?: (colorId: string) => void;
 }
 
 function toPersian(n: number): string {
@@ -31,11 +33,13 @@ export function ProductSummary({
   specs,
   colors,
   shortDescription,
+  selectedColorId,
+  onColorSelect,
 }: ProductSummaryProps) {
   return (
     <div className="min-w-0 flex-1">
       {/* Title */}
-      <h1 className="text-secondary mb-3 text-sm leading-6 font-bold lg:mb-4 lg:text-lg lg:leading-relaxed">
+      <h1 className="text-secondary mb-3 lg:title-medium lg:mb-4 body-large-bold lg:leading-relaxed">
         {title}
       </h1>
 
@@ -62,7 +66,12 @@ export function ProductSummary({
 
       <div className="mb-6 space-y-5 lg:hidden">
         <ProductGuarantees />
-        <ProductColorPicker colors={colors} className="mb-0" />
+        <ProductColorPicker
+          colors={colors}
+          className="mb-0"
+          selectedColorId={selectedColorId}
+          onColorSelect={onColorSelect}
+        />
       </div>
 
       {/* Specs */}
@@ -72,20 +81,22 @@ export function ProductSummary({
           {specs.map((s) => (
             <div
               key={s.label}
-              className="bg-muted flex flex-1 flex-col gap-1 rounded-lg px-2 py-3 lg:min-w-22 lg:flex-none lg:px-3 lg:py-2.5"
+              className="flex flex-1 flex-col gap-1 rounded-lg bg-[#F8FAFC] px-2 py-3 lg:min-w-22 lg:flex-none lg:px-3 lg:py-2.5"
             >
-              <span className="text-xs text-gray-400">{s.label}</span>
-              <span className="text-sm font-semibold text-gray-700">{s.value}</span>
+              <span className="text-xs text-[#475569]">{s.label}</span>
+              <span className="text-secondary label-large">{s.value}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Short description */}
-      <div>
-        <p className="mb-2 text-sm font-semibold text-gray-700">توضیح کوتاه محصول:</p>
-        <p className="text-sm leading-7 text-gray-600">{shortDescription}</p>
-      </div>
+      {shortDescription ? (
+        <div>
+          <p className="mb-2 text-sm font-semibold text-gray-700">توضیح کوتاه محصول:</p>
+          <p className="text-sm leading-7 text-gray-600">{shortDescription}</p>
+        </div>
+      ) : null}
     </div>
   );
 }

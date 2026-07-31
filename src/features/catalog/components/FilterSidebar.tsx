@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { FilterIcon, XSquareIcon } from "lucide-react";
 
 import { FilterSection } from "./FilterSection";
@@ -32,6 +33,8 @@ export function FilterSidebar({
   selectedValueIds,
   onToggleValue,
 }: FilterSidebarProps) {
+  const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
+
   return (
     <aside className="hidden w-[270px] shrink-0 lg:block">
       <div className="flex items-center justify-between pb-5">
@@ -59,6 +62,8 @@ export function FilterSidebar({
         key={`${priceFilterResetKey}-${maxPriceLimit ?? 0}`}
         maxPriceLimit={maxPriceLimit}
         onApply={onApplyPrice}
+        open={isPriceFilterOpen}
+        onOpenChange={setIsPriceFilterOpen}
       />
 
       {properties.map((property) => (

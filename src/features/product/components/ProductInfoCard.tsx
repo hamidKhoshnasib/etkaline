@@ -21,6 +21,10 @@ interface ProductInfoCardProps {
   colors?: ProductColor[];
   cartItem: CartItem;
   storeProductId: number | null;
+  inventory: number;
+  isAvailable: boolean;
+  selectedColorId?: string;
+  onColorSelect?: (colorId: string) => void;
 }
 
 function formatPrice(n: number): string {
@@ -49,13 +53,33 @@ export function ProductGuarantees({ className }: { className?: string }) {
 interface ProductColorPickerProps {
   colors: ProductColor[];
   className?: string;
+  selectedColorId?: string;
+  onColorSelect?: (colorId: string) => void;
 }
 
-export function ProductColorPicker({ colors, className }: ProductColorPickerProps) {
-  const [selectedColor, setSelectedColor] = useState(colors[0]?.id ?? "");
+export function ProductColorPicker({
+  colors,
+  className,
+  selectedColorId,
+  onColorSelect,
+}: ProductColorPickerProps) {
+  const [uncontrolledSelectedColor, setUncontrolledSelectedColor] = useState(colors[0]?.id ?? "");
+  const selectedColor = selectedColorId ?? uncontrolledSelectedColor;
+
+  function selectColor(colorId: string) {
+    onColorSelect?.(colorId);
+
+    if (!onColorSelect) {
+      setUncontrolledSelectedColor(colorId);
+    }
+  }
 
   if (colors.length === 0) {
-    return null;
+    return (
+      <p className={cn("text-muted-foreground text-sm", className)}>
+        تنوع رنگی برای این محصول ثبت نشده است.
+      </p>
+    );
   }
 
   return (
@@ -66,13 +90,11 @@ export function ProductColorPicker({ colors, className }: ProductColorPickerProp
           <button
             key={color.id}
             type="button"
-            onClick={() => setSelectedColor(color.id)}
+            onClick={() => selectColor(color.id)}
             title={color.label}
             className={cn(
               "size-10 rounded-full border-2 transition-all",
-              selectedColor === color.id
-                ? "border-primary scale-110 shadow"
-                : "border-transparent hover:border-gray-300",
+              selectedColor === color.id ? "border-primary scale-110 shadow" : "border-gray-300",
             )}
             style={{ backgroundColor: color.hex }}
           />
@@ -89,17 +111,21 @@ export function ProductInfoCard({
   colors = [],
   cartItem,
   storeProductId,
+  inventory,
+  isAvailable,
+  selectedColorId,
+  onColorSelect,
 }: ProductInfoCardProps) {
   return (
     <div className="sticky top-36 w-full shrink-0 rounded-[16px] border border-gray-200 bg-white p-4">
       {/* Price */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start">
         {discount && (
           <div className="bg-primary-hover flex size-12 items-center justify-center rounded-md text-sm font-bold text-white">
             %{formatDiscountPercent(discount)}
           </div>
         )}
-        <div className="flex flex-col items-end">
+        <div className="ms-auto flex flex-col items-end">
           <div className="flex items-center gap-1">
             <span className="text-xl font-bold text-gray-800">{formatPrice(price)}</span>
             <TomanIcon className="size-4.5 text-gray-500" />
@@ -108,10 +134,23 @@ export function ProductInfoCard({
         </div>
       </div>
 
+      <p
+        className={cn(
+          "mt-3 text-sm font-medium",
+          isAvailable ? "text-emerald-700" : "text-destructive",
+        )}
+      >
+        {isAvailable ? `${formatPrice(inventory)} عدد موجود در انبار` : "این محصول ناموجود است"}
+      </p>
+
       <div className="my-4 h-px bg-gray-100" />
 
       {/* Color picker */}
-      <ProductColorPicker colors={colors} />
+      <ProductColorPicker
+        colors={colors}
+        selectedColorId={selectedColorId}
+        onColorSelect={onColorSelect}
+      />
 
       <div className="my-4 h-px bg-gray-100" />
 
@@ -122,6 +161,7 @@ export function ProductInfoCard({
       <AddToCartButton
         item={cartItem}
         storeProductId={storeProductId}
+        unavailable={!isAvailable}
         className="bg-primary flex w-full items-center justify-center gap-2 rounded-[28px] py-3 text-sm font-semibold transition-opacity hover:opacity-90"
         quantityClassName="justify-center"
       />

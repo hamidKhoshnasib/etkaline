@@ -117,7 +117,11 @@ export function MobileFilterSheet({
               />
 
               {properties.map((property) => (
-                <FilterSection key={property.propertyId} label={property.propertyTitle}>
+                <FilterSection
+                  key={property.propertyId}
+                  label={property.propertyTitle}
+                  variant="sheet"
+                >
                   <FilterOptions
                     property={property}
                     selectedValueIds={draftValueIds}

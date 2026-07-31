@@ -8,8 +8,13 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthDialog } from "@/features/auth";
-import { useProductComments } from "@/features/product/api/use-product-comments";
+import {
+  useProductComments,
+  useToggleProductCommentLike,
+  type ProductComment,
+} from "@/features/product/api/use-product-comments";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { ReviewCard } from "./ReviewCard";
 import { ReviewComposerDialog } from "./ReviewComposerDialog";
 
@@ -35,15 +40,48 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
   const [sort, setSort] = useState("priority");
   const [page, setPage] = useState(1);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [replyToCommentId, setReplyToCommentId] = useState<number | null>(null);
   const { status } = useSession();
   const { data, error, isLoading } = useProductComments(productId, page);
+  const toggleCommentLike = useToggleProductCommentLike();
   const comments = data?.comments ?? [];
   const approvedCommentCount = data?.totalCount ?? totalRatings;
+  const ratedComments = comments.filter((comment) => comment.score !== null);
   const apiAverageRating =
-    comments.length > 0
-      ? comments.reduce((total, comment) => total + comment.score, 0) / comments.length
+    ratedComments.length > 0
+      ? ratedComments.reduce((total, comment) => total + (comment.score ?? 0), 0) /
+        ratedComments.length
       : null;
   const displayedAverageRating = apiAverageRating ?? averageRating;
+
+  function handleLike(comment: ProductComment) {
+    if (status !== "authenticated") {
+      window.dispatchEvent(new Event("etkala:open-auth"));
+      return;
+    }
+
+    toggleCommentLike.mutate(
+      { productId, commentId: comment.id, isLiked: comment.userIsLiked },
+      {
+        onSuccess: () => {
+          toast.success(comment.userIsLiked ? "لایک دیدگاه حذف شد." : "دیدگاه لایک شد.");
+        },
+        onError: (mutationError) => {
+          toast.error(mutationError.message || "ثبت لایک دیدگاه ناموفق بود.");
+        },
+      },
+    );
+  }
+
+  function handleReply(comment: ProductComment) {
+    if (status !== "authenticated") {
+      window.dispatchEvent(new Event("etkala:open-auth"));
+      return;
+    }
+
+    setReplyToCommentId(comment.id);
+    setIsComposerOpen(true);
+  }
 
   return (
     <section
@@ -62,7 +100,7 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
           </span>
         </div>
 
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-5 flex items-center gap-3">
           <div className="flex">
             {Array.from({ length: 5 }).map((_, i) => (
               <StarIcon
@@ -88,7 +126,10 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
             type="button"
             variant="outline"
             className="border-primary text-secondary hover:bg-primary/10 mb-4 h-10 w-full rounded-lg"
-            onClick={() => setIsComposerOpen(true)}
+            onClick={() => {
+              setReplyToCommentId(null);
+              setIsComposerOpen(true);
+            }}
           >
             ثبت دیدگاه
           </Button>
@@ -171,15 +212,40 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
           {!isLoading &&
             !error &&
             comments.map((comment) => (
-              <ReviewCard
-                key={comment.id}
-                author={comment.creatorName}
-                date={comment.createDateFa ?? ""}
-                rating={comment.score}
-                body={comment.text}
-                likes={comment.likeCount}
-                dislikes={0}
-              />
+              <div key={comment.id} className="flex flex-col gap-4">
+                <ReviewCard
+                  author={comment.creatorName}
+                  date={comment.createDateFa ?? ""}
+                  rating={comment.score}
+                  body={comment.text}
+                  likes={comment.likeCount}
+                  isLiked={comment.userIsLiked}
+                  onLike={() => handleLike(comment)}
+                  onReply={() => handleReply(comment)}
+                  isLikePending={
+                    toggleCommentLike.isPending &&
+                    toggleCommentLike.variables?.commentId === comment.id
+                  }
+                />
+                {comment.replies.map((reply) => (
+                  <ReviewCard
+                    key={reply.id}
+                    author={reply.creatorName}
+                    date={reply.createDateFa ?? ""}
+                    rating={reply.score}
+                    body={reply.text}
+                    likes={reply.likeCount}
+                    isLiked={reply.userIsLiked}
+                    onLike={() => handleLike(reply)}
+                    onReply={() => handleReply(reply)}
+                    isLikePending={
+                      toggleCommentLike.isPending &&
+                      toggleCommentLike.variables?.commentId === reply.id
+                    }
+                    isReply
+                  />
+                ))}
+              </div>
             ))}
           {!isLoading && !error && data && data.pageCount > 1 && (
             <Pagination
@@ -193,8 +259,14 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
       </div>
       <ReviewComposerDialog
         productId={productId}
+        parentId={replyToCommentId}
         open={isComposerOpen}
-        onOpenChange={setIsComposerOpen}
+        onOpenChange={(nextOpen) => {
+          setIsComposerOpen(nextOpen);
+          if (!nextOpen) {
+            setReplyToCommentId(null);
+          }
+        }}
       />
     </section>
   );
