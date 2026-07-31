@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Minus, Plus, Refrigerator, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { AppImage } from "@/components/ui/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,10 +100,12 @@ export function HeaderCartSummary() {
                   <article key={item.id} className="bg-muted/70 rounded-2xl p-3">
                     <div className="flex gap-3">
                       <div className="flex size-15 shrink-0 items-center justify-center rounded-lg border bg-white">
-                        <Refrigerator
-                          className="text-secondary/70 size-10"
-                          strokeWidth={1.25}
-                          aria-hidden="true"
+                        <AppImage
+                          src={item.picUrl || item.pic || "/images/image-placeholder.svg"}
+                          alt={item.productTitle}
+                          width={60}
+                          height={60}
+                          className="size-full object-contain p-1"
                         />
                       </div>
                       <div className="min-w-0 flex-1">
