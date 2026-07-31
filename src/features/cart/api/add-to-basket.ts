@@ -1,26 +1,23 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import {
+  type OpenBasket,
+  type OpenBasketResponse,
+  parseRequiredOpenBasketResponse,
+} from "./get-open-basket";
 import { basketQueryKeys } from "./basket-query-keys";
-
-interface AddToBasketResponse {
-  isSuccess: boolean;
-  errors?: string[];
-  message?: string;
-}
+import { updateBasketQuantityDebounced } from "./update-basket-quantity";
 
 export interface AddToBasketInput {
   storeProductId: number;
   quantity: number;
 }
 
-function responseMessage(response: AddToBasketResponse) {
-  return response.message || response.errors?.[0] || "افزودن کالا به سبد خرید ناموفق بود.";
-}
-
-async function addToBasket(input: AddToBasketInput) {
+async function addToBasket(input: AddToBasketInput): Promise<OpenBasket> {
   if (!Number.isSafeInteger(input.storeProductId) || input.storeProductId < 1) {
     throw new Error("شناسه کالا برای افزودن به سبد خرید معتبر نیست.");
   }
@@ -29,24 +26,45 @@ async function addToBasket(input: AddToBasketInput) {
     throw new Error("تعداد کالا برای افزودن به سبد خرید معتبر نیست.");
   }
 
-  let data: AddToBasketResponse;
+  let data: OpenBasketResponse;
 
   try {
-    ({ data } = await axiosClient.post<AddToBasketResponse>("/api/Baskets/AddToBasket", input));
+    ({ data } = await axiosClient.post<OpenBasketResponse>("/api/Baskets/AddToBasket", input));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
 
-  if (!data.isSuccess) {
-    throw new Error(responseMessage(data));
-  }
+  return parseRequiredOpenBasketResponse(data);
 }
 
 export function useAddToBasket() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const queryKey = basketQueryKeys.open(session?.user.backendId);
 
-  return useMutation<void, Error, AddToBasketInput>({
-    mutationFn: addToBasket,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: basketQueryKeys.open }),
+  return useMutation<OpenBasket, Error, AddToBasketInput>({
+    mutationKey: [...basketQueryKeys.all, "add"],
+    mutationFn: (input) => {
+      const basket = queryClient.getQueryData<OpenBasket | null>(queryKey);
+      const existingItem = basket?.basketItems.find(
+        (item) => item.storeProductId === input.storeProductId,
+      );
+
+      if (basket && existingItem) {
+        return updateBasketQuantityDebounced({
+          basketId: basket.id,
+          storeProductId: input.storeProductId,
+          quantity: existingItem.productCount + input.quantity,
+        });
+      }
+
+      return addToBasket(input);
+    },
+    onSuccess: async (basket) => {
+      queryClient.setQueryData(queryKey, basket);
+      await queryClient.invalidateQueries({
+        queryKey: basketQueryKeys.checkoutDetailsRoot(session?.user.backendId),
+      });
+    },
   });
 }

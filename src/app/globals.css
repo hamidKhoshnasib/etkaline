@@ -38,6 +38,7 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-auth-accent: var(--auth-accent);
+  --color-checkout-accent: var(--checkout-accent);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -61,6 +62,7 @@
   --primary: #ffc300;
   --primary-hover: #f57f17;
   --auth-accent: #ff6d00;
+  --checkout-accent: #00b8d4;
   --primary-foreground: oklch(0.145 0 0);
   --secondary: #003566;
   --secondary-foreground: oklch(0.985 0 0);
@@ -98,6 +100,7 @@
   --primary: #ffc300;
   --primary-hover: #f57f17;
   --auth-accent: #ff8f00;
+  --checkout-accent: #36c5d8;
   --primary-foreground: oklch(0.145 0 0);
   --secondary: #003566;
   --secondary-foreground: oklch(0.985 0 0);

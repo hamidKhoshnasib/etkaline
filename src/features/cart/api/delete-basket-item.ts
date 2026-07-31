@@ -1,9 +1,15 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { removeCachedBasketItem } from "./basket-cache";
 import { basketQueryKeys } from "./basket-query-keys";
+import { removeCachedCheckoutItem } from "./checkout-cache";
+import type { CheckoutDetails } from "./get-checkout-details";
+import type { OpenBasket } from "./get-open-basket";
+import { waitForBasketQuantityUpdates } from "./update-basket-quantity";
 
 interface DeleteBasketItemResponse {
   isSuccess?: unknown;
@@ -14,6 +20,11 @@ interface DeleteBasketItemResponse {
 export interface DeleteBasketItemInput {
   storeProductId: number;
   basketId: number;
+}
+
+interface DeleteBasketMutationContext {
+  previousBasket: OpenBasket | null | undefined;
+  previousCheckoutDetails: Array<[readonly unknown[], CheckoutDetails | undefined]>;
 }
 
 function responseMessage(response: DeleteBasketItemResponse) {
@@ -39,6 +50,8 @@ async function deleteBasketItem(input: DeleteBasketItemInput) {
     throw new Error("شناسه سبد خرید معتبر نیست.");
   }
 
+  await waitForBasketQuantityUpdates(input.basketId, input.storeProductId);
+
   let data: DeleteBasketItemResponse;
 
   try {
@@ -54,9 +67,43 @@ async function deleteBasketItem(input: DeleteBasketItemInput) {
 
 export function useDeleteBasketItem() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const queryKey = basketQueryKeys.open(session?.user.backendId);
 
-  return useMutation<void, Error, DeleteBasketItemInput>({
+  return useMutation<void, Error, DeleteBasketItemInput, DeleteBasketMutationContext>({
+    mutationKey: [...basketQueryKeys.all, "delete-item"],
     mutationFn: deleteBasketItem,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: basketQueryKeys.open }),
+    onMutate: async (input) => {
+      const checkoutQueryKey = basketQueryKeys.checkoutDetailsRoot(session?.user.backendId);
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey }),
+        queryClient.cancelQueries({ queryKey: checkoutQueryKey }),
+      ]);
+      const previousBasket = queryClient.getQueryData<OpenBasket | null>(queryKey);
+      const previousCheckoutDetails = queryClient.getQueriesData<CheckoutDetails>({
+        queryKey: checkoutQueryKey,
+      });
+      queryClient.setQueryData<OpenBasket | null>(queryKey, (basket) =>
+        removeCachedBasketItem(basket, input.storeProductId),
+      );
+      queryClient.setQueriesData<CheckoutDetails>({ queryKey: checkoutQueryKey }, (details) =>
+        removeCachedCheckoutItem(details, input.storeProductId),
+      );
+      return { previousBasket, previousCheckoutDetails };
+    },
+    onError: (_error, _input, context) => {
+      queryClient.setQueryData(queryKey, context?.previousBasket);
+      context?.previousCheckoutDetails.forEach(([checkoutQueryKey, details]) => {
+        queryClient.setQueryData(checkoutQueryKey, details);
+      });
+    },
+    onSettled: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey }),
+        queryClient.invalidateQueries({
+          queryKey: basketQueryKeys.checkoutDetailsRoot(session?.user.backendId),
+        }),
+      ]);
+    },
   });
 }

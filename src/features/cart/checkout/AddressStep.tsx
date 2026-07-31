@@ -1,217 +1,401 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
+import {
+  CalendarClock,
+  ChevronLeft,
+  Clock3,
+  Map,
+  MapPin,
+  Package,
+  Phone,
+  User,
+} from "lucide-react";
+
+import { AddressPicker } from "@/components/layout/header/AddressPicker";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppImage } from "@/components/ui/image";
-import { CalendarClock, Map, MapPin, Package, Phone, User } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
+import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
+import type { Address } from "@/features/address/api/use-addresses";
+import type {
+  DeliverySelection,
+  DeliverySelections,
+  ParcelKind,
+} from "@/features/cart/model/checkout";
 import { cn } from "@/lib/utils";
 import Price from "./Price";
-import { PARCEL_GROUPS, SHIPPING_ADDRESS, type ParcelGroup } from "@/features/cart/fixtures/cart";
 
 interface AddressStepProps {
+  address: Address | null;
+  checkoutDetails: CheckoutDetails;
+  selections: DeliverySelections;
+  onSelectionsChange: (selections: DeliverySelections) => void;
   onReadyChange: (ready: boolean) => void;
 }
 
-interface GroupSelection {
-  date?: string;
-  time?: string;
-  pickup?: boolean;
+interface DeliveryDateOption {
+  id: string;
+  label: string;
+  weekday: string;
+  price: number;
+  disabled: boolean;
 }
 
-// ─── Address card ─────────────────────────────────────────────────────────────
-
-function AddressCard() {
-  return (
-    <section className="rounded-2xl border-2 border-[#F57F17] bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <button className="body-small text-[#64748B] hover:text-[#F57F17]">تغییر آدرس</button>
-        <div className="flex items-center gap-2 text-[#F57F17]">
-          <h3 className="title-small-bold">انتخاب آدرس</h3>
-          <MapPin className="size-5" />
-        </div>
-      </div>
-
-      <div className="space-y-3 text-[#1E293B]">
-        <div className="flex items-center justify-end gap-2">
-          <span className="body-small text-[#64748B]">{SHIPPING_ADDRESS.postalCode}</span>
-          <Map className="size-4 text-[#64748B]" />
-          <span className="body-medium">{SHIPPING_ADDRESS.address}</span>
-          <MapPin className="size-4 text-[#64748B]" />
-        </div>
-
-        <p className="title-small-bold text-secondary text-right">گیرنده</p>
-        <div className="flex items-center justify-end gap-2">
-          <span className="body-small text-[#64748B]">{SHIPPING_ADDRESS.phone}</span>
-          <Phone className="size-4 text-[#64748B]" />
-          <span className="body-medium">{SHIPPING_ADDRESS.recipient}</span>
-          <User className="size-4 text-[#64748B]" />
-        </div>
-      </div>
-    </section>
-  );
+interface ParcelGroup {
+  id: ParcelKind;
+  title: string;
+  items: OpenBasketItem[];
 }
 
-// ─── Delivery group ───────────────────────────────────────────────────────────
+const persianDate = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+  day: "numeric",
+  month: "long",
+});
+const persianWeekday = new Intl.DateTimeFormat("fa-IR", { weekday: "long" });
 
-function DeliveryGroup({
-  group,
-  selection,
-  onChange,
-}: {
-  group: ParcelGroup;
-  selection: GroupSelection;
-  onChange: (next: GroupSelection) => void;
-}) {
+function parseDate(value: string) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function createDateOptions(details: CheckoutDetails): DeliveryDateOption[] {
+  const start = parseDate(details.deliveryStartDate);
+  const end = parseDate(details.deliveryEndDate);
+
+  if (!start) {
+    return [];
+  }
+
+  const last = end && end >= start ? end : start;
+  const options: DeliveryDateOption[] = [];
+  const cursor = new Date(start);
+
+  while (cursor <= last && options.length < 7) {
+    options.push({
+      id: cursor.toISOString(),
+      label: persianDate.format(cursor),
+      weekday: persianWeekday.format(cursor),
+      price: details.deliveryAmount,
+      disabled: false,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return options;
+}
+
+function createTimeOptions(deliveryTime: string) {
+  return deliveryTime
+    .split(/[,،|]/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function SelectedAddress({ address }: { address: Address }) {
   return (
-    <div className="space-y-5 border-t border-[#EEF1F4] pt-5 first:border-t-0 first:pt-0">
-      {/* Group title + thumbnails */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          {group.items.map((it) => (
-            <div
-              key={it.id}
-              className="relative size-16 overflow-hidden rounded-xl border border-[#E2E8F0] bg-gray-50"
-            >
-              <AppImage
-                src={it.image}
-                alt=""
-                width={64}
-                height={64}
-                className="size-full object-contain p-1"
-              />
-              <span className="bg-secondary/80 absolute bottom-0 left-0 rounded-tr-lg px-1.5 text-[11px] text-white">
-                {it.index}
-              </span>
-            </div>
-          ))}
-        </div>
-        <h4 className="title-small-bold text-[#0EA5E9]">{group.title}</h4>
+    <div className="border-primary-hover flex flex-col gap-3 rounded-xl border p-4">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+        <span className="flex items-center gap-2">
+          <MapPin className="text-muted-foreground size-4" aria-hidden="true" />
+          {address.address}
+        </span>
+        {address.postalCode ? (
+          <span className="text-muted-foreground flex items-center gap-2">
+            <Map className="size-4" aria-hidden="true" />
+            <bdi dir="ltr">{address.postalCode}</bdi>
+          </span>
+        ) : null}
       </div>
-
-      {/* Date selector */}
-      <div>
-        <div className="mb-3 flex items-center justify-end gap-2 text-[#0EA5E9]">
-          <span className="title-small-bold">انتخاب زمان</span>
-          <CalendarClock className="size-5" />
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {group.dates.map((d) => {
-            const active = selection.date === d.id;
-            return (
-              <button
-                key={d.id}
-                onClick={() => onChange({ ...selection, date: d.id })}
-                className={cn(
-                  "flex w-28 flex-col items-center gap-1 rounded-xl border bg-white px-3 py-3 transition-colors",
-                  active
-                    ? "border-2 border-[#0EA5E9]"
-                    : "border-[#E2E8F0] hover:border-[#0EA5E9]/50",
-                )}
-              >
-                <span className="body-small-bold text-secondary">{d.weekday}</span>
-                <span className="label-small text-[#64748B]">{d.date}</span>
-                <Price
-                  value={d.price}
-                  className="label-small text-secondary"
-                  iconClassName="size-3"
-                />
-              </button>
-            );
-          })}
-        </div>
+      <span className="text-secondary text-sm font-bold">گیرنده</span>
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+        <span className="flex items-center gap-2">
+          <User className="size-4" aria-hidden="true" />
+          {address.recipient || "گیرنده ثبت نشده"}
+        </span>
+        {address.phone ? (
+          <span className="flex items-center gap-2">
+            <Phone className="size-4" aria-hidden="true" />
+            <bdi dir="ltr">{address.phone}</bdi>
+          </span>
+        ) : null}
       </div>
-
-      {/* Time slots — shown once a date is picked */}
-      {selection.date && (
-        <div>
-          <p className="body-small text-secondary mb-3 text-right">
-            زمان را برای ارسال در تاریخ <span className="text-[#0EA5E9]">دوشنبه ۳۰ فروردین</span>{" "}
-            انتخاب نمایید:
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {group.times.map((t) => {
-              const active = selection.time === t;
-              return (
-                <button
-                  key={t}
-                  onClick={() => onChange({ ...selection, time: t })}
-                  className={cn(
-                    "rounded-full border px-5 py-2.5 transition-colors",
-                    active
-                      ? "border-[#0EA5E9] bg-[#0EA5E9] text-white"
-                      : "text-secondary border-[#E2E8F0] hover:border-[#0EA5E9]/50",
-                  )}
-                >
-                  <span className="label-medium-bold">{t}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Pickup option */}
-      <label className="flex items-center justify-end gap-2 text-right">
-        <span className="body-small text-secondary">مایل هستم حضوری دریافت کنم.</span>
-        <input
-          type="checkbox"
-          checked={selection.pickup ?? false}
-          onChange={(e) => onChange({ ...selection, pickup: e.target.checked })}
-          className="accent-secondary size-4"
-        />
-      </label>
     </div>
   );
 }
 
-// ─── Step ─────────────────────────────────────────────────────────────────────
+function AddressSection({ address }: { address: Address | null }) {
+  return (
+    <Card className="gap-3 rounded-2xl py-5 shadow-none">
+      <CardHeader className="flex-row items-center justify-between px-5">
+        <CardTitle className="text-primary-hover flex items-center gap-2 font-bold">
+          <MapPin aria-hidden="true" />
+          انتخاب آدرس
+        </CardTitle>
+        <AddressPicker
+          trigger={
+            <Button type="button" variant="ghost" size="sm">
+              {address ? "تغییر آدرس" : "انتخاب آدرس"}
+              <ChevronLeft data-icon="inline-end" />
+            </Button>
+          }
+        />
+      </CardHeader>
+      {address ? (
+        <CardContent className="px-5">
+          <SelectedAddress address={address} />
+        </CardContent>
+      ) : null}
+    </Card>
+  );
+}
 
-export default function AddressStep({ onReadyChange }: AddressStepProps) {
-  const [selections, setSelections] = useState<Record<string, GroupSelection>>({});
+function ProductThumbnails({ items }: { items: OpenBasketItem[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.slice(0, 5).map((item) => (
+        <div
+          key={item.storeProductId}
+          className="bg-muted relative size-16 overflow-hidden rounded-xl border"
+        >
+          <AppImage
+            src={item.picUrl || item.pic || "/images/image-placeholder.svg"}
+            alt={item.productTitle}
+            width={64}
+            height={64}
+            className="size-full object-contain p-1"
+          />
+          <Badge className="absolute start-0 bottom-0 rounded-se-md rounded-es-none px-1.5 py-0 text-[10px]">
+            {item.productCount.toLocaleString("fa-IR")}
+          </Badge>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  const totalItems = PARCEL_GROUPS.reduce((sum, g) => sum + g.items.length, 0);
+function DeliveryGroup({
+  group,
+  dates,
+  times,
+  selection,
+  addressSelected,
+  onChange,
+}: {
+  group: ParcelGroup;
+  dates: DeliveryDateOption[];
+  times: string[];
+  selection?: DeliverySelection;
+  addressSelected: boolean;
+  onChange: (selection: DeliverySelection) => void;
+}) {
+  const selectedDate = dates.find((date) => date.id === selection?.dateIso);
 
-  const ready = PARCEL_GROUPS.every((g) => {
-    const s = selections[g.id];
-    return s?.pickup || (s?.date && s?.time);
-  });
-
-  useEffect(() => {
-    onReadyChange(ready);
-  }, [ready, onReadyChange]);
-
-  const update = (groupId: string, next: GroupSelection) =>
-    setSelections((prev) => ({ ...prev, [groupId]: next }));
+  function changeDate(date: DeliveryDateOption) {
+    if (!addressSelected || date.disabled) {
+      return;
+    }
+    onChange({
+      dateIso: date.id,
+      dateLabel: `${date.weekday} ${date.label}`,
+      time: "",
+      pickup: false,
+    });
+  }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-5">
-        <h1 className="title-medium-bold text-secondary text-center">آدرس و زمان ارسال</h1>
-      </section>
+    <section aria-labelledby={`parcel-${group.id}`} className="flex flex-col gap-5">
+      <div className="bg-muted rounded-lg px-4 py-3">
+        <h3 id={`parcel-${group.id}`} className="text-sm font-medium">
+          {group.title}
+        </h3>
+      </div>
+      <ProductThumbnails items={group.items} />
 
-      <AddressCard />
-
-      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-5">
-        <div className="mb-5 flex items-center justify-between">
-          <span className="body-small rounded-full bg-gray-100 px-3 py-1 text-[#64748B]">
-            {totalItems.toLocaleString("fa-IR")} کالا
-          </span>
-          <div className="text-secondary flex items-center gap-2">
-            <h3 className="title-small-bold">مرسوله</h3>
-            <Package className="size-5" />
+      <div className="flex flex-col gap-4">
+        <div className="text-checkout-accent flex items-center gap-2 self-start text-base font-bold">
+          <CalendarClock className="size-6" aria-hidden="true" />
+          انتخاب زمان
+        </div>
+        {dates.length > 0 ? (
+          <div
+            className="flex gap-3 overflow-x-auto pb-2"
+            role="radiogroup"
+            aria-label={`تاریخ ارسال ${group.title}`}
+          >
+            {dates.map((date) => {
+              const active = selection?.dateIso === date.id;
+              return (
+                <Button
+                  key={date.id}
+                  type="button"
+                  variant="outline"
+                  disabled={!addressSelected || date.disabled}
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => changeDate(date)}
+                  className={cn(
+                    "h-auto min-w-24 flex-col gap-1 rounded-xl px-3 py-3",
+                    active && "ring-checkout-accent ring-2",
+                  )}
+                >
+                  <span className="font-bold">{date.weekday}</span>
+                  <span className="text-muted-foreground text-xs">{date.label}</span>
+                  <Price
+                    value={date.price}
+                    className="text-secondary text-xs"
+                    iconClassName="size-3"
+                  />
+                </Button>
+              );
+            })}
           </div>
-        </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            بازهٔ قابل انتخابی از سرویس ارسال دریافت نشد.
+          </p>
+        )}
+      </div>
 
-        <div className="space-y-6">
-          {PARCEL_GROUPS.map((group) => (
-            <DeliveryGroup
-              key={group.id}
-              group={group}
-              selection={selections[group.id] ?? {}}
-              onChange={(next) => update(group.id, next)}
-            />
-          ))}
+      {selectedDate ? (
+        <div className="flex flex-col gap-4 border-e pe-4">
+          <p className="text-sm">
+            زمان ارسال در تاریخ{" "}
+            <strong className="text-checkout-accent">
+              {selectedDate.weekday} {selectedDate.label}
+            </strong>{" "}
+            را انتخاب نمایید:
+          </p>
+          {times.length > 0 ? (
+            <div
+              className="flex flex-wrap gap-3"
+              role="radiogroup"
+              aria-label={`ساعت ارسال ${group.title}`}
+            >
+              {times.map((time) => {
+                const active = selection?.time === time;
+                return (
+                  <Button
+                    key={time}
+                    type="button"
+                    variant={active ? "secondary" : "outline"}
+                    size="sm"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() =>
+                      onChange({
+                        dateIso: selectedDate.id,
+                        dateLabel: `${selectedDate.weekday} ${selectedDate.label}`,
+                        time,
+                        pickup: false,
+                      })
+                    }
+                    className="rounded-full px-5"
+                  >
+                    <Clock3 data-icon="inline-start" />
+                    <bdi dir="ltr">{time}</bdi>
+                  </Button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              ساعت قابل انتخابی از سرویس ارسال دریافت نشد.
+            </p>
+          )}
         </div>
-      </section>
+      ) : null}
+
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={selection?.pickup ?? false}
+          disabled={!addressSelected}
+          onChange={(event) =>
+            onChange({
+              dateIso: "",
+              dateLabel: "دریافت حضوری",
+              time: "",
+              pickup: event.target.checked,
+            })
+          }
+          className="accent-secondary size-4"
+        />
+        مایل هستم حضوری دریافت کنم.
+      </label>
+    </section>
+  );
+}
+
+export default function AddressStep({
+  address,
+  checkoutDetails,
+  selections,
+  onSelectionsChange,
+  onReadyChange,
+}: AddressStepProps) {
+  const groups = useMemo<ParcelGroup[]>(() => {
+    const heavy = checkoutDetails.basketItems.filter((item) => item.isHeavyWeight);
+    const light = checkoutDetails.basketItems.filter((item) => !item.isHeavyWeight);
+    return [
+      ...(heavy.length ? [{ id: "heavy" as const, title: "کالاهای سنگین", items: heavy }] : []),
+      ...(light.length ? [{ id: "light" as const, title: "کالاهای سبک", items: light }] : []),
+    ];
+  }, [checkoutDetails.basketItems]);
+  const dates = useMemo(() => createDateOptions(checkoutDetails), [checkoutDetails]);
+  const times = useMemo(
+    () => createTimeOptions(checkoutDetails.deliveryTime),
+    [checkoutDetails.deliveryTime],
+  );
+  const ready =
+    address !== null &&
+    groups.length > 0 &&
+    groups.every((group) => {
+      const selection = selections[group.id];
+      return selection?.pickup === true || Boolean(selection?.dateIso && selection.time);
+    });
+
+  useEffect(() => onReadyChange(ready), [onReadyChange, ready]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Card className="rounded-2xl py-7 shadow-none">
+        <CardHeader className="px-5 text-center">
+          <CardTitle className="text-secondary text-xl font-bold">آدرس و زمان ارسال</CardTitle>
+        </CardHeader>
+      </Card>
+
+      <AddressSection address={address} />
+
+      <Card className="rounded-2xl py-5 shadow-none">
+        <CardHeader className="flex-row items-center justify-between px-5">
+          <CardTitle className="text-secondary flex items-center gap-2 font-bold">
+            <Package aria-hidden="true" />
+            مرسوله
+          </CardTitle>
+          <Badge variant="secondary">{checkoutDetails.count.toLocaleString("fa-IR")} کالا</Badge>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-6 px-5">
+          {groups.map((group, index) => (
+            <div key={group.id} className="flex flex-col gap-6">
+              {index > 0 ? <Separator /> : null}
+              <DeliveryGroup
+                group={group}
+                dates={dates}
+                times={times}
+                selection={selections[group.id]}
+                addressSelected={address !== null}
+                onChange={(selection) =>
+                  onSelectionsChange({ ...selections, [group.id]: selection })
+                }
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }

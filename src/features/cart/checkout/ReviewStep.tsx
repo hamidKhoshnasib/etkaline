@@ -1,142 +1,268 @@
 "use client";
 
-import { ArrowLeft, CreditCard, Info, MapPin, Truck, Wallet } from "lucide-react";
+import { useEffect } from "react";
+import {
+  ArrowLeft,
+  Banknote,
+  Box,
+  CreditCard,
+  Info,
+  MapPin,
+  Package,
+  Truck,
+  WalletCards,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
+import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
+import type { Address } from "@/features/address/api/use-addresses";
+import type { DeliverySelections, ParcelKind } from "@/features/cart/model/checkout";
 import { cn } from "@/lib/utils";
 import Price from "./Price";
 import { usePaymentSelection, WALLET_BALANCE } from "./use-payment-selection";
-import { PAYMENT_GATEWAYS, SHIPPING_ADDRESS } from "@/features/cart/fixtures/cart";
 
 interface ReviewStepProps {
+  address: Address;
+  checkoutDetails: CheckoutDetails;
+  items: OpenBasketItem[];
+  selections: DeliverySelections;
   onEdit: () => void;
+  onPaymentReadyChange: (ready: boolean) => void;
 }
 
-function ShipmentTime({ label }: { label: string }) {
+function ShipmentTime({
+  kind,
+  label,
+  selections,
+}: {
+  kind: ParcelKind;
+  label: string;
+  selections: DeliverySelections;
+}) {
+  const selection = selections[kind];
+  if (!selection) {
+    return null;
+  }
+
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-[#64748B]">
-        <span className="body-small">ساعت ۱۲:۰۰</span>
-        <span className="text-gray-300">|</span>
-        <span className="body-small">چهارشنبه ۳۰ فروردین</span>
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="text-secondary flex items-center gap-2 font-bold">
+        {kind === "heavy" ? (
+          <Truck className="text-primary-hover size-5" />
+        ) : (
+          <Package className="text-primary-hover size-5" />
+        )}
+        {label}
       </div>
-      <div className="flex items-center gap-2 text-[#F57F17]">
-        <span className="title-small-bold">{label}</span>
-        <Truck className="size-5" />
+      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
+        <span>{selection.dateLabel}</span>
+        {!selection.pickup ? (
+          <>
+            <Separator orientation="vertical" className="h-5" />
+            <span>
+              ساعت <bdi dir="ltr">{selection.time}</bdi>
+            </span>
+          </>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export default function ReviewStep({ onEdit }: ReviewStepProps) {
-  const { method, walletInsufficient, selectMethod } = usePaymentSelection();
+function PaymentOption({
+  selected,
+  disabled,
+  title,
+  description,
+  icon: Icon,
+  children,
+  onClick,
+}: {
+  selected: boolean;
+  disabled?: boolean;
+  title: string;
+  description: string;
+  icon: typeof CreditCard;
+  children?: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      role="radio"
+      aria-checked={selected}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "h-auto w-full flex-wrap justify-between gap-4 rounded-xl px-5 py-5 text-start",
+        selected && "ring-checkout-accent ring-2",
+      )}
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        <span
+          className={cn(
+            "border-input flex size-5 shrink-0 items-center justify-center rounded-full border-2",
+            selected && "border-checkout-accent",
+          )}
+          aria-hidden="true"
+        >
+          {selected ? <span className="bg-checkout-accent size-2.5 rounded-full" /> : null}
+        </span>
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="flex items-center gap-2 font-bold">
+            <Icon data-icon="inline-start" />
+            {title}
+          </span>
+          <span className="text-muted-foreground text-xs font-normal whitespace-normal">
+            {description}
+          </span>
+        </span>
+      </span>
+      {children}
+    </Button>
+  );
+}
+
+export default function ReviewStep({
+  address,
+  checkoutDetails,
+  items,
+  selections,
+  onEdit,
+  onPaymentReadyChange,
+}: ReviewStepProps) {
+  const { method, walletInsufficient, selectMethod } = usePaymentSelection(
+    checkoutDetails.payableAmount,
+  );
+  const heavyCount = items
+    .filter((item) => item.isHeavyWeight)
+    .reduce((sum, item) => sum + item.productCount, 0);
+  const lightCount = items
+    .filter((item) => !item.isHeavyWeight)
+    .reduce((sum, item) => sum + item.productCount, 0);
+
+  useEffect(() => onPaymentReadyChange(method !== null), [method, onPaymentReadyChange]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <section className="relative rounded-2xl border border-[#E2E8F0] bg-white p-5">
-        <button
-          onClick={onEdit}
-          className="hover:text-secondary absolute top-5 left-5 flex items-center gap-1 text-[#64748B]"
-        >
-          <span className="body-small">تغییر آدرس و زمان ارسال</span>
-          <ArrowLeft className="size-4" />
-        </button>
-        <h1 className="title-medium-bold text-secondary text-center">بررسی نهایی</h1>
-      </section>
+    <div className="flex flex-col gap-6">
+      <Card className="relative rounded-2xl py-7 shadow-none">
+        <CardHeader className="px-5 text-center">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onEdit}
+            className="absolute start-4 top-5"
+          >
+            تغییر آدرس و زمان ارسال
+            <ArrowLeft data-icon="inline-end" />
+          </Button>
+          <CardTitle className="text-secondary text-xl font-bold">بررسی نهایی</CardTitle>
+        </CardHeader>
+      </Card>
 
-      {/* Info note */}
-      <div className="flex items-center justify-end gap-2 rounded-xl bg-gray-50 px-4 py-3 text-[#64748B]">
-        <p className="body-small text-right">
-          این سفارش در چند نوبت (مرسوله) ارسال می‌شود چون شامل کالای سنگین یا روش ارسال متفاوت است
+      <div className="text-muted-foreground flex items-start gap-2 px-2 text-sm">
+        <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <p>
+          این سفارش ممکن است در چند نوبت ارسال شود، چون شامل کالای سنگین یا روش ارسال متفاوت است.
         </p>
-        <Info className="size-5 shrink-0" />
       </div>
 
-      {/* Shipment times */}
-      <section className="space-y-4 rounded-2xl border border-[#E2E8F0] bg-white p-5">
-        <ShipmentTime label="زمان ارسال کالای سنگین" />
-        <ShipmentTime label="زمان ارسال کالای سبک" />
-      </section>
+      <Card className="rounded-2xl py-5 shadow-none">
+        <CardContent className="flex flex-col gap-5 px-5">
+          <ShipmentTime kind="heavy" label="زمان ارسال کالای سنگین" selections={selections} />
+          {selections.heavy && selections.light ? <Separator /> : null}
+          <ShipmentTime kind="light" label="زمان ارسال کالای سبک" selections={selections} />
+        </CardContent>
+      </Card>
 
-      {/* Selected address */}
-      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-5">
-        <div className="mb-2 flex items-center justify-end gap-2 text-[#F57F17]">
-          <h3 className="title-small-bold">آدرس انتخاب شده</h3>
-          <MapPin className="size-5" />
-        </div>
-        <p className="body-medium text-secondary text-right">{SHIPPING_ADDRESS.address}</p>
-      </section>
+      <Card className="rounded-2xl py-5 shadow-none">
+        <CardHeader className="px-5">
+          <CardTitle className="text-secondary flex items-center gap-2 font-bold">
+            <MapPin className="text-primary-hover" aria-hidden="true" />
+            آدرس انتخاب‌شده
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-muted-foreground px-5 text-sm">{address.address}</CardContent>
+      </Card>
 
-      {/* Parcel summary */}
-      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#64748B]">
-            <span className="body-small">۱ کالای سنگین</span>
-            <span className="text-gray-300">|</span>
-            <span className="body-small">۲ کالای سبک</span>
+      <Card className="rounded-2xl py-5 shadow-none">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 px-5">
+          <div className="text-secondary flex items-center gap-2 font-bold">
+            <Box className="text-primary-hover" aria-hidden="true" />
+            مرسوله
           </div>
-          <div className="text-secondary flex items-center gap-2">
-            <h3 className="title-small-bold">مرسوله</h3>
-            <CreditCard className="size-5" />
+          <div className="flex items-center gap-2">
+            {lightCount > 0 ? (
+              <Badge variant="outline">{lightCount.toLocaleString("fa-IR")} کالای سبک</Badge>
+            ) : null}
+            {heavyCount > 0 ? (
+              <Badge variant="outline">{heavyCount.toLocaleString("fa-IR")} کالای سنگین</Badge>
+            ) : null}
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      {/* Payment: gateway */}
-      <button
-        onClick={() => selectMethod("gateway")}
-        className={cn(
-          "flex w-full items-center justify-between rounded-2xl border-2 bg-white p-5 transition-colors",
-          method === "gateway" ? "border-[#0EA5E9] bg-[#0EA5E9]/5" : "border-[#E2E8F0]",
-        )}
-      >
-        <div className="flex gap-2">
-          {PAYMENT_GATEWAYS.map((name) => (
-            <span
-              key={name}
-              className="bg-secondary flex size-10 items-center justify-center rounded-lg text-xs text-white"
+      <div className="flex flex-col gap-6" role="radiogroup" aria-label="روش پرداخت">
+        <Card className="rounded-2xl py-5 shadow-none">
+          <CardHeader className="px-5">
+            <CardTitle className="flex items-center gap-2 font-medium">
+              <CreditCard className="text-secondary" aria-hidden="true" />
+              درگاه اینترنتی
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5">
+            <PaymentOption
+              selected={method === "gateway"}
+              title="پرداخت از تمامی درگاه‌های عضو شتاب"
+              description="پس از ثبت سفارش به درگاه امن بانکی هدایت می‌شوید."
+              icon={Banknote}
+              onClick={() => selectMethod("gateway")}
             >
-              {name.slice(0, 2)}
-            </span>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="body-medium text-secondary">پرداخت از تمامی درگاه‌های عضو شتاب</span>
-          <span
-            className={cn(
-              "flex size-5 items-center justify-center rounded-full border-2",
-              method === "gateway" ? "border-[#0EA5E9]" : "border-gray-300",
-            )}
-          >
-            {method === "gateway" && <span className="size-2.5 rounded-full bg-[#0EA5E9]" />}
-          </span>
-        </div>
-      </button>
+              <div className="flex gap-2" aria-label="درگاه‌های بانکی">
+                {["ملت", "ملی", "سامان", "پاسارگاد"].map((gateway) => (
+                  <Badge key={gateway} variant="secondary" className="hidden sm:inline-flex">
+                    {gateway}
+                  </Badge>
+                ))}
+              </div>
+            </PaymentOption>
+          </CardContent>
+        </Card>
 
-      {/* Payment: wallet */}
-      <button
-        onClick={() => selectMethod("wallet")}
-        disabled={walletInsufficient}
-        className={cn(
-          "flex w-full items-center justify-between rounded-2xl border-2 bg-white p-5 transition-colors disabled:cursor-not-allowed",
-          method === "wallet" ? "border-[#0EA5E9] bg-[#0EA5E9]/5" : "border-[#E2E8F0]",
-        )}
-      >
-        {walletInsufficient ? (
-          <span className="label-medium rounded-md bg-[#FEE2E2] px-2 py-1 text-[#EF4444]">
-            موجودی کیف پول کافی نیست!
-          </span>
-        ) : (
-          <span />
-        )}
-        <div className="flex items-center gap-3">
-          <Price value={WALLET_BALANCE} className="body-medium text-secondary" />
-          <span className="body-medium text-[#64748B]">موجودی</span>
-          <div className="text-secondary flex items-center gap-2">
-            <span className="title-small-bold">کیف پول</span>
-            <Wallet className="size-5" />
-          </div>
-        </div>
-      </button>
+        <Card className="rounded-2xl py-5 shadow-none">
+          <CardHeader className="px-5">
+            <CardTitle className="flex items-center gap-2 font-medium">
+              <WalletCards className="text-primary-hover" aria-hidden="true" />
+              کیف پول
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5">
+            <PaymentOption
+              selected={method === "wallet"}
+              disabled={walletInsufficient}
+              title="پرداخت با موجودی کیف پول"
+              description={
+                walletInsufficient
+                  ? "موجودی کیف پول برای این سفارش کافی نیست."
+                  : "کل مبلغ از کیف پول کسر می‌شود."
+              }
+              icon={WalletCards}
+              onClick={() => selectMethod("wallet")}
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-muted-foreground text-xs">موجودی</span>
+                <Price value={WALLET_BALANCE} className="text-secondary text-sm" />
+              </span>
+            </PaymentOption>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

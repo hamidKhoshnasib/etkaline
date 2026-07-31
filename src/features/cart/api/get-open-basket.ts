@@ -68,7 +68,7 @@ function booleanValue(value: unknown): boolean {
   return value === true;
 }
 
-function parseBasketItems(value: unknown): OpenBasketItem[] {
+export function parseBasketItems(value: unknown): OpenBasketItem[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -145,6 +145,15 @@ export function parseOpenBasketResponse(response: OpenBasketResponse): OpenBaske
   return parseOpenBasket(response.value);
 }
 
+export function parseRequiredOpenBasketResponse(response: OpenBasketResponse): OpenBasket {
+  const basket = parseOpenBasketResponse(response);
+  if (!basket) {
+    throw new Error("پاسخ سبد خرید معتبر نیست.");
+  }
+
+  return basket;
+}
+
 async function getOpenBasket(): Promise<OpenBasket | null> {
   let data: OpenBasketResponse;
 
@@ -158,11 +167,15 @@ async function getOpenBasket(): Promise<OpenBasket | null> {
 }
 
 export function useOpenBasket() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const customerId = session?.user.backendId;
 
   return useQuery<OpenBasket | null, Error>({
-    queryKey: basketQueryKeys.open,
+    queryKey: basketQueryKeys.open(customerId),
     queryFn: getOpenBasket,
-    enabled: status === "authenticated",
+    enabled:
+      status === "authenticated" && Number.isSafeInteger(customerId) && (customerId ?? 0) > 0,
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
   });
 }

@@ -15,3 +15,8 @@ export { useUpdateBasketQuantity } from "./api/update-basket-quantity";
 export type { UpdateBasketQuantityInput } from "./api/update-basket-quantity";
 export { useDeleteBasketItem } from "./api/delete-basket-item";
 export type { DeleteBasketItemInput } from "./api/delete-basket-item";
+export { useAddToBasket } from "./api/add-to-basket";
+export type { AddToBasketInput } from "./api/add-to-basket";
+export { useBasketItem } from "./api/use-basket-item";
+export { useCheckoutDetails } from "./api/get-checkout-details";
+export type { CheckoutDetails, GetCheckoutDetailsInput } from "./api/get-checkout-details";

@@ -2,6 +2,16 @@ import type { CartItem } from "./cart";
 
 // وضعیت‌های مجاز checkout در یک ماشین حالت ساده و قابل تست
 export type CheckoutStep = "cart" | "address" | "review";
+export type ParcelKind = "heavy" | "light";
+
+export interface DeliverySelection {
+  dateIso: string;
+  dateLabel: string;
+  time: string;
+  pickup: boolean;
+}
+
+export type DeliverySelections = Partial<Record<ParcelKind, DeliverySelection>>;
 export const CHECKOUT_COSTS = {
   shipping: 183_000_000,
   service: 183_000_000,
