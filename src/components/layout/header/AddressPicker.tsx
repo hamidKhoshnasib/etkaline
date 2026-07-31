@@ -220,14 +220,14 @@ export function AddressPicker({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 overflow-hidden rounded-[28px] p-0",
+          "flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden rounded-[28px] p-0",
           activeStep === "addresses"
             ? "flex h-[min(calc(100dvh-2rem),36rem)] flex-col sm:max-w-[30rem]"
             : "sm:max-w-[38rem]",
         )}
       >
         <DialogHeader
-          className={`relative flex-row items-center justify-between border-b px-6 ${
+          className={`relative shrink-0 flex-row items-center justify-between border-b px-6 ${
             activeStep === "addresses" ? "h-[89px]" : "py-5"
           }`}
         >
