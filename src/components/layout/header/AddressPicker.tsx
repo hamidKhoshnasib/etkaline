@@ -220,10 +220,10 @@ export function AddressPicker({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 rounded-[28px] p-0",
+          "max-h-[calc(100dvh-2rem)] max-w-[calc(100%-2rem)] gap-0 overflow-hidden rounded-[28px] p-0",
           activeStep === "addresses"
-            ? "flex h-[min(calc(100dvh-2rem),36rem)] flex-col overflow-hidden sm:max-w-[30rem]"
-            : "overflow-y-auto sm:max-w-[38rem]",
+            ? "flex h-[min(calc(100dvh-2rem),36rem)] flex-col sm:max-w-[30rem]"
+            : "sm:max-w-[38rem]",
         )}
       >
         <DialogHeader
@@ -290,7 +290,7 @@ export function AddressPicker({
         <div
           key={activeStep}
           className={cn(
-            "animate-in fade-in slide-in-from-right-4 duration-200",
+            "animate-in fade-in slide-in-from-right-4 min-h-0 flex-1 overflow-y-auto overscroll-contain duration-200",
             activeStep === "addresses" && "flex min-h-0 flex-1 flex-col",
           )}
         >
