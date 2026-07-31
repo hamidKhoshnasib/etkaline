@@ -39,7 +39,7 @@ export function ProductSummary({
   return (
     <div className="min-w-0 flex-1">
       {/* Title */}
-      <h1 className="text-secondary mb-3 lg:title-medium lg:mb-4 body-large-bold lg:leading-relaxed">
+      <h1 className="text-secondary lg:title-medium body-large-bold mb-3 lg:mb-4 lg:leading-relaxed">
         {title}
       </h1>
 
