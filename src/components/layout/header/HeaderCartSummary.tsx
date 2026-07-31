@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Minus, Plus, Refrigerator, ShoppingCart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ function formatPrice(value: number) {
 }
 
 export function HeaderCartSummary() {
+  const [open, setOpen] = useState(false);
   const { data: basket, isError, isPending } = useOpenBasket();
   const { isPending: isUpdatingQuantity, mutateAsync: updateQuantity } = useUpdateBasketQuantity();
   const { isPending: isDeletingItem, mutateAsync: deleteItem } = useDeleteBasketItem();
@@ -50,7 +52,7 @@ export function HeaderCartSummary() {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         render={
           <button
@@ -174,6 +176,7 @@ export function HeaderCartSummary() {
             </div>
             <Button
               render={<Link href="/cart" />}
+              onClick={() => setOpen(false)}
               disabled={isPending || isError}
               className="bg-primary text-secondary hover:bg-primary/85 h-11 rounded-full px-5"
             >
