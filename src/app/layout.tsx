@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Footer } from "@/components/layout/footer/Footer";
 import { RouteAwareFooter } from "@/components/layout/footer/RouteAwareFooter";
@@ -58,7 +59,9 @@ export default async function RootLayout({
 
   return (
     <html lang="fa" dir="rtl" className={`${iranYekan.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <body
+        className={`${iranYekan.className} flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans! text-base! leading-normal! font-normal! lg:pb-0`}
+      >
         <DirectionProvider direction="rtl">
           <Providers session={session}>
             <Header />
@@ -67,6 +70,7 @@ export default async function RootLayout({
             <RouteAwareFooter>
               <Footer />
             </RouteAwareFooter>
+            <Script src="/js/map-service.js" strategy="afterInteractive" />
           </Providers>
         </DirectionProvider>
       </body>

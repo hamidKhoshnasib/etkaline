@@ -39,6 +39,7 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "node_modules/**",
     "next-env.d.ts",
+    "public/js/map-service.js",
   ]),
 ]);
 
