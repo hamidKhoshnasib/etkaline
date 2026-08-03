@@ -2,14 +2,14 @@
 
 <!-- این سند نقشه اجرایی زنده برای تبدیل تدریجی پروژه به معماری Feature-based است. -->
 
-| Field         | Value                                                    |
-| ------------- | -------------------------------------------------------- |
-| Status        | Phases 4 and 5 in progress                               |
-| Last updated  | 2026-08-03                                               |
+| Field         | Value                                                     |
+| ------------- | --------------------------------------------------------- |
+| Status        | Phases 4 and 5 in progress                                |
+| Last updated  | 2026-08-03                                                |
 | Current scope | Dual storefronts, shared routes, customer account, CMS    |
 | Out of scope  | Backend contracts, admin application, payment integration |
-| Architecture  | Feature-based with common UI primitives                  |
-| Migration     | Incremental; no big-bang rewrite                         |
+| Architecture  | Feature-based with common UI primitives                   |
+| Migration     | Incremental; no big-bang rewrite                          |
 
 This is a living document. Update its decisions, checklists, risks, and progress after every approved
 phase. A proposed decision is not approved until the user explicitly confirms it.
@@ -462,18 +462,18 @@ Update this document
 
 <!-- تصمیم‌های پیشنهادی تا زمان تأیید صریح کاربر نهایی نیستند. -->
 
-| ID    | Decision                                           | Status            | Notes                                                                 |
-| ----- | -------------------------------------------------- | ----------------- | --------------------------------------------------------------------- |
-| D-001 | Feature-based architecture is primary              | Confirmed         | Common primitives live in components/ui; no separate UI wrapper layer |
-| D-002 | Widgets are the organism-equivalent layer          | Rejected          | Header and Footer remain under components/layout; no widgets layer    |
-| D-003 | Move appliance URLs under `/appliances`            | Confirmed         | Appliance routes keep their public prefix                             |
-| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Rejected          | Root belongs to the supermarket storefront                            |
-| D-005 | Exclude supermarket implementation                 | Superseded        | Supermarket implementation was later approved                         |
-| D-006 | Keep CKEditor in the separate Blazor admin         | Confirmed         | Frontend renders safe published HTML                                  |
-| D-007 | Require feature-specific Skeletons                 | Confirmed         | Match final RTL responsive geometry                                   |
-| D-008 | Migrate incrementally with a passing build         | Confirmed         | No big-bang rewrite                                                   |
-| D-009 | Organize routes into three route groups            | Confirmed         | Supermarket, appliances, and shared groups preserve public URLs       |
-| D-010 | Control canonical URLs in storefront config        | Confirmed         | Validated API fields provide metadata content, not route identity      |
+| ID    | Decision                                           | Status     | Notes                                                                 |
+| ----- | -------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| D-001 | Feature-based architecture is primary              | Confirmed  | Common primitives live in components/ui; no separate UI wrapper layer |
+| D-002 | Widgets are the organism-equivalent layer          | Rejected   | Header and Footer remain under components/layout; no widgets layer    |
+| D-003 | Move appliance URLs under `/appliances`            | Confirmed  | Appliance routes keep their public prefix                             |
+| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Rejected   | Root belongs to the supermarket storefront                            |
+| D-005 | Exclude supermarket implementation                 | Superseded | Supermarket implementation was later approved                         |
+| D-006 | Keep CKEditor in the separate Blazor admin         | Confirmed  | Frontend renders safe published HTML                                  |
+| D-007 | Require feature-specific Skeletons                 | Confirmed  | Match final RTL responsive geometry                                   |
+| D-008 | Migrate incrementally with a passing build         | Confirmed  | No big-bang rewrite                                                   |
+| D-009 | Organize routes into three route groups            | Confirmed  | Supermarket, appliances, and shared groups preserve public URLs       |
+| D-010 | Control canonical URLs in storefront config        | Confirmed  | Validated API fields provide metadata content, not route identity     |
 
 ## 16. Progress log
 
@@ -508,4 +508,4 @@ Update this document
 | 2026-07-21 | Architecture | Removed widgets wrappers                  | Pending verification                                                              | Root layout imports Header and Footer directly from components/layout; widgets had no ownership beyond re-exports                                                          |
 | 2026-07-21 | Architecture | Removed UI wrapper barrels                | Pending verification                                                              | Deleted obsolete UI wrapper barrels; components/ui is the sole common UI boundary                                                                                          |
 | 2026-07-21 | Architecture | Removed src/shared                        | Pending verification                                                              | Site configuration moved to config and its redundant utility barrel was removed                                                                                            |
-| 2026-08-03 | Architecture | Grouped storefront and shared routes      | lint PASS; type-check PASS; build PASS; format-check FAIL (pre-existing debt)      | Public routes stayed unchanged; canonical, Open Graph, sitemap, and robots URLs now use storefront URL builders, while validated API metadata supplies page content          |
+| 2026-08-03 | Architecture | Grouped storefront and shared routes      | lint PASS; type-check PASS; build PASS; format-check FAIL (pre-existing debt)     | Public routes stayed unchanged; canonical, Open Graph, sitemap, and robots URLs now use storefront URL builders, while validated API metadata supplies page content        |
