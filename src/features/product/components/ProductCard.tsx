@@ -5,11 +5,14 @@ import Link from "next/link";
 import * as React from "react";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
+import EtkalineCartIcon from "@/assets/icons/etkaline-cart.svg";
 import ProductCardLeftActionIcon from "@/assets/icons/product-card-left-action.svg";
 import { AppImage } from "@/components/ui/image";
 import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductCardData } from "@/features/product/model/product";
+import { useQuickAdd } from "@/features/product/components/QuickAddDialogProvider";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface ProductCardProps extends ProductCardData {
   id?: number | string;
@@ -30,14 +33,23 @@ interface ProductCardProps extends ProductCardData {
 interface ProductCardLinkProps {
   id?: number | string;
   productUrl?: string;
+  urlTitle?: string | null;
   title: string;
   children: React.ReactNode;
   className?: string;
 }
 
-function ProductCardLink({ id, productUrl, title, children, className }: ProductCardLinkProps) {
+function ProductCardLink({
+  id,
+  productUrl,
+  urlTitle,
+  title,
+  children,
+  className,
+}: ProductCardLinkProps) {
+  const storefront = useStorefront();
   const href =
-    productUrl ?? (id === undefined ? null : `/products/${encodeURIComponent(String(id))}`);
+    productUrl ?? (id === undefined ? null : storefront.productHref(id, urlTitle ?? title));
   if (!href) {
     return children;
   }
@@ -53,6 +65,117 @@ function ProductCardLink({ id, productUrl, title, children, className }: Product
     >
       {children}
     </Link>
+  );
+}
+
+function SupermarketProductCard({
+  id,
+  productUrl,
+  image,
+  title,
+  price,
+  originalPrice,
+  discount,
+  outOfStock = false,
+  storeProductId,
+  urlTitle,
+  onAddToCart,
+  className,
+}: ProductCardProps) {
+  const quickAdd = useQuickAdd();
+  const openQuickAdd = () => {
+    if (onAddToCart) {
+      onAddToCart();
+      return;
+    }
+
+    if (id !== undefined) {
+      quickAdd?.openQuickAdd({
+        id,
+        image,
+        title,
+        price,
+        originalPrice,
+        discount,
+        outOfStock,
+        storeProductId,
+        urlTitle,
+      });
+    }
+  };
+
+  return (
+    <article
+      className={cn(
+        "group relative flex h-[262px] flex-col justify-between overflow-hidden rounded-[16px] border border-[#E2E8F0]",
+        className,
+      )}
+    >
+      <ProductCardLink
+        id={id}
+        productUrl={productUrl}
+        urlTitle={urlTitle}
+        title={title}
+        className="flex h-full flex-col justify-between"
+      >
+        <div className="relative h-[148px] shrink-0">
+          <AppImage
+            src={image}
+            alt={title}
+            width={153}
+            height={148}
+            className={cn("h-[148px] w-full object-cover", outOfStock && "opacity-45")}
+          />
+          {outOfStock ? (
+            <span className="text-muted-foreground absolute inset-x-3 bottom-2 rounded-lg bg-white/90 py-1 text-center text-xs">
+              اتمام موجودی
+            </span>
+          ) : null}
+        </div>
+
+        <div className="flex h-24 shrink-0 flex-col gap-1 px-[9px]">
+          <h3 className="line-clamp-2 h-12 shrink-0 text-sm leading-6 font-bold text-[#000814]">
+            {title}
+          </h3>
+          <div className="flex h-11 shrink-0 flex-col">
+            <div className="flex h-5 items-center justify-between px-[3px]" dir="ltr">
+              {originalPrice ? (
+                <s className="truncate text-xs leading-[19.6px] text-[#64748B]" dir="rtl">
+                  {formatProductPrice(originalPrice)}
+                </s>
+              ) : (
+                <span />
+              )}
+              {discount ? (
+                <span
+                  className="flex h-4 min-w-[26px] items-center justify-center rounded bg-[#43A047] px-0.5 text-xs leading-4 font-bold text-white"
+                  dir="rtl"
+                >
+                  {formatDiscountPercent(discount)}٪
+                </span>
+              ) : null}
+            </div>
+            <div className="flex h-6 items-center text-[#43A047]" dir="ltr">
+              <TomanIcon className="size-4.5 shrink-0 [&_path]:fill-current" aria-hidden="true" />
+              <span className="flex-1 text-base leading-6 font-bold">
+                {formatProductPrice(price)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </ProductCardLink>
+
+      {!outOfStock ? (
+        <button
+          type="button"
+          onClick={openQuickAdd}
+          aria-label={`افزودن سریع ${title} به سبد خرید`}
+          className="focus-visible:outline-primary absolute top-[100px] right-0 z-10 flex size-12 items-center justify-center rounded-full border border-[#43A047] bg-white transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <EtkalineCartIcon className="h-[17px] w-4" aria-hidden="true" />
+        </button>
+      ) : null}
+    </article>
   );
 }
 
@@ -80,7 +203,7 @@ function MobileProductCard({
             {discount && originalPrice && (
               <div className="flex items-center gap-1.5">
                 <s className="label-small text-gray-400">{formatProductPrice(originalPrice)}</s>
-                <span className="label-small rounded bg-orange-500 px-1 py-0.5 text-white">
+                <span className="bg-primary-hover label-small rounded px-1 py-0.5 text-white">
                   {formatDiscountPercent(discount)}٪
                 </span>
               </div>
@@ -130,7 +253,7 @@ function CatalogMobileProductCard({
             className="h-full w-full object-contain"
           />
           {discount ? (
-            <span className="absolute top-0 right-0 rounded-lg bg-orange-500 px-2 py-1 text-xs font-bold text-white">
+            <span className="bg-primary-hover absolute top-0 right-0 rounded-lg px-2 py-1 text-xs font-bold text-white">
               {formatDiscountPercent(discount)}٪
             </span>
           ) : null}
@@ -164,7 +287,10 @@ function ProductCard({
   originalPrice,
   discount,
   outOfStock = false,
+  storeProductId,
+  urlTitle,
   onCompare,
+  onAddToCart,
   disableHover = false,
   stickPriceToBottom = false,
   variant = "default",
@@ -174,6 +300,29 @@ function ProductCard({
   priceClassName,
   priceIconClassName,
 }: ProductCardProps) {
+  const { siteType } = useStorefront();
+
+  if (siteType === "supermarket") {
+    return (
+      <SupermarketProductCard
+        {...{
+          id,
+          productUrl,
+          image,
+          title,
+          price,
+          originalPrice,
+          discount,
+          outOfStock,
+          storeProductId,
+          urlTitle,
+          onAddToCart,
+          className,
+        }}
+      />
+    );
+  }
+
   if (variant === "mobile") {
     return (
       <MobileProductCard
@@ -202,6 +351,7 @@ function ProductCard({
       <ProductCardLink
         id={id}
         productUrl={productUrl}
+        urlTitle={urlTitle}
         title={title}
         className={stickPriceToBottom ? "flex flex-1 flex-col" : undefined}
       >

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 export interface ExtraPageLink {
   id: number;
@@ -37,10 +37,10 @@ function parseItems(value: unknown): ExtraPageLink[] {
   });
 }
 
-export async function getExtraPages(): Promise<ExtraPages> {
+export async function getExtraPages(siteType: SiteType): Promise<ExtraPages> {
   const response = await fetch(new URL("/api/ExtraPages", getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: ["extra-pages"] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`extra-pages-${siteType}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

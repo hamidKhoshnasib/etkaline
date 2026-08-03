@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 export type HomeLayoutType = 1 | 2;
 export type HomePlatformType = 1 | 2;
@@ -38,14 +38,15 @@ interface HomeLayoutResponse {
 export async function getHomeLayout(
   layoutType: HomeLayoutType,
   platformType: HomePlatformType,
+  siteType: SiteType,
 ): Promise<HomeLayoutItem[]> {
   const url = new URL("/api/Home/GetLayout", getServerApiBaseUrl());
   url.searchParams.set("LayoutType", String(layoutType));
   url.searchParams.set("PlatformType", String(platformType));
 
   const response = await fetch(url, {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: [`home-layout-${layoutType}-${platformType}`] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`home-layout-${siteType}-${layoutType}-${platformType}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

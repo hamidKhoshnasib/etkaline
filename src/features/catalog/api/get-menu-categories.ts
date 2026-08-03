@@ -1,8 +1,10 @@
 import "server-only";
 
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
+import { getStorefront } from "@/config/storefront";
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 interface CategoriesResponse {
   value?: unknown;
@@ -53,7 +55,8 @@ function parseCategory(value: unknown): ApiCategory | null {
   };
 }
 
-function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
+function buildMenuCategories(categories: ApiCategory[], siteType: SiteType): MenuCategory[] {
+  const storefront = getStorefront(siteType);
   const nodes = new Map<number, MenuCategory>();
   const parents = new Map<number, number | null>();
   const orders = new Map<number, number>();
@@ -63,7 +66,7 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
       nodes.set(category.id, {
         id: category.id,
         title: category.title,
-        href: `/categories/${category.id}`,
+        href: storefront.categoryHref(category.id),
         iconName: category.iconName ?? "",
         children: [],
       });
@@ -98,9 +101,9 @@ function buildMenuCategories(categories: ApiCategory[]): MenuCategory[] {
   return roots;
 }
 
-export async function getMenuCategories(): Promise<MenuCategory[]> {
+export async function getMenuCategories(siteType: SiteType): Promise<MenuCategory[]> {
   const response = await fetch(new URL("/api/Categories", getServerApiBaseUrl()), {
-    headers: await getServerApiHeaders(),
+    headers: await getServerApiHeaders(siteType),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });
@@ -117,6 +120,7 @@ export async function getMenuCategories(): Promise<MenuCategory[]> {
     payload.value
       .map(parseCategory)
       .filter((category): category is ApiCategory => category !== null),
+    siteType,
   );
 }
 
@@ -137,15 +141,21 @@ function findCategoryPathById(
   return null;
 }
 
-export async function getMenuCategoryPathById(categoryId: number): Promise<MenuCategory[] | null> {
+export async function getMenuCategoryPathById(
+  categoryId: number,
+  siteType: SiteType,
+): Promise<MenuCategory[] | null> {
   if (!Number.isInteger(categoryId) || categoryId <= 0) {
     return null;
   }
 
-  return findCategoryPathById(await getMenuCategories(), categoryId);
+  return findCategoryPathById(await getMenuCategories(siteType), categoryId);
 }
 
-export async function getMenuCategoryById(categoryId: number): Promise<MenuCategory | null> {
-  const categoryPath = await getMenuCategoryPathById(categoryId);
+export async function getMenuCategoryById(
+  categoryId: number,
+  siteType: SiteType,
+): Promise<MenuCategory | null> {
+  const categoryPath = await getMenuCategoryPathById(categoryId, siteType);
   return categoryPath?.[categoryPath.length - 1] ?? null;
 }

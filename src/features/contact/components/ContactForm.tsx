@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 const initialForm = {
   name: "",
@@ -16,6 +18,7 @@ const initialForm = {
 };
 
 export default function ContactForm() {
+  const { siteType } = useStorefront();
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export default function ContactForm() {
     try {
       const response = await fetch("/api/contact-us", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getSiteTypeHeaders(siteType) },
         body: JSON.stringify({
           fullName: form.name,
           email: form.email,

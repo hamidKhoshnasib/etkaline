@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -37,7 +38,10 @@ function getInternalHref(value: string | null): string | undefined {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : undefined;
 }
 
-export async function getBannersByLayoutId(layoutId: number): Promise<LayoutBanner[]> {
+export async function getBannersByLayoutId(
+  layoutId: number,
+  siteType: SiteType,
+): Promise<LayoutBanner[]> {
   if (!Number.isSafeInteger(layoutId) || layoutId <= 0) {
     return [];
   }
@@ -46,7 +50,7 @@ export async function getBannersByLayoutId(layoutId: number): Promise<LayoutBann
   url.searchParams.set("LayoutId", String(layoutId));
 
   const response = await fetch(url, {
-    headers: await getServerApiHeaders(),
+    headers: await getServerApiHeaders(siteType),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });

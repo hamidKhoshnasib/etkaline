@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -94,10 +94,10 @@ function parseBlogBanners(value: unknown): BlogBanner[] {
     .sort((first, second) => first.order - second.order);
 }
 
-export async function getBlogBanners(): Promise<BlogBanner[]> {
+export async function getBlogBanners(siteType: SiteType): Promise<BlogBanner[]> {
   const response = await fetch(`${API_BASE_URL}/api/Banners/GetBlogBanners`, {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: ["blog-banners"] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`blog-banners-${siteType}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

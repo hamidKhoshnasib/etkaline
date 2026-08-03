@@ -36,7 +36,7 @@ export function WelcomeDialog() {
                 <XIcon />
               </Button>
               <SmileIcon
-                className="size-11 shrink-0 text-yellow-300"
+                className="text-primary size-11 shrink-0"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />

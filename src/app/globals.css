@@ -61,6 +61,7 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #ffc300;
   --primary-hover: #f57f17;
+  --storefront-brand-surface: none;
   --auth-accent: #ff6d00;
   --checkout-accent: #00b8d4;
   --primary-foreground: oklch(0.145 0 0);
@@ -88,6 +89,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+[data-site="supermarket"] {
+  --primary: #43a047;
+  --primary-hover: #388e3c;
+  --storefront-brand-surface: linear-gradient(180deg, #42d778 0%, #34b171 100%);
+  --primary-foreground: #ffffff;
+  --auth-accent: #43a047;
+  --ring: #43a047;
 }
 
 .dark {
@@ -222,6 +232,12 @@
       background-position: center top;
       background-repeat: repeat;
     }
+  }
+
+  .storefront-brand-surface {
+    background-color: var(--primary);
+    background-image: var(--storefront-brand-surface);
+    background-size: cover;
   }
 
   [data-sonner-toaster].toaster {

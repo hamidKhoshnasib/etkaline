@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 export interface SocialNetwork {
   id: number;
@@ -74,10 +74,10 @@ function parseSocialNetwork(value: unknown): SocialNetwork | null {
   };
 }
 
-export async function getSocialNetworks(): Promise<SocialNetwork[]> {
+export async function getSocialNetworks(siteType: SiteType): Promise<SocialNetwork[]> {
   const response = await fetch(new URL("/api/SocialNetworks", getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: ["social-networks"] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`social-networks-${siteType}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

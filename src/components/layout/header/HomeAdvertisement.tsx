@@ -48,7 +48,7 @@ export function HomeAdvertisement() {
   return (
     <aside
       aria-label="تبلیغات"
-      className="bg-primary text-primary-foreground"
+      className="bg-primary text-primary-foreground hidden lg:block"
       style={{ backgroundColor, color: textColor }}
     >
       <Container className="flex min-h-12 items-center gap-3 py-2 sm:px-6">

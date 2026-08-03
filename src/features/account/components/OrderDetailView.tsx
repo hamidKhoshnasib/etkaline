@@ -209,7 +209,7 @@ function MobileOrderDetail({ order }: { order: MockOrder }) {
                           {formatMockPrice(product.price)}
                         </span>
                         {product.originalPrice && (
-                          <Badge className="border-0 bg-orange-500 text-[10px] text-white">
+                          <Badge className="border-0 bg-[#43A047] text-[10px] text-white">
                             ۳۰٪
                           </Badge>
                         )}

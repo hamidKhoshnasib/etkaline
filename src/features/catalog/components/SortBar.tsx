@@ -2,7 +2,9 @@
 
 import { SortDescIcon } from "lucide-react";
 
+import { SITE_TYPES } from "@/lib/api-site-type";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 const SORT_OPTIONS = [
   { id: "popular", label: "محبوب‌ترین" },
@@ -24,6 +26,14 @@ interface SortBarProps {
 }
 
 export function SortBar({ sort, onSort, total }: SortBarProps) {
+  const { siteType } = useStorefront();
+  const selectedMobileClass =
+    siteType === SITE_TYPES.supermarket
+      ? "border-[#43A047] bg-white text-[#43A047]"
+      : "border-orange-500 bg-white text-orange-500";
+  const selectedDesktopClass =
+    siteType === SITE_TYPES.supermarket ? "font-bold text-[#43A047]" : "font-bold text-orange-500";
+
   return (
     <>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-4 lg:hidden">
@@ -34,9 +44,7 @@ export function SortBar({ sort, onSort, total }: SortBarProps) {
             onClick={() => onSort(option.id)}
             className={cn(
               "shrink-0 rounded-full border px-5 py-2.5 text-sm font-medium transition-colors",
-              sort === option.id
-                ? "border-orange-500 bg-white text-orange-500"
-                : "border-slate-100 bg-white text-slate-600",
+              sort === option.id ? selectedMobileClass : "border-slate-100 bg-white text-slate-600",
             )}
           >
             {option.label}
@@ -62,9 +70,7 @@ export function SortBar({ sort, onSort, total }: SortBarProps) {
                 onClick={() => onSort(option.id)}
                 className={cn(
                   "text-xs transition-colors xl:text-sm",
-                  sort === option.id
-                    ? "font-bold text-orange-500"
-                    : "text-slate-500 hover:text-slate-700",
+                  sort === option.id ? selectedDesktopClass : "text-slate-500 hover:text-slate-700",
                 )}
               >
                 {option.label}

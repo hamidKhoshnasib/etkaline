@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 import { updateCachedBasketQuantity } from "./basket-cache";
 import { basketQueryKeys } from "./basket-query-keys";
 import { updateCachedCheckoutQuantity } from "./checkout-cache";
@@ -20,13 +22,15 @@ export interface UpdateBasketQuantityInput {
   basketId: number;
 }
 
+type QueuedBasketQuantityInput = UpdateBasketQuantityInput & { siteType: SiteType };
+
 interface QuantityUpdateWaiter {
   resolve: (basket: OpenBasket) => void;
   reject: (error: unknown) => void;
 }
 
 interface QuantityUpdateQueue {
-  pendingInput?: UpdateBasketQuantityInput;
+  pendingInput?: QueuedBasketQuantityInput;
   pendingWaiters: QuantityUpdateWaiter[];
   idleWaiters: Array<() => void>;
   lastQueuedAt: number;
@@ -51,13 +55,15 @@ function validateInput(input: UpdateBasketQuantityInput) {
   }
 }
 
-async function updateBasketQuantity(input: UpdateBasketQuantityInput): Promise<OpenBasket> {
+async function updateBasketQuantity(input: QueuedBasketQuantityInput): Promise<OpenBasket> {
   validateInput(input);
 
   let data: OpenBasketResponse;
 
   try {
-    ({ data } = await axiosClient.post<OpenBasketResponse>("/api/Baskets/UpdateQuantity", input));
+    ({ data } = await axiosClient.post<OpenBasketResponse>("/api/Baskets/UpdateQuantity", input, {
+      headers: getSiteTypeHeaders(input.siteType),
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -65,8 +71,8 @@ async function updateBasketQuantity(input: UpdateBasketQuantityInput): Promise<O
   return parseRequiredOpenBasketResponse(data);
 }
 
-function quantityUpdateKey(basketId: number, storeProductId: number) {
-  return `${basketId}:${storeProductId}`;
+function quantityUpdateKey(basketId: number, storeProductId: number, siteType: SiteType) {
+  return `${siteType}:${basketId}:${storeProductId}`;
 }
 
 function finishQuantityQueue(key: string, queue: QuantityUpdateQueue) {
@@ -119,11 +125,11 @@ function scheduleQuantityQueue(key: string, queue: QuantityUpdateQueue) {
 }
 
 export function updateBasketQuantityDebounced(
-  input: UpdateBasketQuantityInput,
+  input: QueuedBasketQuantityInput,
 ): Promise<OpenBasket> {
   validateInput(input);
 
-  const key = quantityUpdateKey(input.basketId, input.storeProductId);
+  const key = quantityUpdateKey(input.basketId, input.storeProductId, input.siteType);
   const queue = quantityUpdateQueues.get(key) ?? {
     pendingWaiters: [],
     idleWaiters: [],
@@ -141,8 +147,12 @@ export function updateBasketQuantityDebounced(
   });
 }
 
-export function waitForBasketQuantityUpdates(basketId: number, storeProductId: number) {
-  const queue = quantityUpdateQueues.get(quantityUpdateKey(basketId, storeProductId));
+export function waitForBasketQuantityUpdates(
+  basketId: number,
+  storeProductId: number,
+  siteType: SiteType,
+) {
+  const queue = quantityUpdateQueues.get(quantityUpdateKey(basketId, storeProductId, siteType));
   if (!queue) {
     return Promise.resolve();
   }
@@ -155,13 +165,17 @@ export function waitForBasketQuantityUpdates(basketId: number, storeProductId: n
 export function useUpdateBasketQuantity() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  const queryKey = basketQueryKeys.open(session?.user.backendId);
+  const { siteType } = useStorefront();
+  const queryKey = basketQueryKeys.open(siteType, session?.user.backendId);
 
   return useMutation<OpenBasket, Error, UpdateBasketQuantityInput>({
-    mutationKey: [...basketQueryKeys.all, "update-quantity"],
-    mutationFn: updateBasketQuantityDebounced,
+    mutationKey: [...basketQueryKeys.all(siteType), "update-quantity"],
+    mutationFn: (input) => updateBasketQuantityDebounced({ ...input, siteType }),
     onMutate: async (input) => {
-      const checkoutQueryKey = basketQueryKeys.checkoutDetailsRoot(session?.user.backendId);
+      const checkoutQueryKey = basketQueryKeys.checkoutDetailsRoot(
+        siteType,
+        session?.user.backendId,
+      );
       await Promise.all([
         queryClient.cancelQueries({ queryKey }),
         queryClient.cancelQueries({ queryKey: checkoutQueryKey }),
@@ -182,7 +196,7 @@ export function useUpdateBasketQuantity() {
       if (cachedItem?.productCount === input.quantity) {
         queryClient.setQueryData(queryKey, basket);
         void queryClient.invalidateQueries({
-          queryKey: basketQueryKeys.checkoutDetailsRoot(session?.user.backendId),
+          queryKey: basketQueryKeys.checkoutDetailsRoot(siteType, session?.user.backendId),
         });
       }
     },
@@ -190,7 +204,7 @@ export function useUpdateBasketQuantity() {
       await Promise.all([
         queryClient.resetQueries({ queryKey, exact: true }),
         queryClient.resetQueries({
-          queryKey: basketQueryKeys.checkoutDetailsRoot(session?.user.backendId),
+          queryKey: basketQueryKeys.checkoutDetailsRoot(siteType, session?.user.backendId),
         }),
       ]);
     },

@@ -70,9 +70,7 @@ export function ReviewCard({
                     key={i}
                     className={cn(
                       "size-3",
-                      i < rating
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "fill-gray-200 text-gray-200",
+                      i < rating ? "fill-primary text-primary" : "fill-gray-200 text-gray-200",
                     )}
                   />
                 ))}

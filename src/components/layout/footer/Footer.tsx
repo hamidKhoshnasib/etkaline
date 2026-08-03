@@ -14,6 +14,7 @@ import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href
 import { getFooterDescription } from "@/features/home/appliances/api/get-footer-description";
 import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
+import type { SiteType } from "@/lib/api-site-type";
 
 interface FooterLinkColumnProps {
   title: string;
@@ -53,13 +54,13 @@ function FooterLinkColumn({ title, items }: FooterLinkColumnProps) {
   );
 }
 
-async function FooterDescription() {
-  const footerDescription = await getFooterDescription();
+async function FooterDescription({ siteType }: { siteType: SiteType }) {
+  const footerDescription = await getFooterDescription(siteType);
   return footerDescription ? <p className="body-medium line-clamp-7">{footerDescription}</p> : null;
 }
 
-async function FooterExtraPagesColumn() {
-  const extraPages = await getExtraPages();
+async function FooterExtraPagesColumn({ siteType }: { siteType: SiteType }) {
+  const extraPages = await getExtraPages(siteType);
   return (
     <FooterLinkColumn
       title={LINK_COLUMNS[1].title}
@@ -71,21 +72,21 @@ async function FooterExtraPagesColumn() {
   );
 }
 
-async function FooterSocialLinks() {
+async function FooterSocialLinks({ siteType }: { siteType: SiteType }) {
   return (
     <SocialNetworkLinks
-      socialNetworks={await getSocialNetworks()}
+      socialNetworks={await getSocialNetworks(siteType)}
       className="flex justify-center gap-3 lg:justify-start"
     />
   );
 }
 
-export function Footer() {
+export function Footer({ siteType }: { siteType: SiteType }) {
   return (
     <footer className="relative overflow-hidden">
-      <FeatureBar />
+      <FeatureBar siteType={siteType} />
 
-      <div className="etkaline-pattern !bg-primary text-secondary relative isolate pt-52 lg:pt-24.5">
+      <div className="etkaline-pattern storefront-brand-surface text-secondary relative isolate pt-52 lg:pt-24.5">
         <AppSupportBar mobileVariant="support" />
 
         <Container fluid className="lg:container lg:mx-auto lg:px-0 lg:pt-12">
@@ -103,7 +104,7 @@ export function Footer() {
                 title="دریافت توضیحات فروشگاه ممکن نشد."
                 className="min-h-0 border-0 bg-transparent p-0"
               >
-                <FooterDescription />
+                <FooterDescription siteType={siteType} />
               </SectionErrorBoundary>
             </div>
 
@@ -112,7 +113,7 @@ export function Footer() {
               title="دریافت لینک‌های راهنما ممکن نشد."
               className="order-2 min-h-0 bg-transparent py-2 lg:order-0"
             >
-              <FooterExtraPagesColumn />
+              <FooterExtraPagesColumn siteType={siteType} />
             </SectionErrorBoundary>
 
             <div className="order-4 mt-6 mb-6 space-y-7.5 text-center lg:order-0 lg:mt-0 lg:mb-0 lg:text-right">
@@ -122,7 +123,7 @@ export function Footer() {
                   title="دریافت شبکه‌های اجتماعی ممکن نشد."
                   className="min-h-0 border-0 bg-transparent p-0"
                 >
-                  <FooterSocialLinks />
+                  <FooterSocialLinks siteType={siteType} />
                 </SectionErrorBoundary>
               </div>
               <div className="grid grid-cols-3 gap-3 lg:flex lg:gap-4">

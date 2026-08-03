@@ -8,9 +8,10 @@ import { categories, gridPosts, popularPosts, featuredPost } from "./data";
 import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
+import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
-async function BlogPromoBanners() {
-  const blogBanners = await getBlogBanners();
+async function BlogPromoBanners({ siteType }: { siteType: SiteType }) {
+  const blogBanners = await getBlogBanners(siteType);
   return blogBanners.map((banner) => (
     <BlogPromoBanner
       key={banner.id}
@@ -54,7 +55,7 @@ export default function BlogPage() {
 
       {/* ── Promotional banner ──────────────────────────────────────── */}
       <SectionErrorBoundary title="دریافت بنرهای مجله ممکن نشد.">
-        <BlogPromoBanners />
+        <BlogPromoBanners siteType={SITE_TYPES.supermarket} />
       </SectionErrorBoundary>
 
       {/* ── Featured article + sidebar ──────────────────────────────── */}

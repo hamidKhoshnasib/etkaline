@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 import { basketQueryKeys } from "./basket-query-keys";
 
 export interface OpenBasketItem {
@@ -154,11 +156,13 @@ export function parseRequiredOpenBasketResponse(response: OpenBasketResponse): O
   return basket;
 }
 
-async function getOpenBasket(): Promise<OpenBasket | null> {
+async function getOpenBasket(siteType: SiteType): Promise<OpenBasket | null> {
   let data: OpenBasketResponse;
 
   try {
-    ({ data } = await axiosClient.get<OpenBasketResponse>("/api/Baskets/GetOpenBasket"));
+    ({ data } = await axiosClient.get<OpenBasketResponse>("/api/Baskets/GetOpenBasket", {
+      headers: getSiteTypeHeaders(siteType),
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -168,11 +172,12 @@ async function getOpenBasket(): Promise<OpenBasket | null> {
 
 export function useOpenBasket() {
   const { data: session, status } = useSession();
+  const { siteType } = useStorefront();
   const customerId = session?.user.backendId;
 
   return useQuery<OpenBasket | null, Error>({
-    queryKey: basketQueryKeys.open(customerId),
-    queryFn: getOpenBasket,
+    queryKey: basketQueryKeys.open(siteType, customerId),
+    queryFn: () => getOpenBasket(siteType),
     enabled:
       status === "authenticated" && Number.isSafeInteger(customerId) && (customerId ?? 0) > 0,
     staleTime: 15_000,

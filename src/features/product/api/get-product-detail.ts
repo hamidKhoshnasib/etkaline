@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -20,6 +21,7 @@ interface ProductPropertyValue {
 export interface ProductDetailData {
   productId: number;
   title: string;
+  urlTitle: string;
   metaTitle: string;
   seoDesc: string;
   isFavorite: boolean;
@@ -135,6 +137,7 @@ function parseProductDetail(value: unknown): ProductDetailData | null {
   return {
     productId: value.productId,
     title: stringValue(value.title),
+    urlTitle: stringValue(value.urlTitle),
     metaTitle: stringValue(value.metaTitle),
     seoDesc: stringValue(value.seoDesc),
     isFavorite: booleanValue(value.isFavorite),
@@ -207,14 +210,14 @@ function parseProductDetail(value: unknown): ProductDetailData | null {
 }
 
 export const getProductDetail = cache(
-  async (productId: string): Promise<ProductDetailData | null> => {
+  async (productId: string, siteType: SiteType): Promise<ProductDetailData | null> => {
     if (!/^\d+$/.test(productId)) {
       return null;
     }
 
     try {
       const response = await fetch(new URL(`/api/Products/${productId}`, API_BASE_URL), {
-        headers: await getServerApiHeaders(),
+        headers: await getServerApiHeaders(siteType),
         cache: "no-store",
         signal: AbortSignal.timeout(15_000),
       });

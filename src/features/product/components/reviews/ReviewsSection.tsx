@@ -108,7 +108,7 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
                 className={cn(
                   "size-3",
                   i < Math.round(displayedAverageRating)
-                    ? "fill-yellow-400 text-yellow-400"
+                    ? "fill-primary text-primary"
                     : "fill-gray-200 text-gray-200",
                 )}
               />

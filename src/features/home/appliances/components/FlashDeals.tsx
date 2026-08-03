@@ -15,7 +15,9 @@ import { formatDiscountPercent, formatProductPrice } from "@/features/product/li
 import { ProductCard } from "@/features/product/components/ProductCard";
 import ProductSwiper from "@/features/product/components/ProductSwiper";
 import type { Product } from "@/features/product/model/product";
+import { SITE_TYPES } from "@/lib/api-site-type";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface FlashDealsProps {
   items: Product[];
@@ -73,9 +75,10 @@ function DealFilters({
 }
 
 function MobileDealCard({ product }: { product: Product }) {
+  const storefront = useStorefront();
   return (
     <Link
-      href={`/products/${encodeURIComponent(String(product.id))}`}
+      href={storefront.productHref(product.id, product.urlTitle ?? product.title)}
       aria-label={`مشاهده ${product.title}`}
       className="focus-visible:outline-primary flex h-[226px] w-[113px] flex-col overflow-hidden rounded-lg bg-white focus-visible:outline-2 focus-visible:outline-offset-2"
     >
@@ -214,6 +217,7 @@ function MobileFlashDeals({
 export default function FlashDeals({ items }: FlashDealsProps) {
   const [activeFilter, setActiveFilter] = useState<DealFilterId>("all");
   const filteredItems = filterDeals(items, activeFilter);
+  const { siteType } = useStorefront();
 
   return (
     <>
@@ -249,7 +253,11 @@ export default function FlashDeals({ items }: FlashDealsProps) {
                   price={product.price}
                   originalPrice={product.originalPrice}
                   discount={product.discount}
-                  className="h-[308px] w-full border-0"
+                  className={
+                    siteType === SITE_TYPES.supermarket
+                      ? "w-full border-0"
+                      : "h-[308px] w-full border-0"
+                  }
                   imageClassName="lg:h-[190px] lg:w-full"
                   priceClassName="text-primary-hover"
                   priceIconClassName="[&_path]:fill-primary-hover"

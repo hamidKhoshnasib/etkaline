@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 import { removeCachedBasketItem } from "./basket-cache";
 import { basketQueryKeys } from "./basket-query-keys";
 import { removeCachedCheckoutItem } from "./checkout-cache";
@@ -41,7 +43,7 @@ function responseMessage(response: DeleteBasketItemResponse) {
   );
 }
 
-async function deleteBasketItem(input: DeleteBasketItemInput) {
+async function deleteBasketItem(input: DeleteBasketItemInput, siteType: SiteType) {
   if (!Number.isSafeInteger(input.storeProductId) || input.storeProductId < 1) {
     throw new Error("شناسه کالا برای حذف معتبر نیست.");
   }
@@ -50,12 +52,14 @@ async function deleteBasketItem(input: DeleteBasketItemInput) {
     throw new Error("شناسه سبد خرید معتبر نیست.");
   }
 
-  await waitForBasketQuantityUpdates(input.basketId, input.storeProductId);
+  await waitForBasketQuantityUpdates(input.basketId, input.storeProductId, siteType);
 
   let data: DeleteBasketItemResponse;
 
   try {
-    ({ data } = await axiosClient.post<DeleteBasketItemResponse>("/api/Baskets/DeleteItem", input));
+    ({ data } = await axiosClient.post<DeleteBasketItemResponse>("/api/Baskets/DeleteItem", input, {
+      headers: getSiteTypeHeaders(siteType),
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -68,13 +72,17 @@ async function deleteBasketItem(input: DeleteBasketItemInput) {
 export function useDeleteBasketItem() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  const queryKey = basketQueryKeys.open(session?.user.backendId);
+  const { siteType } = useStorefront();
+  const queryKey = basketQueryKeys.open(siteType, session?.user.backendId);
 
   return useMutation<void, Error, DeleteBasketItemInput, DeleteBasketMutationContext>({
-    mutationKey: [...basketQueryKeys.all, "delete-item"],
-    mutationFn: deleteBasketItem,
+    mutationKey: [...basketQueryKeys.all(siteType), "delete-item"],
+    mutationFn: (input) => deleteBasketItem(input, siteType),
     onMutate: async (input) => {
-      const checkoutQueryKey = basketQueryKeys.checkoutDetailsRoot(session?.user.backendId);
+      const checkoutQueryKey = basketQueryKeys.checkoutDetailsRoot(
+        siteType,
+        session?.user.backendId,
+      );
       await Promise.all([
         queryClient.cancelQueries({ queryKey }),
         queryClient.cancelQueries({ queryKey: checkoutQueryKey }),
@@ -101,7 +109,7 @@ export function useDeleteBasketItem() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey }),
         queryClient.invalidateQueries({
-          queryKey: basketQueryKeys.checkoutDetailsRoot(session?.user.backendId),
+          queryKey: basketQueryKeys.checkoutDetailsRoot(siteType, session?.user.backendId),
         }),
       ]);
     },

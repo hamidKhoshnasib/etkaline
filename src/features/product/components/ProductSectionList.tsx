@@ -5,7 +5,14 @@ import { ProductCard, type ProductCardProps } from "@/features/product/component
 
 type ProductItem = Pick<
   ProductCardProps,
-  "title" | "image" | "price" | "originalPrice" | "discount"
+  | "title"
+  | "image"
+  | "price"
+  | "originalPrice"
+  | "discount"
+  | "outOfStock"
+  | "storeProductId"
+  | "urlTitle"
 > & {
   id: number | string;
 };
@@ -37,6 +44,9 @@ export default function ProductSectionList({
             price={item.price}
             originalPrice={item.originalPrice}
             discount={item.discount}
+            outOfStock={item.outOfStock}
+            storeProductId={item.storeProductId}
+            urlTitle={item.urlTitle}
           />
         ))}
       </div>

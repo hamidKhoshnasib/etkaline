@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import type { JWT } from "@auth/core/jwt";
 
 import { refreshAuthTokens, verifyCode } from "@/features/auth/api/etkala-auth-server";
+import { DEFAULT_SITE_TYPE, isSiteType } from "@/lib/api-site-type";
 
 interface SessionAddressUpdate {
   accessToken?: unknown;
@@ -64,16 +65,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         mobile: { label: "شماره موبایل", type: "tel" },
         code: { label: "کد تأیید", type: "text" },
+        siteType: { label: "نوع فروشگاه", type: "text" },
       },
       async authorize(credentials) {
         const mobile = typeof credentials.mobile === "string" ? credentials.mobile : "";
         const code = typeof credentials.code === "string" ? credentials.code : "";
+        const siteType = isSiteType(credentials.siteType)
+          ? credentials.siteType
+          : DEFAULT_SITE_TYPE;
 
         if (!mobile || !code) {
           return null;
         }
 
-        const response = await verifyCode(mobile, code);
+        const response = await verifyCode(mobile, code, siteType);
         if (!response.isSuccess || !response.value) {
           return null;
         }
@@ -93,6 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           passwordIsChanged: user.passwordIsChanged,
           accessToken,
           refreshToken,
+          siteType,
         };
       },
     }),
@@ -112,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.refreshToken = user.refreshToken.token;
         token.accessTokenExpires = new Date(user.accessToken.expireDate).getTime();
         token.error = undefined;
+        token.siteType = user.siteType;
         return token;
       }
 
@@ -132,7 +139,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       try {
-        const response = await refreshAuthTokens(token.accessToken, token.refreshToken);
+        const response = await refreshAuthTokens(
+          token.accessToken,
+          token.refreshToken,
+          token.siteType ?? DEFAULT_SITE_TYPE,
+        );
         if (!response.isSuccess || !response.value) {
           throw new Error(response.message);
         }

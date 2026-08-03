@@ -58,6 +58,7 @@ import {
 import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
 import { cn } from "@/lib/utils";
 import { setClientSessionSnapshot } from "@/lib/axios-client";
+import { useStorefront } from "@/providers/storefront-provider";
 
 type AddressStep = "addresses" | "location" | "details" | "store";
 
@@ -95,6 +96,7 @@ export function AddressPicker({
   editingAddress: externalEditingAddress,
   showMissingAddressPrompt = false,
 }: AddressPickerProps) {
+  const { siteType } = useStorefront();
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -110,7 +112,11 @@ export function AddressPicker({
   const formId = useId();
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
-  const hasNoApplianceStore = status === "authenticated" && !session.user.applianceStoreId;
+  const hasNoStore =
+    status === "authenticated" &&
+    (siteType === "supermarket"
+      ? !session.user.superMarketStoreId
+      : !session.user.applianceStoreId);
   const isExternallyEditing = Boolean(externalEditingAddress);
   const activeEditingAddress = externalEditingAddress ?? editingAddress;
   const activeCityId = externalEditingAddress?.cityId ?? cityId;
@@ -121,8 +127,8 @@ export function AddressPicker({
   const isOpen = controlledOpen ?? open;
 
   useEffect(() => {
-    if (!showMissingAddressPrompt || !hasNoApplianceStore || hasAutoPromptedRef.current) {
-      if (!hasNoApplianceStore) {
+    if (!showMissingAddressPrompt || !hasNoStore || hasAutoPromptedRef.current) {
+      if (!hasNoStore) {
         hasAutoPromptedRef.current = false;
       }
       return;
@@ -138,7 +144,7 @@ export function AddressPicker({
     window.sessionStorage.setItem(promptStorageKey, "true");
     const promptTimer = window.setTimeout(() => setOpen(true), 0);
     return () => window.clearTimeout(promptTimer);
-  }, [hasNoApplianceStore, session?.user.backendId, showMissingAddressPrompt]);
+  }, [hasNoStore, session?.user.backendId, showMissingAddressPrompt]);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -234,6 +240,7 @@ export function AddressPicker({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={configuredTrigger} />}
       <DialogContent
+        data-site={siteType}
         showCloseButton={false}
         className={cn(
           "flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden rounded-[28px] p-0",

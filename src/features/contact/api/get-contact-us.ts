@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 export interface ContactDetails {
   tel: string | null;
@@ -27,10 +27,10 @@ function parseContactDetails(value: unknown): ContactDetails | null {
   };
 }
 
-export async function getContactDetails(): Promise<ContactDetails | null> {
+export async function getContactDetails(siteType: SiteType): Promise<ContactDetails | null> {
   const response = await fetch(new URL("/api/ContactUs", getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: ["contact-details"] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`contact-details-${siteType}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

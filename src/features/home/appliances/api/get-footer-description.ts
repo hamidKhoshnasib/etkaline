@@ -1,17 +1,17 @@
 import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 interface FooterDescriptionResponse {
   value?: unknown;
   isSuccess?: boolean;
 }
 
-export async function getFooterDescription(): Promise<string | null> {
+export async function getFooterDescription(siteType: SiteType): Promise<string | null> {
   const response = await fetch(new URL("/api/Home/GetFooterDescription", getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: ["footer-description"] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`footer-description-${siteType}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

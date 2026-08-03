@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 import type { ApiResponse, AuthValue } from "@/types/auth";
 
 const AUTH_API_BASE_URL =
@@ -15,6 +15,7 @@ export type AuthServerResponse<T> = {
 
 export async function requestEtkalaAuthWithCookies<T>(
   endpoint: AuthEndpoint,
+  siteType: SiteType,
   init?: RequestInit,
 ): Promise<AuthServerResponse<T>> {
   const response = await fetch(`${AUTH_API_BASE_URL}/api/Auth/${endpoint}`, {
@@ -24,7 +25,7 @@ export async function requestEtkalaAuthWithCookies<T>(
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      ...SITE_TYPE_HEADERS,
+      ...getSiteTypeHeaders(siteType),
       ...init?.headers,
     },
     signal: AbortSignal.timeout(15_000),
@@ -42,20 +43,21 @@ export async function requestEtkalaAuthWithCookies<T>(
 
 export async function requestEtkalaAuth<T>(
   endpoint: AuthEndpoint,
+  siteType: SiteType,
   init?: RequestInit,
 ): Promise<ApiResponse<T>> {
-  return (await requestEtkalaAuthWithCookies<T>(endpoint, init)).payload;
+  return (await requestEtkalaAuthWithCookies<T>(endpoint, siteType, init)).payload;
 }
 
-export function verifyCode(mobile: string, code: string) {
-  return requestEtkalaAuth<AuthValue>("VerifyCode", {
+export function verifyCode(mobile: string, code: string, siteType: SiteType) {
+  return requestEtkalaAuth<AuthValue>("VerifyCode", siteType, {
     method: "POST",
     body: JSON.stringify({ mobile, code }),
   });
 }
 
-export function refreshAuthTokens(accessToken: string, refreshToken: string) {
-  return requestEtkalaAuth<AuthValue>("RefreshToken", {
+export function refreshAuthTokens(accessToken: string, refreshToken: string, siteType: SiteType) {
+  return requestEtkalaAuth<AuthValue>("RefreshToken", siteType, {
     method: "POST",
     body: JSON.stringify({ accessToken, refreshToken }),
   });

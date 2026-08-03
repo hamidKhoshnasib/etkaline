@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/features/auth/server";
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, parseSiteType } from "@/lib/api-site-type";
 
 interface LastLoginValue {
   loginDate: string;
@@ -22,7 +22,12 @@ function parseLastLogin(value: unknown): LastLoginValue | null {
   return { loginDate: record.loginDate, loginDateFa: record.loginDateFa };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const siteType = parseSiteType(request.headers.get("SiteType"));
+  if (!siteType) {
+    return NextResponse.json({ message: "SiteType is required." }, { status: 400 });
+  }
+
   const session = await auth();
   if (!session?.accessToken) {
     return NextResponse.json({ message: "Authentication is required." }, { status: 401 });
@@ -34,7 +39,7 @@ export async function GET() {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${session.accessToken}`,
-        ...SITE_TYPE_HEADERS,
+        ...getSiteTypeHeaders(siteType),
       },
       signal: AbortSignal.timeout(15_000),
     });

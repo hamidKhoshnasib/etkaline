@@ -1,7 +1,7 @@
 import "server-only";
 
 import { auth } from "@/features/auth/server";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, SITE_TYPES } from "@/lib/api-site-type";
 import type { ApiResponse } from "@/types/auth";
 import type {
   AddToBasketRequest,
@@ -26,7 +26,7 @@ async function basketRequest<T>(path: string, init?: RequestInit): Promise<ApiRe
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.accessToken}`,
-      ...SITE_TYPE_HEADERS,
+      ...getSiteTypeHeaders(SITE_TYPES.appliance),
       ...init?.headers,
     },
   });

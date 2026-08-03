@@ -29,6 +29,8 @@ import {
   type AuthLoadingState,
 } from "@/features/auth/model/auth";
 import type { ApiResponse, CaptchaValue } from "@/types/auth";
+import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 150;
@@ -45,9 +47,12 @@ interface LastLoginResponse {
   value?: LastLoginInfo;
 }
 
-async function showWelcomeDialog() {
+async function showWelcomeDialog(siteType: ReturnType<typeof useStorefront>["siteType"]) {
   try {
-    const response = await fetch("/api/profile/last-login", { cache: "no-store" });
+    const response = await fetch("/api/profile/last-login", {
+      cache: "no-store",
+      headers: getSiteTypeHeaders(siteType),
+    });
     const payload = (await response.json()) as LastLoginResponse;
     if (!response.ok || !payload.value?.loginDateFa) {
       return;
@@ -112,11 +117,19 @@ function waitForAuthenticatedSessionSync() {
   return { ready, cancel: cleanup };
 }
 
-async function authRequest<T>(url: string, init?: RequestInit) {
+async function authRequest<T>(
+  url: string,
+  siteType: ReturnType<typeof useStorefront>["siteType"],
+  init?: RequestInit,
+) {
   const response = await fetch(url, {
     ...init,
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...getSiteTypeHeaders(siteType),
+      ...init?.headers,
+    },
   });
   const payload = (await response.json()) as ApiResponse<T>;
 
@@ -127,6 +140,7 @@ async function authRequest<T>(url: string, init?: RequestInit) {
 }
 
 export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogProps) {
+  const { siteType } = useStorefront();
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<AuthStep>("login");
   const [mobile, setMobile] = React.useState("");
@@ -142,28 +156,31 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
   const normalizedMobile = normalizeMobileValue(mobile);
   const mobileIsValid = validateMobile(mobile);
 
-  const loadCaptcha = React.useCallback(async (clearError = true) => {
-    setLoading("captcha");
-    if (clearError) {
-      setError("");
-    }
-    setCaptcha("");
-
-    try {
-      const response = await authRequest<CaptchaValue>("/api/etkala-auth/captcha");
-      if (!response.isSuccess || !response.value) {
-        throw new Error(responseMessage(response, "دریافت تصویر امنیتی ناموفق بود."));
+  const loadCaptcha = React.useCallback(
+    async (clearError = true) => {
+      setLoading("captcha");
+      if (clearError) {
+        setError("");
       }
-      setCaptchaValue(response.value);
-    } catch (requestError) {
-      setCaptchaValue(null);
-      setError(
-        requestError instanceof Error ? requestError.message : "دریافت تصویر امنیتی ناموفق بود.",
-      );
-    } finally {
-      setLoading(null);
-    }
-  }, []);
+      setCaptcha("");
+
+      try {
+        const response = await authRequest<CaptchaValue>("/api/etkala-auth/captcha", siteType);
+        if (!response.isSuccess || !response.value) {
+          throw new Error(responseMessage(response, "دریافت تصویر امنیتی ناموفق بود."));
+        }
+        setCaptchaValue(response.value);
+      } catch (requestError) {
+        setCaptchaValue(null);
+        setError(
+          requestError instanceof Error ? requestError.message : "دریافت تصویر امنیتی ناموفق بود.",
+        );
+      } finally {
+        setLoading(null);
+      }
+    },
+    [siteType],
+  );
 
   React.useEffect(() => {
     if (!listenForOpenEvent) {
@@ -229,7 +246,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
     setError("");
 
     try {
-      const response = await authRequest<unknown>("/api/etkala-auth/login", {
+      const response = await authRequest<unknown>("/api/etkala-auth/login", siteType, {
         method: "POST",
         body: JSON.stringify({
           mobile: normalizedMobile,
@@ -266,6 +283,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
       const result = await signIn("credentials", {
         mobile: normalizedMobile,
         code: verificationCode,
+        siteType,
         redirect: false,
       });
 
@@ -276,7 +294,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
 
       await sessionSync.ready;
       window.dispatchEvent(new Event("etkala:authenticated"));
-      void showWelcomeDialog();
+      void showWelcomeDialog(siteType);
       const search = new URLSearchParams(window.location.search);
       const callbackUrl = search.get("callbackUrl");
       handleOpenChange(false);
@@ -301,7 +319,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
     setError("");
 
     try {
-      const response = await authRequest<never>("/api/etkala-auth/resend", {
+      const response = await authRequest<never>("/api/etkala-auth/resend", siteType, {
         method: "POST",
         body: JSON.stringify({ mobile: normalizedMobile }),
       });

@@ -5,10 +5,17 @@ export const SITE_TYPES = {
 
 export type SiteType = (typeof SITE_TYPES)[keyof typeof SITE_TYPES];
 
-// The application currently serves appliance pages only. Keep this centralized so routing can
-// select the site type when supermarket pages are introduced.
-export const CURRENT_SITE_TYPE: SiteType = SITE_TYPES.appliance;
+export const DEFAULT_SITE_TYPE: SiteType = SITE_TYPES.supermarket;
+export const STOREFRONT_COOKIE_NAME = "etkaline-storefront";
 
-export const SITE_TYPE_HEADERS = {
-  "site-type": CURRENT_SITE_TYPE,
-} as const;
+export function isSiteType(value: unknown): value is SiteType {
+  return value === SITE_TYPES.appliance || value === SITE_TYPES.supermarket;
+}
+
+export function parseSiteType(value: unknown): SiteType | null {
+  return isSiteType(value) ? value : null;
+}
+
+export function getSiteTypeHeaders(siteType: SiteType) {
+  return { SiteType: siteType } as const;
+}

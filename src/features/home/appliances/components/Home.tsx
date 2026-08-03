@@ -12,6 +12,7 @@ import Image37 from "@/assets/images/image 37.png";
 import Swiper1 from "@/assets/images/swiper1.png";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
+import type { SiteType } from "@/lib/api-site-type";
 
 const sampleArticles = [
   {
@@ -48,34 +49,34 @@ const sampleArticles = [
   },
 ];
 
-async function HomeHero() {
-  return <HeroSwiper banners={await getHomeBanners()} />;
+async function HomeHero({ siteType }: { siteType: SiteType }) {
+  return <HeroSwiper banners={await getHomeBanners(siteType)} />;
 }
 
-async function HomeCategories() {
-  return <CategoryStrip banners={await getCategoryBanners()} />;
+async function HomeCategories({ siteType }: { siteType: SiteType }) {
+  return <CategoryStrip banners={await getCategoryBanners(siteType)} />;
 }
 
-async function HomeBrands() {
-  const brands = await getHomeBrands();
+async function HomeBrands({ siteType }: { siteType: SiteType }) {
+  const brands = await getHomeBrands(siteType);
   return brands.length ? <PopularBrands brands={brands} /> : null;
 }
 
-export default function HomePage() {
+export default function HomePage({ siteType }: { siteType: SiteType }) {
   return (
     <main>
       <SectionErrorBoundary title="دریافت بنرهای صفحهٔ اصلی ممکن نشد.">
-        <HomeHero />
+        <HomeHero siteType={siteType} />
       </SectionErrorBoundary>
       <Container className="mt-5 space-y-6 pb-12 sm:mt-9 sm:space-y-9 sm:px-6 sm:pb-15">
         <SectionErrorBoundary title="دریافت دسته‌بندی‌ها ممکن نشد.">
-          <HomeCategories />
+          <HomeCategories siteType={siteType} />
         </SectionErrorBoundary>
         <SectionErrorBoundary title="دریافت چیدمان صفحهٔ اصلی ممکن نشد.">
-          <DynamicHomeLayout />
+          <DynamicHomeLayout siteType={siteType} />
         </SectionErrorBoundary>
         <SectionErrorBoundary title="دریافت برندها ممکن نشد.">
-          <HomeBrands />
+          <HomeBrands siteType={siteType} />
         </SectionErrorBoundary>
         <MagSection articles={sampleArticles} showMoreLink="/blog" />
       </Container>

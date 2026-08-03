@@ -3,6 +3,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 export interface ProductComment {
   id: number;
@@ -147,19 +149,24 @@ export function useProductComments(productId: number, page: number, pageLength =
 
 export function useCreateProductComment() {
   const queryClient = useQueryClient();
+  const { siteType } = useStorefront();
 
   return useMutation<CreateCommentResponse, Error, CreateProductCommentInput>({
     mutationFn: async ({ productId, text, score, recommend, parentId }) => {
       let data: CreateCommentResponse;
 
       try {
-        ({ data } = await axiosClient.post<CreateCommentResponse>("/api/Comments/Create", {
-          productId,
-          text,
-          score,
-          recommend,
-          ...(parentId !== undefined ? { parentId } : {}),
-        }));
+        ({ data } = await axiosClient.post<CreateCommentResponse>(
+          "/api/Comments/Create",
+          {
+            productId,
+            text,
+            score,
+            recommend,
+            ...(parentId !== undefined ? { parentId } : {}),
+          },
+          { headers: getSiteTypeHeaders(siteType) },
+        ));
       } catch (error) {
         throw new Error(getErrorMessage(error));
       }
@@ -171,12 +178,13 @@ export function useCreateProductComment() {
       return data;
     },
     onSuccess: (_, { productId }) =>
-      queryClient.invalidateQueries({ queryKey: ["product-comments", productId] }),
+      queryClient.invalidateQueries({ queryKey: [siteType, "product-comments", productId] }),
   });
 }
 
 export function useToggleProductCommentLike() {
   const queryClient = useQueryClient();
+  const { siteType } = useStorefront();
 
   return useMutation<CommentLikeResponse, Error, ToggleProductCommentLikeInput>({
     mutationFn: async ({ commentId, isLiked }) => {
@@ -186,6 +194,8 @@ export function useToggleProductCommentLike() {
       try {
         ({ data } = await axiosClient.post<CommentLikeResponse>(
           `/api/Comments/${action}/${commentId}`,
+          undefined,
+          { headers: getSiteTypeHeaders(siteType) },
         ));
       } catch (error) {
         throw new Error(getErrorMessage(error));
@@ -198,6 +208,6 @@ export function useToggleProductCommentLike() {
       return data;
     },
     onSuccess: (_, { productId }) =>
-      queryClient.invalidateQueries({ queryKey: ["product-comments", productId] }),
+      queryClient.invalidateQueries({ queryKey: [siteType, "product-comments", productId] }),
   });
 }

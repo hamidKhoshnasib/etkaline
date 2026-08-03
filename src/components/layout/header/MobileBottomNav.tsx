@@ -10,30 +10,50 @@ import { cn } from "@/lib/utils";
 
 import { MobileCategoryMenu } from "./MobileCategoryMenu";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
-
-const navigationItems = [
-  { href: "/", label: "خانه", Icon: House, exact: true, opensCategoryMenu: false },
-  { href: "/products", label: "دسته‌بندی", Icon: Grid2X2, exact: false, opensCategoryMenu: true },
-  { href: "/cart", label: "سبد خرید", Icon: ShoppingCart, exact: false, opensCategoryMenu: false },
-  {
-    href: "/account/profile",
-    label: "پروفایل",
-    Icon: UserRound,
-    exact: false,
-    opensCategoryMenu: false,
-  },
-] as const;
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface MobileBottomNavProps {
   categories: MenuCategory[];
 }
 
 export function MobileBottomNav({ categories }: MobileBottomNavProps) {
+  const storefront = useStorefront();
   const pathname = usePathname();
   const { status } = useSession();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = React.useState(false);
 
-  if (pathname.startsWith("/products/")) {
+  const navigationItems = [
+    {
+      href: storefront.homeHref,
+      label: "خانه",
+      Icon: House,
+      exact: true,
+      opensCategoryMenu: false,
+    },
+    {
+      href: storefront.searchHref,
+      label: "دسته‌بندی",
+      Icon: Grid2X2,
+      exact: false,
+      opensCategoryMenu: true,
+    },
+    {
+      href: storefront.cartHref,
+      label: "سبد خرید",
+      Icon: ShoppingCart,
+      exact: false,
+      opensCategoryMenu: false,
+    },
+    {
+      href: "/account/profile",
+      label: "پروفایل",
+      Icon: UserRound,
+      exact: false,
+      opensCategoryMenu: false,
+    },
+  ] as const;
+
+  if (pathname.startsWith("/products/") || pathname.startsWith(`${storefront.basePath}/product/`)) {
     return null;
   }
 

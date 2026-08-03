@@ -1,12 +1,9 @@
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
-
 const DEFAULT_API_URL = "https://test12.etkala.ir";
 
 export const API_TIMEOUT_MS = 15_000;
 
 export const API_DEFAULT_HEADERS = {
   "Content-Type": "application/json",
-  ...SITE_TYPE_HEADERS,
 } as const;
 
 export function getClientApiBaseUrl() {

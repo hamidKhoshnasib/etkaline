@@ -104,7 +104,7 @@ export function ReviewComposerDialog({
                     <StarIcon
                       className={cn(
                         "size-6",
-                        starValue <= score ? "fill-yellow-400 text-yellow-400" : "text-slate-300",
+                        starValue <= score ? "fill-primary text-primary" : "text-slate-300",
                       )}
                     />
                   </Button>

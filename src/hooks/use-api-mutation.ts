@@ -4,6 +4,8 @@ import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import type { AxiosRequestConfig } from "axios";
 
 import { axiosClient, type ApiError } from "@/lib/axios-client";
+import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 type HttpMethod = "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -19,6 +21,8 @@ export function useApiMutation<TBody = void, TData = void>({
   axiosConfig,
   ...mutationOptions
 }: UseApiMutationOptions<TBody, TData>) {
+  const { siteType } = useStorefront();
+
   return useMutation<TData, ApiError, TBody>({
     mutationFn: async (body) => {
       const { data } = await axiosClient.request<TData>({
@@ -26,6 +30,10 @@ export function useApiMutation<TBody = void, TData = void>({
         method,
         data: body,
         ...axiosConfig,
+        headers: {
+          ...getSiteTypeHeaders(siteType),
+          ...axiosConfig?.headers,
+        },
       });
       return data;
     },

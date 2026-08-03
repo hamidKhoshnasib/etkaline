@@ -5,6 +5,8 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 export interface LoginLog {
   id: number;
@@ -99,15 +101,17 @@ function parseLoginLogs(response: LoginLogsResponse): LoginLogsPage {
 }
 
 export function useLoginLogs(page: number, isSuccess: boolean, enabled: boolean) {
+  const { siteType } = useStorefront();
   const { status } = useSession();
 
   return useQuery<LoginLogsPage, Error>({
-    queryKey: ["profile", "login-logs", { isSuccess, page }],
+    queryKey: [siteType, "profile", "login-logs", { isSuccess, page }],
     enabled: enabled && status === "authenticated",
     queryFn: async () => {
       try {
         const { data } = await axiosClient.get<LoginLogsResponse>("/api/Profile/GetLoginLogs", {
           params: { Page: page, PageLength: 5, IsSuccess: isSuccess },
+          headers: getSiteTypeHeaders(siteType),
         });
         return parseLoginLogs(data);
       } catch (error) {

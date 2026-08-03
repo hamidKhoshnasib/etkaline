@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { API_TIMEOUT_MS, getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, parseSiteType } from "@/lib/api-site-type";
 
 const fieldLimits = {
   fullName: 150,
@@ -55,6 +55,11 @@ function getUpstreamMessage(payload: unknown) {
 }
 
 export async function POST(request: Request) {
+  const siteType = parseSiteType(request.headers.get("SiteType"));
+  if (!siteType) {
+    return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
+  }
+
   let input: unknown;
 
   try {
@@ -78,7 +83,7 @@ export async function POST(request: Request) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        ...SITE_TYPE_HEADERS,
+        ...getSiteTypeHeaders(siteType),
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(API_TIMEOUT_MS),

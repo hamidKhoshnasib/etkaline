@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
-import { SITE_TYPE_HEADERS } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 
 export interface ExtraPageFile {
   id: number;
@@ -67,10 +67,10 @@ function parseFiles(value: unknown): ExtraPageFile[] {
   });
 }
 
-export async function getExtraPage(id: number): Promise<ExtraPage | null> {
+export async function getExtraPage(id: number, siteType: SiteType): Promise<ExtraPage | null> {
   const response = await fetch(new URL(`/api/ExtraPages/${id}`, getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...SITE_TYPE_HEADERS },
-    next: { revalidate: 300, tags: [`extra-page:${id}`] },
+    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+    next: { revalidate: 300, tags: [`extra-page:${siteType}:${id}`] },
     signal: AbortSignal.timeout(15_000),
   });
 

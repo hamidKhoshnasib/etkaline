@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFavoriteProducts } from "@/features/account/api/use-favorite-products";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import { ProductCardSkeleton } from "@/features/product/components/ProductCardSkeleton";
+import { useStorefront } from "@/providers/storefront-provider";
 
 function WishlistProducts({
   page,
@@ -26,6 +27,7 @@ function WishlistProducts({
   page: number;
   onPageChange: (page: number) => void;
 }) {
+  const storefront = useStorefront();
   const { data, error, isFetching, isLoading } = useFavoriteProducts(page);
   const products = data?.products ?? [];
 
@@ -62,9 +64,7 @@ function WishlistProducts({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {products.map((product) => {
           const price = product.offPrice > 0 ? product.offPrice : product.mainPrice;
-          const productUrl = product.urlTitle
-            ? `/products/${encodeURIComponent(product.urlTitle)}`
-            : undefined;
+          const productUrl = storefront.productHref(product.id, product.urlTitle || product.title);
 
           return (
             <ProductCard

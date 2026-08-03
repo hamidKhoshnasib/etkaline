@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -84,12 +85,12 @@ function parseCategoryBanners(value: unknown): CategoryBanner[] {
     .map(({ order: _order, ...banner }) => banner);
 }
 
-export async function getCategoryBanners(): Promise<CategoryBanner[]> {
+export async function getCategoryBanners(siteType: SiteType): Promise<CategoryBanner[]> {
   const url = new URL("/api/Banners/GetByType", API_BASE_URL);
   url.searchParams.set("Type", "3");
 
   const response = await fetch(url, {
-    headers: await getServerApiHeaders(),
+    headers: await getServerApiHeaders(siteType),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });

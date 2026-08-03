@@ -4,6 +4,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 export interface Profile {
   id: number;
@@ -82,11 +84,13 @@ export function parseProfileResponse(response: ProfileResponse): Profile {
   };
 }
 
-async function getProfile(): Promise<Profile> {
+async function getProfile(siteType: SiteType): Promise<Profile> {
   let data: ProfileResponse;
 
   try {
-    ({ data } = await axiosClient.get<ProfileResponse>("/api/Profile"));
+    ({ data } = await axiosClient.get<ProfileResponse>("/api/Profile", {
+      headers: getSiteTypeHeaders(siteType),
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -94,11 +98,13 @@ async function getProfile(): Promise<Profile> {
   return parseProfileResponse(data);
 }
 
-async function updateProfile(input: UpdateProfileInput): Promise<void> {
+async function updateProfile(input: UpdateProfileInput, siteType: SiteType): Promise<void> {
   let data: ProfileResponse;
 
   try {
-    ({ data } = await axiosClient.put<ProfileResponse>("/api/Profile", input));
+    ({ data } = await axiosClient.put<ProfileResponse>("/api/Profile", input, {
+      headers: getSiteTypeHeaders(siteType),
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -109,11 +115,12 @@ async function updateProfile(input: UpdateProfileInput): Promise<void> {
 }
 
 export function useProfile() {
+  const { siteType } = useStorefront();
   const { status } = useSession();
 
   const query = useQuery<Profile, Error>({
-    queryKey: profileQueryKeys.detail,
-    queryFn: getProfile,
+    queryKey: [siteType, ...profileQueryKeys.detail],
+    queryFn: () => getProfile(siteType),
     enabled: status === "authenticated",
     staleTime: 60_000,
   });
@@ -122,8 +129,9 @@ export function useProfile() {
 }
 
 export function useUpdateProfile() {
+  const { siteType } = useStorefront();
   return useMutation<void, Error, UpdateProfileInput>({
-    mutationFn: updateProfile,
+    mutationFn: (input) => updateProfile(input, siteType),
     retry: false,
   });
 }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Container } from "@/components/ui/Container";
 import { getExtraPage } from "@/features/extra-pages/api/get-extra-page";
 import { sanitizeCmsHtml } from "@/features/cms-page/lib/sanitize-cms-html";
+import { SITE_TYPES } from "@/lib/api-site-type";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -20,7 +21,7 @@ function parsePageId(value: string): number | null {
 
 async function resolveExtraPage(params: Props["params"]) {
   const id = parsePageId((await params).id);
-  return id ? getExtraPage(id) : null;
+  return id ? getExtraPage(id, SITE_TYPES.supermarket) : null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

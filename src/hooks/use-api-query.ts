@@ -4,6 +4,8 @@ import { type QueryKey, useQuery, type UseQueryOptions } from "@tanstack/react-q
 import type { AxiosRequestConfig } from "axios";
 
 import { axiosClient, type ApiError } from "@/lib/axios-client";
+import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH";
 
@@ -25,8 +27,10 @@ export function useApiQuery<TRaw, TData = TRaw>({
   axiosConfig,
   ...queryOptions
 }: UseApiQueryOptions<TRaw, TData>) {
+  const { siteType } = useStorefront();
+
   return useQuery<TRaw, ApiError, TData>({
-    queryKey,
+    queryKey: [siteType, ...queryKey],
     queryFn: async ({ signal }) => {
       const { data } = await axiosClient.request<TRaw>({
         url,
@@ -34,6 +38,10 @@ export function useApiQuery<TRaw, TData = TRaw>({
         data: body,
         signal,
         ...axiosConfig,
+        headers: {
+          ...getSiteTypeHeaders(siteType),
+          ...axiosConfig?.headers,
+        },
       });
       return data;
     },

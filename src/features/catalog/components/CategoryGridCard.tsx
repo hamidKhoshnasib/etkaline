@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AppImage } from "@/components/ui/image";
+import { getStorefront } from "@/config/storefront";
+import type { SiteType } from "@/lib/api-site-type";
 
 interface CategoryGridItem {
   id: number | string;
@@ -14,14 +16,17 @@ interface CategoryGridCardProps {
   count?: number;
   showMoreLink?: string;
   items: CategoryGridItem[];
+  siteType: SiteType;
 }
 
 export default function CategoryGridCard({
   title,
   description,
-  showMoreLink = "#",
+  showMoreLink,
   items,
+  siteType,
 }: CategoryGridCardProps) {
+  const storefront = getStorefront(siteType);
   const previewItems = items.slice(0, 4);
   return (
     <div className="flex flex-col gap-2 rounded-[20px] border border-[#E2E8F0] bg-white p-2.5">
@@ -31,9 +36,11 @@ export default function CategoryGridCard({
           <h3 className="title-small-bold text-secondary">{title}</h3>
           {description && <p className="label-medium line-clamp-1 text-[#64748b]">{description}</p>}
         </div>
-        <Link href={showMoreLink} className="label-medium flex items-center text-[#64748B]">
-          بیشتر
-        </Link>
+        {showMoreLink ? (
+          <Link href={showMoreLink} className="label-medium flex items-center text-[#64748B]">
+            بیشتر
+          </Link>
+        ) : null}
       </div>
 
       {/* 2×2 product grid */}
@@ -41,7 +48,7 @@ export default function CategoryGridCard({
         {previewItems.map((item, i) => (
           <Link
             key={item.id}
-            href={`/products/${encodeURIComponent(String(item.id))}`}
+            href={storefront.productHref(item.id, item.title)}
             aria-label={`مشاهده ${item.title}`}
             className={cn(
               "flex h-34 flex-col items-center justify-center gap-1.5 p-2",

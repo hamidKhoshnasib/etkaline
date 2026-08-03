@@ -1,5 +1,6 @@
 import { AppImage } from "@/components/ui/image";
 import { Container } from "@/components/ui/Container";
+import type { SiteType } from "@/lib/api-site-type";
 import { cn } from "@/lib/utils";
 
 const FEATURES = [
@@ -9,7 +10,7 @@ const FEATURES = [
   { icon: "delivery", title: "امکان تحویل اکسپرس" },
 ] as const;
 
-export function FeatureBar() {
+export function FeatureBar({ siteType }: { siteType: SiteType }) {
   return (
     <div className="absolute z-10 w-full overflow-hidden rounded-b-[28px] bg-white shadow-xl lg:shadow-2xl">
       <Container>
@@ -32,7 +33,7 @@ export function FeatureBar() {
               >
                 <p className="text-secondary text-sm font-bold">{title}</p>
                 <AppImage
-                  src={`/api/footer-icons/${icon}`}
+                  src={`/api/footer-icons/${icon}?siteType=${siteType}`}
                   alt=""
                   width={48}
                   height={48}

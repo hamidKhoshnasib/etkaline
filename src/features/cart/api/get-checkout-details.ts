@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 import { basketQueryKeys } from "./basket-query-keys";
 import { type OpenBasketItem, parseBasketItems } from "./get-open-basket";
 
@@ -106,7 +108,10 @@ function parseCheckoutDetailsResponse(response: CheckoutDetailsResponse): Checko
   };
 }
 
-async function getCheckoutDetails(input: GetCheckoutDetailsInput): Promise<CheckoutDetails> {
+async function getCheckoutDetails(
+  input: GetCheckoutDetailsInput,
+  siteType: SiteType,
+): Promise<CheckoutDetails> {
   if (!Number.isSafeInteger(input.basketId) || input.basketId < 1) {
     throw new Error("شناسه سبد خرید معتبر نیست.");
   }
@@ -119,6 +124,7 @@ async function getCheckoutDetails(input: GetCheckoutDetailsInput): Promise<Check
         BasketId: input.basketId,
         RemoveDiscount: REMOVE_DISCOUNT,
       },
+      headers: getSiteTypeHeaders(siteType),
     }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -128,13 +134,14 @@ async function getCheckoutDetails(input: GetCheckoutDetailsInput): Promise<Check
 }
 
 export function useCheckoutDetails(input: GetCheckoutDetailsInput | null) {
+  const { siteType } = useStorefront();
   const { data: session, status } = useSession();
   const customerId = session?.user.backendId;
   const basketId = input?.basketId ?? 0;
 
   return useQuery<CheckoutDetails, Error>({
-    queryKey: basketQueryKeys.checkoutDetails(customerId, basketId, REMOVE_DISCOUNT),
-    queryFn: () => getCheckoutDetails({ basketId }),
+    queryKey: basketQueryKeys.checkoutDetails(siteType, customerId, basketId, REMOVE_DISCOUNT),
+    queryFn: () => getCheckoutDetails({ basketId }, siteType),
     enabled:
       input !== null &&
       status === "authenticated" &&

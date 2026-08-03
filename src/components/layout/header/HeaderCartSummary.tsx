@@ -13,18 +13,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteBasketItem, useOpenBasket, useUpdateBasketQuantity } from "@/features/cart";
+import { useStorefront } from "@/providers/storefront-provider";
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat("fa-IR").format(value);
 }
 
 export function HeaderCartSummary() {
+  const { cartHref } = useStorefront();
   const [open, setOpen] = useState(false);
   const { data: basket, isError, isPending } = useOpenBasket();
   const { isPending: isUpdatingQuantity, mutateAsync: updateQuantity } = useUpdateBasketQuantity();
   const { isPending: isDeletingItem, mutateAsync: deleteItem } = useDeleteBasketItem();
   const items = basket?.basketItems ?? [];
-  const itemCount = basket?.itemCount ?? 0;
+  const itemCount = items.reduce((total, item) => total + item.productCount, 0);
   const totalPrice = basket?.totalOffPrice ?? 0;
   const isChangingBasket = isUpdatingQuantity || isDeletingItem;
 
@@ -178,7 +180,7 @@ export function HeaderCartSummary() {
               <p className="text-secondary/70 mt-1 text-xs">{itemCount} کالا</p>
             </div>
             <Button
-              render={<Link href="/cart" />}
+              render={<Link href={cartHref} />}
               onClick={() => setOpen(false)}
               disabled={isPending || isError}
               className="bg-primary text-secondary hover:bg-primary/85 h-11 rounded-full px-5"

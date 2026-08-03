@@ -1,0 +1,65 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
+import { SITE_NAME, SITE_URL } from "@/config/site";
+import { CategoryCatalog } from "@/features/catalog";
+import { getMenuCategoryPathById } from "@/features/catalog/api/get-menu-categories";
+import { SITE_TYPES } from "@/lib/api-site-type";
+
+interface Props {
+  params: Promise<{ slugs?: string[] }>;
+}
+
+function categoryIdFromSlugs(slugs: string[] | undefined) {
+  const candidate = [...(slugs ?? [])].reverse().find((part) => /^\d+$/.test(part));
+  if (!candidate) {
+    return 0;
+  }
+  const id = Number(candidate);
+  return Number.isSafeInteger(id) && id > 0 ? id : 0;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slugs } = await params;
+  const categoryId = categoryIdFromSlugs(slugs);
+  if (!categoryId) {
+    return {
+      title: `همه محصولات | ${SITE_NAME}`,
+      description: "مشاهده و خرید محصولات سوپرمارکتی اتکالاین",
+      alternates: { canonical: "/search/category" },
+    };
+  }
+
+  const path = await getMenuCategoryPathById(categoryId, SITE_TYPES.supermarket);
+  const category = path?.at(-1);
+  if (!category) {
+    return { title: "دسته‌بندی یافت نشد", robots: { index: false, follow: false } };
+  }
+  const canonical = new URL(`/search/category/${categoryId}`, SITE_URL);
+  return {
+    title: `${category.title} | ${SITE_NAME}`,
+    description: `خرید آنلاین محصولات ${category.title} از اتکالاین`,
+    alternates: { canonical: canonical.toString() },
+  };
+}
+
+export default async function SupermarketCategoryPage({ params }: Props) {
+  const { slugs } = await params;
+  const categoryId = categoryIdFromSlugs(slugs);
+  if (!categoryId) {
+    return <CategoryCatalog />;
+  }
+
+  const path = await getMenuCategoryPathById(categoryId, SITE_TYPES.supermarket);
+  const category = path?.at(-1);
+  if (!path || !category) {
+    notFound();
+  }
+  return (
+    <CategoryCatalog
+      title={`محصولات ${category.title}`}
+      categoryId={categoryId}
+      categoryPath={path}
+    />
+  );
+}

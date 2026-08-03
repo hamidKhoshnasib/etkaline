@@ -6,6 +6,7 @@ import {
   type Product,
 } from "@/features/product/model/product";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -17,7 +18,11 @@ interface LayoutProductsResponse {
   message?: string;
 }
 
-export async function getProductsByLayoutId(layoutId: number, count = 12): Promise<Product[]> {
+export async function getProductsByLayoutId(
+  layoutId: number,
+  siteType: SiteType,
+  count = 12,
+): Promise<Product[]> {
   if (
     !Number.isSafeInteger(layoutId) ||
     layoutId <= 0 ||
@@ -32,7 +37,7 @@ export async function getProductsByLayoutId(layoutId: number, count = 12): Promi
   url.searchParams.set("Count", String(count));
 
   const response = await fetch(url, {
-    headers: await getServerApiHeaders(),
+    headers: await getServerApiHeaders(siteType),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });

@@ -6,6 +6,7 @@ import {
   type Product,
 } from "@/features/product/model/product";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 // آدرس API فقط در لایه سرور خوانده می‌شود تا جزئیات بک‌اند به کلاینت نشت نکند
 const API_BASE_URL =
@@ -23,13 +24,13 @@ export interface HomeProductsResult {
   layoutItems: BackendHomeProductGroup["layoutInfo"][];
 }
 
-export async function getHomeProducts(count = 12): Promise<HomeProductsResult> {
+export async function getHomeProducts(siteType: SiteType, count = 12): Promise<HomeProductsResult> {
   const url = new URL("/api/Products/GetHomeProducts", API_BASE_URL);
   url.searchParams.set("Count", String(count));
 
   try {
     const response = await fetch(url, {
-      headers: await getServerApiHeaders(),
+      headers: await getServerApiHeaders(siteType),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });

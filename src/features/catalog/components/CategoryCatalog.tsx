@@ -25,6 +25,7 @@ import {
 import { FilterSidebar } from "./FilterSidebar";
 import { MobileFilterSheet } from "./MobileFilterSheet";
 import { SortBar } from "./SortBar";
+import { useStorefront } from "@/providers/storefront-provider";
 
 const PAGE_LENGTH = 30;
 const SORT_TYPE_BY_ID: Record<string, number> = {
@@ -61,12 +62,14 @@ function CatalogBreadcrumbs({
   title: string;
   categoryPath: CategoryPathEntry[];
 }) {
+  const storefront = useStorefront();
   const crumbs: CatalogBreadcrumbEntry[] = [
-    { label: "خانه", href: "/" },
+    { label: "خانه", href: storefront.homeHref },
     ...(categoryPath.length > 0
       ? categoryPath.map((category, index) => ({
           label: category.title,
-          href: index === categoryPath.length - 1 ? undefined : `/categories/${category.id}`,
+          href:
+            index === categoryPath.length - 1 ? undefined : storefront.categoryHref(category.id),
         }))
       : [{ label: title.replace("محصولات ", "") }]),
   ];
@@ -110,6 +113,7 @@ export default function CategoryCatalog({
   categoryId = 0,
   categoryPath = [],
 }: CategoryCatalogProps) {
+  const storefront = useStorefront();
   const [sort, setSort] = useState("popular");
   const [page, setPage] = useState(1);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -267,9 +271,19 @@ export default function CategoryCatalog({
                   </div>
                   <ProductCard
                     {...product}
-                    className="hidden border-none! bg-[#F1F5F9]! lg:block lg:h-[310px]"
-                    imageClassName="object-cover lg:h-[190px]"
-                    imageContainerClassName="bg-[#F1F5F9]!"
+                    className={
+                      storefront.siteType === "supermarket"
+                        ? "hidden lg:flex"
+                        : "hidden border-none! bg-[#F1F5F9]! lg:block lg:h-[310px]"
+                    }
+                    imageClassName={
+                      storefront.siteType === "supermarket"
+                        ? undefined
+                        : "object-cover lg:h-[190px]"
+                    }
+                    imageContainerClassName={
+                      storefront.siteType === "supermarket" ? undefined : "bg-[#F1F5F9]!"
+                    }
                   />
                 </Fragment>
               ))}

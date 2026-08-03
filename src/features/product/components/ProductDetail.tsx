@@ -29,6 +29,8 @@ import type { CartItem } from "@/features/cart/model/cart";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { Container } from "@/components/ui/Container";
+import { useStorefront } from "@/providers/storefront-provider";
+import type { StorefrontConfig } from "@/config/storefront";
 
 function ProductBreadcrumbSeparator() {
   return (
@@ -117,7 +119,10 @@ const PRODUCT: ProductViewModel = {
   breadcrumbs: PRODUCT_BREADCRUMBS,
 };
 
-function createProductViewModel(product: ProductDetailData): ProductViewModel {
+function createProductViewModel(
+  product: ProductDetailData,
+  storefront: StorefrontConfig,
+): ProductViewModel {
   const store = product.storeInfos.find((item) => item.isOffer) ?? product.storeInfos[0];
   const price = store && store.offPrice > 0 ? store.offPrice : (store?.mainPrice ?? 0);
   const originalPrice = store && store.mainPrice > price ? store.mainPrice : undefined;
@@ -144,16 +149,16 @@ function createProductViewModel(product: ProductDetailData): ProductViewModel {
     .sort((first, second) => Number(second.isMain) - Number(first.isMain))
     .map((picture) => picture.picUrl);
   const breadcrumbs = [
-    { label: "خانه", href: "/" },
+    { label: "خانه", href: storefront.homeHref },
     ...(product.category?.categoryParents.map((parent) => ({
       label: parent.parentTitle,
-      href: `/categories/${parent.parentId}`,
+      href: storefront.categoryHref(parent.parentId),
     })) ?? []),
     ...(product.category?.categoryTitle
       ? [
           {
             label: product.category.categoryTitle,
-            href: `/categories/${product.category.categoryId}`,
+            href: storefront.categoryHref(product.category.categoryId),
           },
         ]
       : []),
@@ -303,6 +308,7 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product: productDetail }: ProductDetailProps) {
+  const storefront = useStorefront();
   if (!productDetail) {
     return (
       <Container as="main" className="min-h-screen py-8">
@@ -316,7 +322,7 @@ export default function ProductDetail({ product: productDetail }: ProductDetailP
     );
   }
 
-  const product = createProductViewModel(productDetail);
+  const product = createProductViewModel(productDetail, storefront);
 
   return <ProductDetailContent key={product.id} product={product} />;
 }

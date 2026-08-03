@@ -18,6 +18,9 @@ import {
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import CategoryBanners from "./CategoryBanners";
 import FlashDeals from "./FlashDeals";
+import { StorefrontSwitchTab } from "./StorefrontSwitchTab";
+import { getStorefront } from "@/config/storefront";
+import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
 function isProductLayout(item: HomeLayoutItem) {
   return (
@@ -36,8 +39,13 @@ function renderLayoutItem(
   item: HomeLayoutItem,
   products: Awaited<ReturnType<typeof getProductsByLayoutId>>,
   banners: LayoutBanner[],
+  siteType: SiteType,
 ) {
   const description = item.subTitle ?? item.targetTitle ?? undefined;
+  const showMoreLink =
+    item.targetId !== null && item.targetId > 0
+      ? getStorefront(siteType).categoryHref(item.targetId)
+      : undefined;
 
   if (isProductLayout(item) && products.length === 0) {
     return null;
@@ -55,11 +63,15 @@ function renderLayoutItem(
         <ProductSection
           title={item.title}
           description={description}
-          showMoreLink="/products"
+          showMoreLink={showMoreLink}
           items={products}
-          cardClassName={item.id === 1 ? "h-[226px] w-full lg:h-[310px]" : undefined}
-          disableCardHover={item.id === 1}
-          stickCardPriceToBottom={item.id === 1}
+          cardClassName={
+            siteType === SITE_TYPES.appliance && item.id === 1
+              ? "h-[226px] w-full lg:h-[310px]"
+              : undefined
+          }
+          disableCardHover={siteType === SITE_TYPES.appliance && item.id === 1}
+          stickCardPriceToBottom={siteType === SITE_TYPES.appliance && item.id === 1}
         />
       );
     case HOME_COMPONENT_TYPE.TWO_ROW_GRID:
@@ -67,7 +79,7 @@ function renderLayoutItem(
         <ProductSectionList
           title={item.title}
           description={description}
-          showMoreLink="/products"
+          showMoreLink={showMoreLink}
           items={products}
         />
       );
@@ -76,8 +88,9 @@ function renderLayoutItem(
         <CategoryGridCard
           title={item.title}
           description={description}
-          showMoreLink="/products"
+          showMoreLink={showMoreLink}
           items={products.map(({ id, image, title }) => ({ id, image, title }))}
+          siteType={siteType}
         />
       );
     case HOME_COMPONENT_TYPE.OFFER:
@@ -87,19 +100,25 @@ function renderLayoutItem(
   }
 }
 
-async function DynamicHomeLayoutItem({ item }: { item: HomeLayoutItem }) {
-  const products = isProductLayout(item) ? await getProductsByLayoutId(item.id) : [];
-  const banners = isBannerLayout(item) ? await getBannersByLayoutId(item.id) : [];
+async function DynamicHomeLayoutItem({
+  item,
+  siteType,
+}: {
+  item: HomeLayoutItem;
+  siteType: SiteType;
+}) {
+  const products = isProductLayout(item) ? await getProductsByLayoutId(item.id, siteType) : [];
+  const banners = isBannerLayout(item) ? await getBannersByLayoutId(item.id, siteType) : [];
 
-  return renderLayoutItem(item, products, banners);
+  return renderLayoutItem(item, products, banners, siteType);
 }
 
-export default async function DynamicHomeLayout() {
+export default async function DynamicHomeLayout({ siteType }: { siteType: SiteType }) {
   const requestHeaders = await headers();
   const { device } = userAgentFromString(requestHeaders.get("user-agent") ?? undefined);
   const platformType: HomePlatformType =
     device.type === "mobile" || device.type === "tablet" ? 2 : 1;
-  const layout = await getHomeLayout(2, platformType);
+  const layout = await getHomeLayout(2, platformType, siteType);
   const renderedLayoutItems = [];
 
   for (let index = 0; index < layout.length; index += 1) {
@@ -108,7 +127,7 @@ export default async function DynamicHomeLayout() {
     if (layoutItem.componentType !== HOME_COMPONENT_TYPE.GRID_2X2) {
       renderedLayoutItems.push(
         <SectionErrorBoundary key={layoutItem.id} title={`دریافت «${layoutItem.title}» ممکن نشد.`}>
-          <DynamicHomeLayoutItem item={layoutItem} />
+          <DynamicHomeLayoutItem item={layoutItem} siteType={siteType} />
         </SectionErrorBoundary>,
       );
       continue;
@@ -124,12 +143,19 @@ export default async function DynamicHomeLayout() {
       <div key={`category-grid-${gridItems[0].id}`} className="grid gap-4 lg:grid-cols-4">
         {gridItems.map((item) => (
           <SectionErrorBoundary key={item.id} title={`دریافت «${item.title}» ممکن نشد.`}>
-            <DynamicHomeLayoutItem item={item} />
+            <DynamicHomeLayoutItem item={item} siteType={siteType} />
           </SectionErrorBoundary>
         ))}
       </div>,
     );
   }
 
-  return renderedLayoutItems;
+  return (
+    <div className="relative space-y-6 sm:space-y-9">
+      <div className="sticky top-[calc(50vh-82px)] z-40 h-0">
+        <StorefrontSwitchTab siteType={siteType} />
+      </div>
+      {renderedLayoutItems}
+    </div>
+  );
 }

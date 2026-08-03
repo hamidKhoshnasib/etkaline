@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
+import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 import {
   type OpenBasket,
   type OpenBasketResponse,
@@ -17,7 +19,7 @@ export interface AddToBasketInput {
   quantity: number;
 }
 
-async function addToBasket(input: AddToBasketInput): Promise<OpenBasket> {
+async function addToBasket(input: AddToBasketInput, siteType: SiteType): Promise<OpenBasket> {
   if (!Number.isSafeInteger(input.storeProductId) || input.storeProductId < 1) {
     throw new Error("شناسه کالا برای افزودن به سبد خرید معتبر نیست.");
   }
@@ -29,7 +31,9 @@ async function addToBasket(input: AddToBasketInput): Promise<OpenBasket> {
   let data: OpenBasketResponse;
 
   try {
-    ({ data } = await axiosClient.post<OpenBasketResponse>("/api/Baskets/AddToBasket", input));
+    ({ data } = await axiosClient.post<OpenBasketResponse>("/api/Baskets/AddToBasket", input, {
+      headers: getSiteTypeHeaders(siteType),
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -40,10 +44,11 @@ async function addToBasket(input: AddToBasketInput): Promise<OpenBasket> {
 export function useAddToBasket() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  const queryKey = basketQueryKeys.open(session?.user.backendId);
+  const { siteType } = useStorefront();
+  const queryKey = basketQueryKeys.open(siteType, session?.user.backendId);
 
   return useMutation<OpenBasket, Error, AddToBasketInput>({
-    mutationKey: [...basketQueryKeys.all, "add"],
+    mutationKey: [...basketQueryKeys.all(siteType), "add"],
     mutationFn: (input) => {
       const basket = queryClient.getQueryData<OpenBasket | null>(queryKey);
       const existingItem = basket?.basketItems.find(
@@ -55,15 +60,16 @@ export function useAddToBasket() {
           basketId: basket.id,
           storeProductId: input.storeProductId,
           quantity: existingItem.productCount + input.quantity,
+          siteType,
         });
       }
 
-      return addToBasket(input);
+      return addToBasket(input, siteType);
     },
     onSuccess: async (basket) => {
       queryClient.setQueryData(queryKey, basket);
       await queryClient.invalidateQueries({
-        queryKey: basketQueryKeys.checkoutDetailsRoot(session?.user.backendId),
+        queryKey: basketQueryKeys.checkoutDetailsRoot(siteType, session?.user.backendId),
       });
     },
   });

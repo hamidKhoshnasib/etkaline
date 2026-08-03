@@ -6,12 +6,15 @@ export interface Product {
   originalPrice?: number;
   discount?: number;
   outOfStock?: boolean;
+  storeProductId?: number;
+  urlTitle?: string | null;
 }
 
 export type ProductCardData = Omit<Product, "id">;
 
 // قرارداد پاسخ محصولات صفحه اصلی از Swagger بک‌اند
 export interface BackendStoreProductInfo {
+  storeProductId?: number;
   mainPrice: number;
   offPrice: number;
   offPrecent: number;
@@ -84,6 +87,8 @@ export function mapBackendProduct(product: BackendHomeProduct): Product {
     originalPrice: info.mainPrice > price ? info.mainPrice : undefined,
     discount: info.offPrecent > 0 ? info.offPrecent : undefined,
     outOfStock: !info.isExist || info.inventory <= 0,
+    storeProductId: info.storeProductId,
+    urlTitle: product.urlTitle,
   };
 }
 
@@ -98,5 +103,7 @@ export function mapBackendLayoutProduct(product: BackendLayoutProduct): Product 
     price,
     originalPrice: product.storeInfo.mainPrice > price ? product.storeInfo.mainPrice : undefined,
     discount: product.storeInfo.offPercent > 0 ? product.storeInfo.offPercent : undefined,
+    storeProductId: product.storeInfo.storeProductId,
+    urlTitle: product.urlTitle,
   };
 }

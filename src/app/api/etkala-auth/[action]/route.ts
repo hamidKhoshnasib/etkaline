@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requestEtkalaAuthWithCookies } from "@/features/auth/api/etkala-auth-server";
 import type { CaptchaValue } from "@/types/auth";
+import { parseSiteType } from "@/lib/api-site-type";
 
 const POST_ACTIONS = {
   login: "Login",
@@ -32,8 +33,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ act
     return NextResponse.json({ message: "مسیر نامعتبر است." }, { status: 404 });
   }
 
+  const siteType = parseSiteType(_request.headers.get("SiteType"));
+  if (!siteType) {
+    return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
+  }
+
   try {
-    const result = await requestEtkalaAuthWithCookies<CaptchaValue>("GetCaptcha", {
+    const result = await requestEtkalaAuthWithCookies<CaptchaValue>("GetCaptcha", siteType, {
       headers: { Cookie: _request.headers.get("cookie") ?? "" },
     });
     return jsonWithCookies(result.payload, result.setCookies, {
@@ -52,9 +58,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ act
     return NextResponse.json({ message: "مسیر نامعتبر است." }, { status: 404 });
   }
 
+  const siteType = parseSiteType(request.headers.get("SiteType"));
+  if (!siteType) {
+    return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
+  }
+
   try {
     const body = await request.json();
-    const result = await requestEtkalaAuthWithCookies<unknown>(endpoint, {
+    const result = await requestEtkalaAuthWithCookies<unknown>(endpoint, siteType, {
       method: "POST",
       headers: { Cookie: request.headers.get("cookie") ?? "" },
       body: JSON.stringify(body),

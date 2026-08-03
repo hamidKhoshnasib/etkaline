@@ -1,5 +1,6 @@
 import type { DefaultSession } from "next-auth";
 import type { AuthToken } from "@/types/auth";
+import type { SiteType } from "@/lib/api-site-type";
 
 interface SessionUserFields {
   backendId: number;
@@ -22,6 +23,7 @@ declare module "next-auth" {
   interface User extends SessionUserFields {
     accessToken: AuthToken;
     refreshToken: AuthToken;
+    siteType: SiteType;
   }
 }
 
@@ -39,5 +41,6 @@ declare module "@auth/core/jwt" {
     refreshToken?: string;
     accessTokenExpires?: number;
     error?: "RefreshTokenError";
+    siteType?: SiteType;
   }
 }

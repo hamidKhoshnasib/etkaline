@@ -195,7 +195,7 @@ export default function CartPage() {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Link href="/products" className={buttonVariants()}>
+              <Link href="/" className={buttonVariants()}>
                 مشاهده محصولات
               </Link>
             </EmptyContent>

@@ -2,13 +2,14 @@ import "server-only";
 
 import { mapHomeBrand, type HomeBrand } from "@/features/home/appliances/model/brand";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import type { SiteType } from "@/lib/api-site-type";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
-export async function getHomeBrands(): Promise<HomeBrand[]> {
+export async function getHomeBrands(siteType: SiteType): Promise<HomeBrand[]> {
   const response = await fetch(`${API_BASE_URL}/api/Brands/GetHomeBrands`, {
-    headers: await getServerApiHeaders(),
+    headers: await getServerApiHeaders(siteType),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });

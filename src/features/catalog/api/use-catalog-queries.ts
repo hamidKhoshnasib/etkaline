@@ -109,6 +109,9 @@ function parseProductSearch(raw: unknown, request: ProductSearchRequest): Produc
           (storeInfo
             ? firstNumber(storeInfo, ["offPercent", "discount", "discountPercent"])
             : null);
+        const storeProductId =
+          firstNumber(product, ["storeProductId"]) ??
+          (storeInfo ? firstNumber(storeInfo, ["storeProductId"]) : null);
         if (id === null || !title || mainPrice === null) {
           return [];
         }
@@ -122,6 +125,8 @@ function parseProductSearch(raw: unknown, request: ProductSearchRequest): Produc
             originalPrice: mainPrice > price ? mainPrice : undefined,
             discount: discount && discount > 0 ? discount : undefined,
             outOfStock: product.isExist === false || product.inventory === 0,
+            storeProductId: storeProductId ?? undefined,
+            urlTitle: firstString(product, ["urlTitle"]),
           },
         ];
       })

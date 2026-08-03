@@ -7,6 +7,8 @@ import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 import { Spinner } from "@/components/ui/spinner";
 import { useSearchbar } from "@/features/search/api/use-searchbar";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { SITE_TYPES } from "@/lib/api-site-type";
+import { useStorefront } from "@/providers/storefront-provider";
 
 const RECENT_SEARCHES_STORAGE_KEY = "etkaline:recent-searches";
 const RECENT_SEARCHES_LIMIT = 10;
@@ -47,6 +49,7 @@ function persistRecentSearches(searches: string[]) {
 }
 
 export function HeaderSearch() {
+  const storefront = useStorefront();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(() =>
@@ -107,10 +110,18 @@ export function HeaderSearch() {
   return (
     <div ref={searchRef} className="relative z-[70] flex flex-1 justify-center px-4">
       <div className="relative w-full max-w-154.5">
-        <div className="flex w-full items-center overflow-hidden rounded-full bg-white">
+        <div className="flex h-12.5 w-full items-center overflow-hidden rounded-full bg-white">
           {!query && (
             <div className="text-primary flex shrink-0 items-center gap-2 px-4 py-2.5">
-              <IconStore size={18} strokeWidth={1.5} />
+              <IconStore
+                size={18}
+                strokeWidth={1.5}
+                className={
+                  storefront.siteType === SITE_TYPES.supermarket
+                    ? "[&_path]:fill-[#43A047]"
+                    : undefined
+                }
+              />
               <span className="text-sm font-medium whitespace-nowrap text-gray-400">
                 خرید از
                 <span className="text-secondary font-bold"> انبار مرکزی اتکالاین </span>
@@ -191,7 +202,7 @@ export function HeaderSearch() {
                       {data.categories.map((category) => (
                         <Link
                           key={category.id}
-                          href={`/categories/${encodeURIComponent(String(category.id))}`}
+                          href={storefront.categoryHref(category.id)}
                           onClick={handleNavigation}
                           className="hover:text-primary focus-visible:outline-ring flex items-center justify-between py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
                         >
@@ -209,7 +220,7 @@ export function HeaderSearch() {
                   <SearchResultSection
                     title="کالاها"
                     items={data.products}
-                    getItemHref={(item) => `/products/${encodeURIComponent(String(item.id))}`}
+                    getItemHref={(item) => storefront.productHref(item.id, item.title)}
                     onNavigate={handleNavigation}
                   />
                 ) : null}

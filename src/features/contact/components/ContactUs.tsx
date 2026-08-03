@@ -9,11 +9,12 @@ import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
+import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
-async function ContactUsContent() {
+async function ContactUsContent({ siteType }: { siteType: SiteType }) {
   const [contactDetails, socialNetworks] = await Promise.all([
-    getContactDetails(),
-    getSocialNetworks(),
+    getContactDetails(siteType),
+    getSocialNetworks(siteType),
   ]);
   const contactItems = [
     contactDetails?.tel && {
@@ -50,7 +51,7 @@ async function ContactUsContent() {
         <div className="px-4 lg:px-[105px]">
           {/* Breadcrumb */}
           <p className="text-primary-hover my-3 flex items-center gap-1">
-            <House className="ml-2" />
+            <House className="ml-2 [&_path]:stroke-[#43A047]" />
             با
             <b> اتکالاین</b> در ارتباط باشید
           </p>
@@ -135,7 +136,7 @@ async function ContactUsContent() {
 export default function ContactUsPage() {
   return (
     <SectionErrorBoundary title="دریافت اطلاعات تماس ممکن نشد." className="mx-auto max-w-7xl">
-      <ContactUsContent />
+      <ContactUsContent siteType={SITE_TYPES.supermarket} />
     </SectionErrorBoundary>
   );
 }

@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
-import { Footer } from "@/components/layout/footer/Footer";
-import { RouteAwareFooter } from "@/components/layout/footer/RouteAwareFooter";
-import { Header } from "@/components/layout/header/Header";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/config/site";
@@ -64,12 +61,8 @@ export default async function RootLayout({
       >
         <DirectionProvider direction="rtl">
           <Providers session={session}>
-            <Header />
             {children}
             <Toaster />
-            <RouteAwareFooter>
-              <Footer />
-            </RouteAwareFooter>
             <Script src="/js/map-service.js" strategy="afterInteractive" />
           </Providers>
         </DirectionProvider>
