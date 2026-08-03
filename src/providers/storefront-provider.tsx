@@ -3,11 +3,7 @@
 import * as React from "react";
 
 import { getStorefront, type StorefrontConfig } from "@/config/storefront";
-import {
-  DEFAULT_SITE_TYPE,
-  STOREFRONT_COOKIE_NAME,
-  type SiteType,
-} from "@/lib/api-site-type";
+import { DEFAULT_SITE_TYPE, STOREFRONT_COOKIE_NAME, type SiteType } from "@/lib/api-site-type";
 
 const StorefrontContext = React.createContext<StorefrontConfig>(getStorefront(DEFAULT_SITE_TYPE));
 

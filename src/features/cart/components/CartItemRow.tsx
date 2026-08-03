@@ -93,7 +93,7 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
             <Button
               type="button"
               size="icon-sm"
-              variant="outline"
+              variant={item.productCount === 1 ? "destructive" : "outline-primary"}
               className="rounded-full"
               aria-label={
                 item.productCount === 1

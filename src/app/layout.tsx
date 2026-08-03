@@ -5,7 +5,9 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/config/site";
+import { getStorefront } from "@/config/storefront";
 import { auth } from "@/features/auth/lib/auth";
+import { SITE_TYPES } from "@/lib/api-site-type";
 import "./globals.css";
 
 const iranYekan = localFont({
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: "فروش آنلاین لوازم خانگی با ارسال مطمئن و پشتیبانی اتکالاین",
-    url: SITE_URL,
+    url: getStorefront(SITE_TYPES.supermarket).absoluteUrl("/"),
   },
   robots: {
     index: true,

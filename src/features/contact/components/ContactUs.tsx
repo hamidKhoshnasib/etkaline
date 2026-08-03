@@ -9,7 +9,7 @@ import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
-import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
+import type { SiteType } from "@/lib/api-site-type";
 
 async function ContactUsContent({ siteType }: { siteType: SiteType }) {
   const [contactDetails, socialNetworks] = await Promise.all([
@@ -133,10 +133,10 @@ async function ContactUsContent({ siteType }: { siteType: SiteType }) {
   );
 }
 
-export default function ContactUsPage() {
+export default function ContactUsPage({ siteType }: { siteType: SiteType }) {
   return (
     <SectionErrorBoundary title="دریافت اطلاعات تماس ممکن نشد." className="mx-auto max-w-7xl">
-      <ContactUsContent siteType={SITE_TYPES.supermarket} />
+      <ContactUsContent siteType={siteType} />
     </SectionErrorBoundary>
   );
 }

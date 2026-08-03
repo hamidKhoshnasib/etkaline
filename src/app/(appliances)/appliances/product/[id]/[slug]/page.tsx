@@ -8,9 +8,7 @@ import { getProductSlug } from "@/features/product/lib/product-slug";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import { createStorefrontMetadata } from "@/lib/storefront-metadata";
 
-interface ProductPageProps {
-  params: Promise<{ id: string; slug: string }>;
-}
+type Props = { params: Promise<{ id: string; slug: string }> };
 
 function decodeRouteSlug(slug: string) {
   try {
@@ -20,12 +18,13 @@ function decodeRouteSlug(slug: string) {
   }
 }
 
-async function resolveProduct(params: ProductPageProps["params"]) {
+async function resolveProduct(params: Props["params"]) {
   const { id, slug } = await params;
-  const product = await getProductDetail(id, SITE_TYPES.supermarket);
+  const product = await getProductDetail(id, SITE_TYPES.appliance);
   if (!product) {
     return null;
   }
+
   return {
     id,
     slug: decodeRouteSlug(slug),
@@ -34,19 +33,19 @@ async function resolveProduct(params: ProductPageProps["params"]) {
   };
 }
 
-export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolved = await resolveProduct(params);
   if (!resolved) {
     return { title: "محصول یافت نشد", robots: { index: false, follow: false } };
   }
 
   const { id, product, canonicalSlug } = resolved;
-  const storefront = getStorefront(SITE_TYPES.supermarket);
+  const storefront = getStorefront(SITE_TYPES.appliance);
   const image =
     product.pictures.find((picture) => picture.isMain)?.picUrl ?? product.pictures[0]?.picUrl;
 
   return createStorefrontMetadata({
-    siteType: SITE_TYPES.supermarket,
+    siteType: SITE_TYPES.appliance,
     pathname: storefront.productHref(id, canonicalSlug),
     title: product.metaTitle,
     fallbackTitle: product.title,
@@ -56,14 +55,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   });
 }
 
-export default async function SupermarketProductPage({ params }: ProductPageProps) {
+export default async function ApplianceProductPage({ params }: Props) {
   const resolved = await resolveProduct(params);
   if (!resolved) {
     notFound();
   }
   if (resolved.slug !== resolved.canonicalSlug) {
     permanentRedirect(
-      getStorefront(SITE_TYPES.supermarket).productHref(resolved.id, resolved.canonicalSlug),
+      getStorefront(SITE_TYPES.appliance).productHref(resolved.id, resolved.canonicalSlug),
     );
   }
 

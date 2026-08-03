@@ -5,9 +5,9 @@
 | Field         | Value                                                    |
 | ------------- | -------------------------------------------------------- |
 | Status        | Phases 4 and 5 in progress                               |
-| Last updated  | 2026-07-13                                               |
-| Current scope | Home-appliance storefront, customer account, CMS content |
-| Out of scope  | Supermarket implementation and migration                 |
+| Last updated  | 2026-08-03                                               |
+| Current scope | Dual storefronts, shared routes, customer account, CMS    |
+| Out of scope  | Backend contracts, admin application, payment integration |
 | Architecture  | Feature-based with common UI primitives                  |
 | Migration     | Incremental; no big-bang rewrite                         |
 
@@ -28,14 +28,14 @@ phase. A proposed decision is not approved until the user explicitly confirms it
 - Support dynamic CMS pages authored in a separate Blazor admin application.
 - Make loading, Skeleton, empty, error, unavailable, and success states part of every data feature.
 - Preserve RTL and improve accessibility, SEO, performance, and maintainability.
-- Remain ready for a future supermarket migration without implementing it today.
+- Keep supermarket and appliance storefront ownership explicit while sharing domain features.
 
 ## 2. Non-goals
 
 <!-- موارد زیر فعلاً نباید در جریان این ریفکتور ساخته یا مهاجرت داده شوند. -->
 
-- Do not implement or migrate the supermarket storefront.
-- Do not create speculative supermarket folders, models, components, or APIs.
+- Do not change public storefront URLs during route organization.
+- Do not duplicate shared domain features for each storefront.
 - Do not install CKEditor. It remains in the separate Blazor admin.
 - Do not redesign the UI during structural migration unless separately approved.
 - Do not replace the backend, auth provider, or API contracts incidentally.
@@ -85,30 +85,22 @@ phase. A proposed decision is not approved until the user explicitly confirms it
 ```text
 src/
 ├── app/
+│   ├── (supermarket)/
+│   │   ├── page.tsx
+│   │   ├── products/[id]/[slug]/page.tsx
+│   │   ├── search/category/[[...slugs]]/page.tsx
+│   │   └── cart/page.tsx
 │   ├── (appliances)/appliances/
 │   │   ├── page.tsx
-│   │   ├── loading.tsx
-│   │   ├── error.tsx
-│   │   ├── products/
-│   │   │   ├── page.tsx
-│   │   │   └── [slug]/page.tsx
-│   │   └── categories/[slug]/page.tsx
-│   ├── (account)/account/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── profile/page.tsx
-│   │   ├── addresses/page.tsx
-│   │   ├── orders/page.tsx
-│   │   ├── orders/[id]/page.tsx
-│   │   ├── wishlist/page.tsx
-│   │   └── reviews/page.tsx
-│   ├── (content)/
+│   │   ├── product/[id]/page.tsx
+│   │   ├── categories/[id]/page.tsx
+│   │   └── cart/page.tsx
+│   ├── (shared)/
+│   │   ├── account/
 │   │   ├── blog/
-│   │   └── contact-us/
-│   ├── (cms)/[...slug]/
-│   │   ├── page.tsx
-│   │   ├── loading.tsx
-│   │   └── error.tsx
+│   │   ├── contact-us/
+│   │   ├── content/[...slug]/
+│   │   └── extra-pages/[id]/
 │   └── api/
 ├── features/
 │   ├── auth/
@@ -200,7 +192,7 @@ app → layout/features → lib/config
 
 <!-- لوازم خانگی نباید URLهای قدیمی سوپرمارکت را برای آینده تصاحب کند. -->
 
-### Proposed appliance URLs — approval required
+### Approved appliance URLs
 
 ```text
 /appliances
@@ -210,23 +202,26 @@ app → layout/features → lib/config
 /account
 ```
 
-### Proposed temporary root behavior — approval required
-
-```text
-/ → temporary 307 redirect to /appliances
-```
-
-Do not use a permanent redirect because the root may belong to the supermarket later.
-
-### Strategically reserved for the future supermarket
+### Approved supermarket URLs
 
 ```text
 /
-/products/*
-/search/*
+/cart
+/products/[id]/[slug]
+/search/category/[[...slugs]]
 ```
 
-This reservation is documentation only. It does not authorize supermarket work.
+### Shared URLs
+
+```text
+/account
+/blog
+/contact-us
+/content/*
+/extra-pages/*
+```
+
+Route groups organize ownership only and never appear in public URLs.
 
 ## 10. CMS architecture
 
@@ -471,12 +466,14 @@ Update this document
 | ----- | -------------------------------------------------- | ----------------- | --------------------------------------------------------------------- |
 | D-001 | Feature-based architecture is primary              | Confirmed         | Common primitives live in components/ui; no separate UI wrapper layer |
 | D-002 | Widgets are the organism-equivalent layer          | Rejected          | Header and Footer remain under components/layout; no widgets layer    |
-| D-003 | Move appliance URLs under `/appliances`            | Awaiting approval | Avoid future supermarket URL conflict                                 |
-| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Awaiting approval | Must not be permanent                                                 |
-| D-005 | Exclude supermarket implementation                 | Confirmed         | Reserve future paths only in documentation                            |
+| D-003 | Move appliance URLs under `/appliances`            | Confirmed         | Appliance routes keep their public prefix                             |
+| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Rejected          | Root belongs to the supermarket storefront                            |
+| D-005 | Exclude supermarket implementation                 | Superseded        | Supermarket implementation was later approved                         |
 | D-006 | Keep CKEditor in the separate Blazor admin         | Confirmed         | Frontend renders safe published HTML                                  |
 | D-007 | Require feature-specific Skeletons                 | Confirmed         | Match final RTL responsive geometry                                   |
-| D-008 | Migrate incrementally with a passing build         | Proposed          | No big-bang rewrite                                                   |
+| D-008 | Migrate incrementally with a passing build         | Confirmed         | No big-bang rewrite                                                   |
+| D-009 | Organize routes into three route groups            | Confirmed         | Supermarket, appliances, and shared groups preserve public URLs       |
+| D-010 | Control canonical URLs in storefront config        | Confirmed         | Validated API fields provide metadata content, not route identity      |
 
 ## 16. Progress log
 
@@ -511,3 +508,4 @@ Update this document
 | 2026-07-21 | Architecture | Removed widgets wrappers                  | Pending verification                                                              | Root layout imports Header and Footer directly from components/layout; widgets had no ownership beyond re-exports                                                          |
 | 2026-07-21 | Architecture | Removed UI wrapper barrels                | Pending verification                                                              | Deleted obsolete UI wrapper barrels; components/ui is the sole common UI boundary                                                                                          |
 | 2026-07-21 | Architecture | Removed src/shared                        | Pending verification                                                              | Site configuration moved to config and its redundant utility barrel was removed                                                                                            |
+| 2026-08-03 | Architecture | Grouped storefront and shared routes      | lint PASS; type-check PASS; build PASS; format-check FAIL (pre-existing debt)      | Public routes stayed unchanged; canonical, Open Graph, sitemap, and robots URLs now use storefront URL builders, while validated API metadata supplies page content          |

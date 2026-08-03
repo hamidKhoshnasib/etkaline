@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_URL } from "@/config/site";
+import { getStorefront } from "@/config/storefront";
 import { getMenuCategories } from "@/features/catalog/api/get-menu-categories";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import { getProductSlug } from "@/features/product/lib/product-slug";
@@ -15,6 +15,7 @@ function flattenCategories(categories: MenuCategory[]): MenuCategory[] {
 }
 
 async function getProductEntries(): Promise<MetadataRoute.Sitemap> {
+  const storefront = getStorefront(SITE_TYPES.supermarket);
   try {
     const response = await fetch(new URL("/api/Products/Search", getServerApiBaseUrl()), {
       method: "POST",
@@ -52,7 +53,7 @@ async function getProductEntries(): Promise<MetadataRoute.Sitemap> {
       }
       return [
         {
-          url: new URL(`/products/${id}/${getProductSlug(urlTitle, title)}`, SITE_URL).toString(),
+          url: storefront.absoluteUrl(storefront.productHref(id, getProductSlug(urlTitle, title))),
           changeFrequency: "daily",
           priority: 0.8,
         },
@@ -64,8 +65,9 @@ async function getProductEntries(): Promise<MetadataRoute.Sitemap> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const storefront = getStorefront(SITE_TYPES.supermarket);
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((pathname, index) => ({
-    url: new URL(pathname, SITE_URL).toString(),
+    url: storefront.absoluteUrl(pathname),
     changeFrequency: pathname === "/" ? "daily" : "weekly",
     priority: index === 0 ? 1 : 0.7,
   }));
@@ -73,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const categories = flattenCategories(await getMenuCategories(SITE_TYPES.supermarket));
     const categoryEntries: MetadataRoute.Sitemap = categories.map((category) => ({
-      url: new URL(`/search/category/${category.id}`, SITE_URL).toString(),
+      url: storefront.absoluteUrl(storefront.categoryHref(category.id)),
       changeFrequency: "daily",
       priority: 0.8,
     }));

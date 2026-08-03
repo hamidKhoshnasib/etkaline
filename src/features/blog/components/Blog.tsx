@@ -8,7 +8,7 @@ import { categories, gridPosts, popularPosts, featuredPost } from "./data";
 import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
-import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
+import type { SiteType } from "@/lib/api-site-type";
 
 async function BlogPromoBanners({ siteType }: { siteType: SiteType }) {
   const blogBanners = await getBlogBanners(siteType);
@@ -25,7 +25,7 @@ async function BlogPromoBanners({ siteType }: { siteType: SiteType }) {
   ));
 }
 
-export default function BlogPage() {
+export default function BlogPage({ siteType }: { siteType: SiteType }) {
   return (
     <Container as="main" className="space-y-6 py-6">
       {/* ── Latest posts grid + sidebar ─────────────────────────────── */}
@@ -55,7 +55,7 @@ export default function BlogPage() {
 
       {/* ── Promotional banner ──────────────────────────────────────── */}
       <SectionErrorBoundary title="دریافت بنرهای مجله ممکن نشد.">
-        <BlogPromoBanners siteType={SITE_TYPES.supermarket} />
+        <BlogPromoBanners siteType={siteType} />
       </SectionErrorBoundary>
 
       {/* ── Featured article + sidebar ──────────────────────────────── */}

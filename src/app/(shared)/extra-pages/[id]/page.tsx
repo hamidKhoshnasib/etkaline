@@ -6,7 +6,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Container } from "@/components/ui/Container";
 import { getExtraPage } from "@/features/extra-pages/api/get-extra-page";
 import { sanitizeCmsHtml } from "@/features/cms-page/lib/sanitize-cms-html";
-import { SITE_TYPES } from "@/lib/api-site-type";
+import { getCurrentStorefrontSiteType } from "@/lib/get-current-storefront-site-type";
+import { createStorefrontMetadata } from "@/lib/storefront-metadata";
+import type { SiteType } from "@/lib/api-site-type";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -19,25 +21,29 @@ function parsePageId(value: string): number | null {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
-async function resolveExtraPage(params: Props["params"]) {
+async function resolveExtraPage(params: Props["params"], siteType: SiteType) {
   const id = parsePageId((await params).id);
-  return id ? getExtraPage(id, SITE_TYPES.supermarket) : null;
+  return id ? getExtraPage(id, siteType) : null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const page = await resolveExtraPage(params);
+  const siteType = await getCurrentStorefrontSiteType();
+  const page = await resolveExtraPage(params, siteType);
   if (!page) {
-    return { title: "صفحه پیدا نشد" };
+    return { title: "صفحه پیدا نشد", robots: { index: false, follow: false } };
   }
 
-  return {
-    title: page.metaTitle ?? page.title,
+  return createStorefrontMetadata({
+    siteType,
+    pathname: `/extra-pages/${page.id}`,
+    title: page.metaTitle,
+    fallbackTitle: page.title,
     description: page.seoDescription ?? undefined,
-  };
+  });
 }
 
 export default async function ExtraPage({ params }: Props) {
-  const page = await resolveExtraPage(params);
+  const page = await resolveExtraPage(params, await getCurrentStorefrontSiteType());
   if (!page) {
     notFound();
   }

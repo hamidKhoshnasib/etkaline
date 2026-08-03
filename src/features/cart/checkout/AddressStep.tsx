@@ -232,7 +232,7 @@ function DeliveryGroup({
                 <Button
                   key={date.id}
                   type="button"
-                  variant="outline"
+                  variant={active ? "default" : "outline"}
                   disabled={!addressSelected || date.disabled}
                   role="radio"
                   aria-checked={active}
@@ -281,7 +281,7 @@ function DeliveryGroup({
                   <Button
                     key={time}
                     type="button"
-                    variant={active ? "secondary" : "outline"}
+                    variant={active ? "default" : "outline"}
                     size="sm"
                     role="radio"
                     aria-checked={active}

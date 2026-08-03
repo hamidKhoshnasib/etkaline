@@ -100,18 +100,18 @@ function PaymentOption({
       onClick={onClick}
       className={cn(
         "h-auto w-full flex-wrap justify-between gap-4 rounded-xl px-5 py-5 text-start",
-        selected && "ring-checkout-accent ring-2",
+        selected && "border-primary ring-primary ring-2",
       )}
     >
       <span className="flex min-w-0 items-center gap-3">
         <span
           className={cn(
             "border-input flex size-5 shrink-0 items-center justify-center rounded-full border-2",
-            selected && "border-checkout-accent",
+            selected && "border-primary",
           )}
           aria-hidden="true"
         >
-          {selected ? <span className="bg-checkout-accent size-2.5 rounded-full" /> : null}
+          {selected ? <span className="bg-primary size-2.5 rounded-full" /> : null}
         </span>
         <span className="flex min-w-0 flex-col gap-1">
           <span className="flex items-center gap-2 font-bold">

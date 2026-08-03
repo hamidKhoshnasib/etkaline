@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SITE_NAME, SITE_URL } from "@/config/site";
+import { getStorefront } from "@/config/storefront";
 import { CategoryCatalog } from "@/features/catalog";
 import { getMenuCategoryPathById } from "@/features/catalog/api/get-menu-categories";
 import { SITE_TYPES } from "@/lib/api-site-type";
+import { createStorefrontMetadata } from "@/lib/storefront-metadata";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -26,11 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       robots: { index: false, follow: false },
     };
   }
-  const canonical = new URL(`/appliances/categories/${id}`, SITE_URL);
-  return {
-    title: `${category.title} | ${SITE_NAME}`,
-    alternates: { canonical: canonical.toString() },
-  };
+  return createStorefrontMetadata({
+    siteType: SITE_TYPES.appliance,
+    pathname: getStorefront(SITE_TYPES.appliance).categoryHref(id),
+    title: category.metaTitle,
+    fallbackTitle: category.title,
+    description: category.seoDescription,
+    fallbackDescription: `خرید آنلاین محصولات ${category.title} از اتکالاین`,
+  });
 }
 
 export default async function ApplianceCategoryPage({ params }: Props) {

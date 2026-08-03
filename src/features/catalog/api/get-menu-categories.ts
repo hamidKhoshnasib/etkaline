@@ -17,6 +17,8 @@ interface ApiCategory {
   parentId: number | null;
   order: number;
   iconName: string | null;
+  metaTitle: string | null;
+  seoDescription: string | null;
   subCategories: ApiCategory[];
 }
 
@@ -47,6 +49,8 @@ function parseCategory(value: unknown): ApiCategory | null {
     parentId: category.parentId,
     order: category.order,
     iconName: typeof category.iconName === "string" ? category.iconName : null,
+    metaTitle: typeof category.metaTitle === "string" ? category.metaTitle.trim() || null : null,
+    seoDescription: typeof category.seoDesc === "string" ? category.seoDesc.trim() || null : null,
     subCategories: Array.isArray(category.subCategories)
       ? category.subCategories
           .map(parseCategory)
@@ -68,6 +72,8 @@ function buildMenuCategories(categories: ApiCategory[], siteType: SiteType): Men
         title: category.title,
         href: storefront.categoryHref(category.id),
         iconName: category.iconName ?? "",
+        metaTitle: category.metaTitle ?? undefined,
+        seoDescription: category.seoDescription ?? undefined,
         children: [],
       });
       parents.set(category.id, category.parentId);

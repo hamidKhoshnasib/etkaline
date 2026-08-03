@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_URL } from "@/config/site";
+import { getStorefront } from "@/config/storefront";
+import { SITE_TYPES } from "@/lib/api-site-type";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/account/", "/cart/", "/appliances/cart/", "/checkout/", "/api/"],
     },
-    sitemap: new URL("/sitemap.xml", SITE_URL).toString(),
+    sitemap: getStorefront(SITE_TYPES.supermarket).absoluteUrl("/sitemap.xml"),
   };
 }
