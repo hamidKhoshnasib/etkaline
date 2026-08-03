@@ -17,6 +17,7 @@ const imageProtocol: "http" | "https" = imageUrl.protocol === "http:" ? "http" :
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: imageProtocol,
