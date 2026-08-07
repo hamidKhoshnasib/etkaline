@@ -20,7 +20,7 @@ function formatPrice(value: number) {
 }
 
 export function HeaderCartSummary() {
-  const { cartHref } = useStorefront();
+  const { cartHref, productHref } = useStorefront();
   const [open, setOpen] = useState(false);
   const { data: basket, isError, isPending } = useOpenBasket();
   const { isPending: isUpdatingQuantity, mutateAsync: updateQuantity } = useUpdateBasketQuantity();
@@ -31,7 +31,7 @@ export function HeaderCartSummary() {
   const isChangingBasket = isUpdatingQuantity || isDeletingItem;
 
   async function changeQuantity(storeProductId: number, quantity: number) {
-    if (!basket || isChangingBasket) {
+    if (!basket || isDeletingItem) {
       return;
     }
 
@@ -43,7 +43,7 @@ export function HeaderCartSummary() {
   }
 
   async function removeItem(storeProductId: number) {
-    if (!basket || isChangingBasket) {
+    if (!basket || isDeletingItem) {
       return;
     }
 
@@ -97,9 +97,23 @@ export function HeaderCartSummary() {
           {!isPending && !isError
             ? items.map((item) => {
                 const price = item.offPrice > 0 ? item.offPrice : item.mainPrice;
+                const itemProductHref =
+                  Number.isSafeInteger(item.productId) && item.productId > 0
+                    ? productHref(item.productId, item.productTitle)
+                    : null;
 
                 return (
-                  <article key={item.id} className="bg-muted/70 rounded-2xl p-3">
+                  <article key={item.id} className="bg-muted/70 relative rounded-2xl p-3">
+                    {itemProductHref ? (
+                      <Link
+                        href={itemProductHref}
+                        aria-label={`مشاهده ${item.productTitle}`}
+                        className="focus-visible:outline-primary absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2"
+                        onClick={() => setOpen(false)}
+                      >
+                        <span className="sr-only">مشاهده جزئیات محصول</span>
+                      </Link>
+                    ) : null}
                     <div className="flex gap-3">
                       <div className="flex size-15 shrink-0 items-center justify-center rounded-lg border bg-white">
                         <AppImage
@@ -124,13 +138,13 @@ export function HeaderCartSummary() {
                       <span className="text-secondary text-sm font-bold">
                         {formatPrice(price)} تومان
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="relative z-10 flex items-center gap-2">
                         <Button
                           type="button"
                           size="icon"
                           aria-label={`افزایش تعداد ${item.productTitle}`}
                           aria-busy={isChangingBasket}
-                          disabled={isChangingBasket}
+                          disabled={isDeletingItem}
                           onClick={() =>
                             void changeQuantity(item.storeProductId, item.productCount + 1)
                           }
@@ -149,7 +163,7 @@ export function HeaderCartSummary() {
                             item.productCount === 1 ? "حذف کالا از سبد خرید" : "کاهش تعداد"
                           }
                           aria-busy={isChangingBasket}
-                          disabled={isChangingBasket}
+                          disabled={isDeletingItem}
                           onClick={() =>
                             item.productCount === 1
                               ? void removeItem(item.storeProductId)

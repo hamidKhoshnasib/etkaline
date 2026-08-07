@@ -89,7 +89,7 @@ export function Footer({ siteType }: { siteType: SiteType }) {
       <div className="etkaline-pattern storefront-brand-surface text-secondary relative isolate pt-52 lg:pt-24.5">
         <AppSupportBar mobileVariant="support" />
 
-        <Container fluid className="lg:container lg:mx-auto lg:px-0 lg:pt-12">
+        <Container fluid className="lg:container lg:mx-auto lg:pt-12">
           <div className="grid grid-cols-1 gap-0 lg:grid-cols-4 lg:gap-10">
             <div className="order-3 mt-6 space-y-4.25 lg:order-0 lg:mt-0">
               <AppImage

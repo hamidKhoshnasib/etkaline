@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ProductInfoCard } from "./ProductInfoCard";
 import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductSummary } from "./ProductSummary";
@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatProductPrice } from "@/features/product/lib/format-price";
+import { saveRecentlyViewedProduct } from "@/features/product/lib/recently-viewed-products";
 import type { ProductDetailData } from "@/features/product/api/get-product-detail";
-import type { CartItem } from "@/features/cart/model/cart";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { Container } from "@/components/ui/Container";
@@ -50,6 +50,7 @@ interface ProductViewModel {
   storeProductId: number | null;
   storeInfos: ProductDetailData["storeInfos"];
   title: string;
+  urlTitle: string;
   isFavorite: boolean;
   price: number;
   originalPrice?: number;
@@ -170,6 +171,7 @@ function createProductViewModel(
     storeProductId: store?.storeProductId ?? null,
     storeInfos: product.storeInfos,
     title: product.title,
+    urlTitle: product.urlTitle,
     isFavorite: product.isFavorite,
     price,
     originalPrice,
@@ -189,28 +191,6 @@ function createProductViewModel(
     shortDescription: toPlainText(product.shortReview),
     description: product.expertReview,
     breadcrumbs,
-  };
-}
-
-function createMockCartItem(
-  product: ProductViewModel,
-  store: ProductDetailData["storeInfos"][number] | undefined,
-  colorLabel: string,
-): CartItem {
-  const price = store && store.offPrice > 0 ? store.offPrice : (store?.mainPrice ?? product.price);
-  const originalPrice = store && store.mainPrice > price ? store.mainPrice : undefined;
-
-  return {
-    id: store?.storeProductId ?? product.id,
-    title: product.title,
-    image: product.images[0] ?? NO_IMAGE_URL,
-    color: colorLabel,
-    warranty: "گارانتی اتکالاین",
-    price,
-    originalPrice,
-    discount: store?.offPercent || undefined,
-    returnable: true,
-    quantity: 1,
   };
 }
 
@@ -262,7 +242,6 @@ function ProductBreadcrumbs({ crumbs }: { crumbs: ProductBreadcrumbEntry[] }) {
 interface MobilePurchaseFooterProps {
   price: number;
   originalPrice: number;
-  cartItem: CartItem;
   storeProductId: number | null;
   inventory: number;
   isAvailable: boolean;
@@ -271,7 +250,6 @@ interface MobilePurchaseFooterProps {
 function MobilePurchaseFooter({
   price,
   originalPrice,
-  cartItem,
   storeProductId,
   inventory,
   isAvailable,
@@ -279,7 +257,6 @@ function MobilePurchaseFooter({
   return (
     <footer className="bg-background fixed inset-x-0 bottom-0 z-50 flex h-[82px] items-center justify-between gap-3 rounded-t-2xl border-t px-4 shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden">
       <AddToCartButton
-        item={cartItem}
         storeProductId={storeProductId}
         unavailable={!isAvailable}
         showIcon
@@ -328,6 +305,7 @@ export default function ProductDetail({ product: productDetail }: ProductDetailP
 }
 
 function ProductDetailContent({ product }: { product: ProductViewModel }) {
+  const { siteType } = useStorefront();
   const firstColorIdWithStore = product.colors.find((color) =>
     product.storeInfos.some((store) => String(store.effectiveValueId) === color.id),
   )?.id;
@@ -345,11 +323,27 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
     selectedStore && selectedStore.mainPrice > price ? selectedStore.mainPrice : undefined;
   const inventory = Math.max(0, selectedStore?.inventory ?? 0);
   const isAvailable = product.productExists && inventory > 0;
-  const selectedColorLabel =
-    product.colors.find((color) => color.id === selectedColorId)?.label ??
-    selectedStore?.effectiveValueTitle ??
-    "بدون رنگ";
-  const cartItem = createMockCartItem(product, selectedStore, selectedColorLabel);
+  useEffect(() => {
+    saveRecentlyViewedProduct(siteType, {
+      id: product.id,
+      title: product.title,
+      image: product.images[0] ?? NO_IMAGE_URL,
+      price,
+      originalPrice,
+      discount: selectedStore?.offPercent || undefined,
+      outOfStock: !isAvailable,
+      storeProductId: selectedStore?.storeProductId,
+      urlTitle: product.urlTitle,
+    });
+  }, [
+    isAvailable,
+    originalPrice,
+    price,
+    product,
+    selectedStore?.offPercent,
+    selectedStore?.storeProductId,
+    siteType,
+  ]);
 
   return (
     <Container as="main" className="space-y-6 pt-20 pb-28 lg:space-y-10 lg:px-6 lg:py-6">
@@ -392,7 +386,6 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
             originalPrice={originalPrice}
             discount={selectedStore?.offPercent || undefined}
             colors={product.colors}
-            cartItem={cartItem}
             storeProductId={selectedStore?.storeProductId ?? null}
             inventory={inventory}
             isAvailable={isAvailable}
@@ -404,7 +397,6 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
       <MobilePurchaseFooter
         price={price}
         originalPrice={originalPrice ?? price}
-        cartItem={cartItem}
         storeProductId={selectedStore?.storeProductId ?? null}
         inventory={inventory}
         isAvailable={isAvailable}

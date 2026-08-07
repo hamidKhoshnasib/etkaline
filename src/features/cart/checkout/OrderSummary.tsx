@@ -9,6 +9,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
+import type { SavedBasket } from "@/features/cart/api/save-basket";
 import type { CartItem } from "@/features/cart/fixtures/cart";
 import { calculateCartTotals, type CheckoutStep } from "@/features/cart/model/checkout";
 import { cn } from "@/lib/utils";
@@ -18,16 +19,17 @@ interface OrderSummaryProps {
   step: CheckoutStep;
   items: CartItem[];
   checkoutDetails?: CheckoutDetails;
+  savedBasket?: SavedBasket | null;
   canProceed?: boolean;
-  onPrimary: () => void;
+  isSubmitting?: boolean;
+  onPrimary: () => void | Promise<void>;
+  onBack?: () => void;
 }
 
 function Row({ label, value, muted = false }: { label: string; value: number; muted?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
-      <span className={cn("text-sm", muted ? "text-muted-foreground" : "text-foreground")}>
-        {label}
-      </span>
+      <span className={cn("text-sm text-[#64748B]", muted && "opacity-70")}>{label}</span>
       <Price value={value} className="text-secondary text-sm font-bold" />
     </div>
   );
@@ -37,18 +39,36 @@ export default function OrderSummary({
   step,
   items,
   checkoutDetails,
+  savedBasket = null,
   canProceed = true,
+  isSubmitting = false,
   onPrimary,
+  onBack,
 }: OrderSummaryProps) {
   const [discountCode, setDiscountCode] = useState("");
   const fallbackTotals = calculateCartTotals(items, step);
+  const savedInvoice = step === "cart" ? null : savedBasket;
   const isCartStep = step === "cart" && checkoutDetails !== undefined;
-  const discount = checkoutDetails
-    ? checkoutDetails.offDiscountAmount + checkoutDetails.discountAmount
-    : fallbackTotals.discount;
+  const discount = savedInvoice
+    ? savedInvoice.offDiscountAmount + savedInvoice.discountAmount
+    : checkoutDetails
+      ? checkoutDetails.offDiscountAmount + checkoutDetails.discountAmount
+      : fallbackTotals.discount;
   const hekmatDiscount = checkoutDetails?.hekmatDiscountAmount ?? fallbackTotals.hekmatDiscount;
-  const total = checkoutDetails?.payableAmount ?? fallbackTotals.grandTotal;
-  const title = step === "cart" ? "مجموع فاکتور" : "جزئیات فاکتور";
+  const total = savedInvoice
+    ? Math.max(
+        0,
+        savedInvoice.totalOffPrice +
+          savedInvoice.deliveryAmount +
+          savedInvoice.serviceAmount -
+          savedInvoice.discountAmount -
+          (checkoutDetails?.hekmatDiscountAmount ?? 0) -
+          (checkoutDetails?.hekmatBonAmount ?? 0) -
+          (checkoutDetails?.hekmatSubsidAmount ?? 0) -
+          (checkoutDetails?.hekmatBuyCreditAmount ?? 0),
+      )
+    : (checkoutDetails?.payableAmount ?? fallbackTotals.grandTotal);
+  const title = "جزئیات فاکتور";
 
   return (
     <aside className="h-fit lg:sticky lg:top-36">
@@ -61,25 +81,43 @@ export default function OrderSummary({
           <div>
             <Row
               label="قیمت کالاها:"
-              value={checkoutDetails?.totalMainPrice ?? fallbackTotals.itemsTotal}
-            />
-            <Separator />
-            <Row
-              label="هزینه ارسال:"
-              value={checkoutDetails?.deliveryAmount ?? fallbackTotals.shipping}
+              value={
+                savedInvoice?.totalMainPrice ??
+                checkoutDetails?.totalMainPrice ??
+                fallbackTotals.itemsTotal
+              }
             />
             <Separator />
             {step !== "cart" ? (
               <>
-                <Row label="هزینه خدمات:" value={0} muted />
+                <Row
+                  label="هزینه ارسال:"
+                  value={
+                    savedInvoice?.deliveryAmount ??
+                    checkoutDetails?.deliveryAmount ??
+                    fallbackTotals.shipping
+                  }
+                />
+                <Row
+                  label="هزینه خدمات:"
+                  value={
+                    savedInvoice?.serviceAmount ??
+                    checkoutDetails?.serviceAmount ??
+                    fallbackTotals.service
+                  }
+                  muted={
+                    (savedInvoice?.serviceAmount ??
+                      checkoutDetails?.serviceAmount ??
+                      fallbackTotals.service) === 0
+                  }
+                />
                 <Separator />
               </>
             ) : null}
             <Row label="تخفیف:" value={discount} muted={discount === 0} />
             {step !== "cart" ? (
               <>
-                <Separator />
-                <Row label="تخفیف حکمت:" value={hekmatDiscount} muted={hekmatDiscount === 0} />
+                <Row label="تخفیف حکمت:" value={hekmatDiscount} />
               </>
             ) : null}
           </div>
@@ -109,7 +147,7 @@ export default function OrderSummary({
             </FieldGroup>
           ) : null}
 
-          <div className="text-muted-foreground mt-5 flex items-start gap-2 text-xs leading-5">
+          <div className="text-[#1E293B] mt-5 flex items-start gap-2 text-xs leading-5">
             <TriangleAlert className="text-primary mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <p>
               هزینه این سفارش هنوز پرداخت نشده و در صورت اتمام موجودی، کالاها از سبد حذف می‌شوند.
@@ -117,12 +155,17 @@ export default function OrderSummary({
           </div>
         </CardContent>
 
-        <CardFooter className="border-0 bg-transparent p-5 pt-4">
+        <CardFooter className="flex-col gap-3 border-0 bg-transparent p-5 pt-4">
           <Button
             type="button"
-            onClick={onPrimary}
+            onClick={() => void onPrimary()}
             size="md"
-            disabled={!canProceed || (isCartStep && checkoutDetails.basketItems.length === 0)}
+            disabled={
+              isSubmitting ||
+              !canProceed ||
+              (isCartStep && checkoutDetails.basketItems.length === 0)
+            }
+            aria-busy={isSubmitting}
             className="w-full rounded-full font-bold"
           >
             {step === "cart"
@@ -133,6 +176,18 @@ export default function OrderSummary({
                   : "زمان انتخاب نشده!"
                 : "پرداخت"}
           </Button>
+          {step !== "cart" && onBack ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              disabled={isSubmitting}
+              onClick={onBack}
+              className="w-full rounded-full"
+            >
+              بازگشت به مرحله قبل
+            </Button>
+          ) : null}
         </CardFooter>
       </Card>
     </aside>

@@ -1,29 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
-import {
-  ArrowLeft,
-  Banknote,
-  Box,
-  CreditCard,
-  Info,
-  MapPin,
-  Package,
-  Truck,
-  WalletCards,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Box, CreditCard, Info, MapPin, Package, Truck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppImage } from "@/components/ui/image";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
+import type { PayBasketInput } from "@/features/cart/api/payment";
+import { usePayTypes, usePaygates } from "@/features/cart/api/payment";
 import type { Address } from "@/features/address/api/use-addresses";
 import type { DeliverySelections, ParcelKind } from "@/features/cart/model/checkout";
 import { cn } from "@/lib/utils";
-import Price from "./Price";
-import { usePaymentSelection, WALLET_BALANCE } from "./use-payment-selection";
 
 interface ReviewStepProps {
   address: Address;
@@ -32,6 +24,7 @@ interface ReviewStepProps {
   selections: DeliverySelections;
   onEdit: () => void;
   onPaymentReadyChange: (ready: boolean) => void;
+  onPaymentSelectionChange: (selection: PayBasketInput | null) => void;
 }
 
 function ShipmentTime({
@@ -135,10 +128,12 @@ export default function ReviewStep({
   selections,
   onEdit,
   onPaymentReadyChange,
+  onPaymentSelectionChange,
 }: ReviewStepProps) {
-  const { method, walletInsufficient, selectMethod } = usePaymentSelection(
-    checkoutDetails.payableAmount,
-  );
+  const [payTypeId, setPayTypeId] = useState<number | null>(null);
+  const [paygateId, setPaygateId] = useState<number | null>(null);
+  const payTypesQuery = usePayTypes(checkoutDetails.id);
+  const paygatesQuery = usePaygates(payTypeId === 1);
   const heavyCount = items
     .filter((item) => item.isHeavyWeight)
     .reduce((sum, item) => sum + item.productCount, 0);
@@ -146,7 +141,23 @@ export default function ReviewStep({
     .filter((item) => !item.isHeavyWeight)
     .reduce((sum, item) => sum + item.productCount, 0);
 
-  useEffect(() => onPaymentReadyChange(method !== null), [method, onPaymentReadyChange]);
+  const paymentSelection = useMemo<PayBasketInput | null>(
+    () =>
+      payTypeId !== null && (payTypeId !== 1 || paygateId !== null)
+        ? {
+            basketId: checkoutDetails.id,
+            payType: payTypeId,
+            paygateId: payTypeId === 1 ? (paygateId ?? 0) : 0,
+            installmentCount: 0,
+          }
+        : null,
+    [checkoutDetails.id, payTypeId, paygateId],
+  );
+
+  useEffect(() => {
+    onPaymentReadyChange(paymentSelection !== null);
+    onPaymentSelectionChange(paymentSelection);
+  }, [onPaymentReadyChange, onPaymentSelectionChange, paymentSelection]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -208,61 +219,89 @@ export default function ReviewStep({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-6" role="radiogroup" aria-label="روش پرداخت">
-        <Card className="rounded-2xl py-5 shadow-none">
-          <CardHeader className="px-5">
-            <CardTitle className="flex items-center gap-2 font-medium">
-              <CreditCard className="text-secondary" aria-hidden="true" />
-              درگاه اینترنتی
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-5">
-            <PaymentOption
-              selected={method === "gateway"}
-              title="پرداخت از تمامی درگاه‌های عضو شتاب"
-              description="پس از ثبت سفارش به درگاه امن بانکی هدایت می‌شوید."
-              icon={Banknote}
-              onClick={() => selectMethod("gateway")}
-            >
-              <div className="flex gap-2" aria-label="درگاه‌های بانکی">
-                {["ملت", "ملی", "سامان", "پاسارگاد"].map((gateway) => (
-                  <Badge key={gateway} variant="secondary" className="hidden sm:inline-flex">
-                    {gateway}
-                  </Badge>
-                ))}
-              </div>
-            </PaymentOption>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl py-5 shadow-none">
-          <CardHeader className="px-5">
-            <CardTitle className="flex items-center gap-2 font-medium">
-              <WalletCards className="text-primary-hover" aria-hidden="true" />
-              کیف پول
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-5">
-            <PaymentOption
-              selected={method === "wallet"}
-              disabled={walletInsufficient}
-              title="پرداخت با موجودی کیف پول"
-              description={
-                walletInsufficient
-                  ? "موجودی کیف پول برای این سفارش کافی نیست."
-                  : "کل مبلغ از کیف پول کسر می‌شود."
-              }
-              icon={WalletCards}
-              onClick={() => selectMethod("wallet")}
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-muted-foreground text-xs">موجودی</span>
-                <Price value={WALLET_BALANCE} className="text-secondary text-sm" />
-              </span>
-            </PaymentOption>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="rounded-2xl py-5 shadow-none">
+        <CardHeader className="px-5">
+          <CardTitle className="flex items-center gap-2 font-medium">
+            <CreditCard className="text-secondary" aria-hidden="true" />
+            روش پرداخت
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 px-5" role="radiogroup" aria-label="روش پرداخت">
+          {payTypesQuery.isPending ? (
+            <>
+              <Skeleton className="h-24 w-full rounded-xl" />
+              <Skeleton className="h-24 w-full rounded-xl" />
+            </>
+          ) : null}
+          {payTypesQuery.isError ? (
+            <p role="alert" className="text-destructive text-sm">
+              {payTypesQuery.error.message}
+            </p>
+          ) : null}
+          {payTypesQuery.data?.length === 0 ? (
+            <p className="text-muted-foreground text-sm">روش پرداختی در دسترس نیست.</p>
+          ) : null}
+          {payTypesQuery.data?.map((payType) => (
+            <div key={payType.id} className="flex flex-col gap-3">
+              <PaymentOption
+                selected={payTypeId === payType.id}
+                title={payType.title}
+                description={
+                  payType.id === 1
+                    ? "پس از انتخاب درگاه، به درگاه امن بانکی هدایت می‌شوید."
+                    : "روش پرداخت مورد نظر خود را انتخاب کنید."
+                }
+                icon={CreditCard}
+                onClick={() => setPayTypeId(payType.id)}
+              />
+              {payType.id === 1 && payTypeId === 1 ? (
+                <div className="ms-4 flex flex-col gap-3 border-s ps-4">
+                  {paygatesQuery.isPending ? <Skeleton className="h-16 w-full rounded-xl" /> : null}
+                  {paygatesQuery.isError ? (
+                    <p role="alert" className="text-destructive text-sm">
+                      {paygatesQuery.error.message}
+                    </p>
+                  ) : null}
+                  {paygatesQuery.data?.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">درگاه پرداختی در دسترس نیست.</p>
+                  ) : null}
+                  {paygatesQuery.data?.map((paygate) => {
+                    const selected = paygateId === paygate.id;
+                    return (
+                      <Button
+                        key={paygate.id}
+                        type="button"
+                        variant="outline"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setPaygateId(paygate.id)}
+                        className={cn(
+                          "h-auto justify-between rounded-xl px-4 py-3 text-start",
+                          selected && "border-primary ring-primary ring-2",
+                        )}
+                      >
+                        <span className="flex items-center gap-3 font-bold">
+                          {paygate.picUrl || paygate.pic ? (
+                            <AppImage
+                              src={paygate.picUrl || paygate.pic}
+                              alt={paygate.title}
+                              width={36}
+                              height={36}
+                              className="size-9 rounded object-contain"
+                            />
+                          ) : null}
+                          {paygate.title}
+                        </span>
+                        {paygate.isInstallment ? <Badge variant="secondary">اقساطی</Badge> : null}
+                      </Button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }

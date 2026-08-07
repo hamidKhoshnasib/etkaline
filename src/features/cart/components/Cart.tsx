@@ -19,7 +19,14 @@ import {
 import { useDeleteBasketItem } from "@/features/cart/api/delete-basket-item";
 import { useCheckoutDetails } from "@/features/cart/api/get-checkout-details";
 import { useOpenBasket } from "@/features/cart/api/get-open-basket";
+import { type SavedBasket, useSaveBasket } from "@/features/cart/api/save-basket";
 import { useUpdateBasketQuantity } from "@/features/cart/api/update-basket-quantity";
+import {
+  type ApplianceDeliveryTimeSelection,
+  useSetApplianceDeliveryTime,
+} from "@/features/cart/api/appliance-delivery-times";
+import { useSetSupermarketDeliveryTime } from "@/features/cart/api/supermarket-delivery-times";
+import { type PayBasketInput, usePayBasket } from "@/features/cart/api/payment";
 import { useAddresses } from "@/features/address/api/use-addresses";
 import AddressStep from "@/features/cart/checkout/AddressStep";
 import OrderSummary from "@/features/cart/checkout/OrderSummary";
@@ -29,6 +36,8 @@ import CartStep from "@/features/cart/components/CartStep";
 import type { CartItem } from "@/features/cart/fixtures/cart";
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import type { DeliverySelections } from "@/features/cart/model/checkout";
+import { useStorefront } from "@/providers/storefront-provider";
+import { SITE_TYPES } from "@/lib/api-site-type";
 
 export type CheckoutStep = "cart" | "address" | "review";
 
@@ -46,12 +55,41 @@ function toCheckoutItem(item: OpenBasketItem): CartItem {
   };
 }
 
+function toApplianceDeliveryTimeSelection(
+  selection: DeliverySelections["heavy"],
+): ApplianceDeliveryTimeSelection | undefined {
+  const year = selection?.year;
+  const month = selection?.month;
+  const deliveryTimeId = selection?.deliveryTimeId;
+  if (
+    typeof year !== "number" ||
+    typeof month !== "number" ||
+    typeof deliveryTimeId !== "number" ||
+    !Number.isSafeInteger(year) ||
+    !Number.isSafeInteger(month) ||
+    !Number.isSafeInteger(deliveryTimeId) ||
+    deliveryTimeId < 1
+  ) {
+    return undefined;
+  }
+
+  return {
+    year,
+    month,
+    deliveryTimeId,
+  };
+}
+
 export default function CartPage() {
+  const { homeHref, siteType } = useStorefront();
   const { status } = useSession();
   const [step, setStep] = useState<CheckoutStep>("cart");
   const [addressReady, setAddressReady] = useState(false);
   const [paymentReady, setPaymentReady] = useState(false);
   const [deliverySelections, setDeliverySelections] = useState<DeliverySelections>({});
+  const [savedBasket, setSavedBasket] = useState<SavedBasket | null>(null);
+  const [paymentSelection, setPaymentSelection] = useState<PayBasketInput | null>(null);
+  const [isPaymentComplete, setIsPaymentComplete] = useState(false);
   const openBasketQuery = useOpenBasket();
   const addressesQuery = useAddresses();
   const checkoutQuery = useCheckoutDetails(
@@ -59,6 +97,10 @@ export default function CartPage() {
   );
   const updateQuantityMutation = useUpdateBasketQuantity();
   const deleteItemMutation = useDeleteBasketItem();
+  const saveBasketMutation = useSaveBasket();
+  const setApplianceDeliveryTimeMutation = useSetApplianceDeliveryTime();
+  const setSupermarketDeliveryTimeMutation = useSetSupermarketDeliveryTime();
+  const payBasketMutation = usePayBasket();
   const checkoutDetails = checkoutQuery.data;
   const items = checkoutDetails?.basketItems ?? [];
   const checkoutItems = items.map(toCheckoutItem);
@@ -66,10 +108,14 @@ export default function CartPage() {
     addressesQuery.data?.find((address) => address.isDefault) ?? addressesQuery.data?.[0] ?? null;
 
   const handleReadyChange = useCallback((ready: boolean) => setAddressReady(ready), []);
+  const handlePaymentSelectionChange = useCallback((selection: PayBasketInput | null) => {
+    setIsPaymentComplete(false);
+    setPaymentSelection(selection);
+  }, []);
 
   function handleQuantityChange(item: OpenBasketItem, quantity: number) {
     const basketId = openBasketQuery.data?.id;
-    if (!basketId || !item.hasInventory) {
+    if (!basketId) {
       return;
     }
 
@@ -84,6 +130,10 @@ export default function CartPage() {
       return;
     }
 
+    if (!item.hasInventory) {
+      return;
+    }
+
     void updateQuantityMutation
       .mutateAsync({ basketId, storeProductId: item.storeProductId, quantity })
       .catch((error: unknown) => {
@@ -93,19 +143,138 @@ export default function CartPage() {
       });
   }
 
-  function handlePrimary() {
+  async function handlePrimary() {
     if (step === "cart") {
+      const basketId = openBasketQuery.data?.id;
+      if (!basketId) {
+        toast.error("سبد خرید معتبر نیست.");
+        return;
+      }
+
+      try {
+        const savedBasket = await saveBasketMutation.mutateAsync({
+          basketId,
+          customerDescription: "",
+        });
+        setSavedBasket(savedBasket);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "ثبت سبد خرید ناموفق بود.");
+        return;
+      }
+
       setStep("address");
     } else if (step === "address") {
+      if (siteType === SITE_TYPES.appliance) {
+        const basketId = openBasketQuery.data?.id;
+        const heavyWeightDeliveryTime = toApplianceDeliveryTimeSelection(deliverySelections.heavy);
+        const lightWeightDeliveryTime = toApplianceDeliveryTimeSelection(deliverySelections.light);
+
+        if (!basketId || (!heavyWeightDeliveryTime && !lightWeightDeliveryTime)) {
+          toast.error("زمان ارسال را انتخاب کنید.");
+          return;
+        }
+
+        try {
+          await setApplianceDeliveryTimeMutation.mutateAsync({
+            basketId,
+            heavyWeightDeliveryTime,
+            lightWeightDeliveryTime,
+          });
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : "ثبت زمان ارسال ناموفق بود.");
+          return;
+        }
+      }
+
+      if (siteType === SITE_TYPES.supermarket) {
+        const basketId = openBasketQuery.data?.id;
+        const selection = deliverySelections.light;
+        const deliveryTimeId = selection?.deliveryTimeId;
+
+        if (
+          !basketId ||
+          !selection?.dateIso ||
+          !Number.isSafeInteger(deliveryTimeId) ||
+          deliveryTimeId < 1
+        ) {
+          toast.error("زمان ارسال را انتخاب کنید.");
+          return;
+        }
+
+        try {
+          await setSupermarketDeliveryTimeMutation.mutateAsync({
+            basketId,
+            deliveryDate: selection.dateIso,
+            deliveryTimeId,
+          });
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : "ثبت زمان ارسال ناموفق بود.");
+          return;
+        }
+      }
+
       setPaymentReady(false);
       setStep("review");
     } else {
-      toast.info("برای ثبت سفارش و انتقال به درگاه، API پرداخت باید متصل شود.");
+      if (!paymentSelection) {
+        toast.error("روش پرداخت را انتخاب کنید.");
+        return;
+      }
+
+      try {
+        const result = await payBasketMutation.mutateAsync(paymentSelection);
+        const message = result.message || "پرداخت سفارش با موفقیت ثبت شد.";
+
+        if (result.isPaid) {
+          setIsPaymentComplete(true);
+          toast.success(message);
+          return;
+        }
+
+        if (!result.needPayGate) {
+          toast.info(message);
+          return;
+        }
+
+        if (!result.payUrl) {
+          throw new Error("نشانی درگاه پرداخت معتبر نیست.");
+        }
+        let payUrl: URL;
+        try {
+          payUrl = new URL(result.payUrl);
+        } catch {
+          throw new Error("نشانی درگاه پرداخت معتبر نیست.");
+        }
+        if (payUrl.protocol !== "https:" && payUrl.protocol !== "http:") {
+          throw new Error("نشانی درگاه پرداخت معتبر نیست.");
+        }
+        window.location.assign(payUrl.toString());
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "پرداخت سفارش ناموفق بود.");
+      }
+    }
+  }
+
+  function handleBack() {
+    if (step === "review") {
+      setPaymentReady(false);
+      setStep("address");
+      return;
+    }
+
+    if (step === "address") {
+      setAddressReady(false);
+      setSavedBasket(null);
+      setStep("cart");
     }
   }
 
   const canProceed =
-    step === "address" ? addressReady : step === "review" ? paymentReady : items.length > 0;
+    step === "address"
+      ? addressReady
+      : step === "review"
+        ? paymentReady && !isPaymentComplete
+        : items.length > 0;
   const isLoading =
     status === "loading" ||
     (status === "authenticated" &&
@@ -195,7 +364,7 @@ export default function CartPage() {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Link href="/" className={buttonVariants()}>
+              <Link href={homeHref} className={buttonVariants()}>
                 مشاهده محصولات
               </Link>
             </EmptyContent>
@@ -240,6 +409,7 @@ export default function CartPage() {
                 setStep("address");
               }}
               onPaymentReadyChange={setPaymentReady}
+              onPaymentSelectionChange={handlePaymentSelectionChange}
             />
           ) : null}
         </div>
@@ -248,8 +418,17 @@ export default function CartPage() {
           step={step}
           items={checkoutItems}
           checkoutDetails={checkoutDetails}
+          savedBasket={savedBasket}
           canProceed={canProceed}
+          isSubmitting={
+            (step === "cart" && saveBasketMutation.isPending) ||
+            (step === "address" &&
+              (setApplianceDeliveryTimeMutation.isPending ||
+                setSupermarketDeliveryTimeMutation.isPending)) ||
+            (step === "review" && payBasketMutation.isPending)
+          }
           onPrimary={handlePrimary}
+          onBack={handleBack}
         />
       </Container>
     </main>

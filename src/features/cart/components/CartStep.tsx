@@ -1,12 +1,15 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { LayoutGrid, Rows3 } from "lucide-react";
 
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import CartItemRow from "@/features/cart/components/CartItemRow";
-import { RECOMMENDED_PRODUCTS } from "@/features/cart/fixtures/cart";
 import { ProductCard } from "@/features/product/components/ProductCard";
+import { getRecentlyViewedProducts } from "@/features/product/lib/recently-viewed-products";
+import type { Product } from "@/features/product/model/product";
 import ProductSwiper from "@/features/product/components/ProductSwiper";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface CartStepProps {
   items: OpenBasketItem[];
@@ -14,11 +17,25 @@ interface CartStepProps {
   onQuantityChange: (item: OpenBasketItem, quantity: number) => void;
 }
 
+const EMPTY_RECENT_PRODUCTS: Product[] = [];
+
+function subscribeToStorage(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
+}
+
 export default function CartStep({
   items,
   deletingStoreProductId,
   onQuantityChange,
 }: CartStepProps) {
+  const { siteType } = useStorefront();
+  const recentProducts = useSyncExternalStore(
+    subscribeToStorage,
+    () => getRecentlyViewedProducts(siteType),
+    () => EMPTY_RECENT_PRODUCTS,
+  );
+
   return (
     <div className="flex min-w-0 flex-col gap-7">
       <section aria-labelledby="cart-items-heading">
@@ -44,36 +61,41 @@ export default function CartStep({
         </div>
       </section>
 
-      <section aria-labelledby="recent-products-heading">
-        <h2 id="recent-products-heading" className="text-secondary mb-5 text-xl font-bold">
-          اخیراً بازدید کردید
-        </h2>
-        <ProductSwiper
-          items={RECOMMENDED_PRODUCTS}
-          slidesPerView={2}
-          spaceBetween={8}
-          breakpoints={{
-            480: { slidesPerView: 3 },
-            768: { slidesPerView: 4 },
-            1280: { slidesPerView: 5 },
-          }}
-          renderSlide={(product) => (
-            <ProductCard
-              id={product.id}
-              title={product.title}
-              image={product.image}
-              price={product.price}
-              originalPrice={product.originalPrice}
-              discount={product.discount}
-              disableHover
-              stickPriceToBottom
-              className="h-full w-full rounded-xl"
-              imageContainerClassName="bg-card"
-              imageClassName="lg:h-44"
-            />
-          )}
-        />
-      </section>
+      {recentProducts.length ? (
+        <section aria-labelledby="recent-products-heading">
+          <h2 id="recent-products-heading" className="text-secondary mb-5 text-xl font-bold">
+            اخیراً بازدید کردید
+          </h2>
+          <ProductSwiper
+            items={recentProducts}
+            slidesPerView={2}
+            spaceBetween={8}
+            breakpoints={{
+              480: { slidesPerView: 3 },
+              768: { slidesPerView: 4 },
+              1280: { slidesPerView: 5 },
+            }}
+            renderSlide={(product) => (
+              <ProductCard
+                id={product.id}
+                title={product.title}
+                image={product.image}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                discount={product.discount}
+                outOfStock={product.outOfStock}
+                storeProductId={product.storeProductId}
+                urlTitle={product.urlTitle}
+                disableHover
+                stickPriceToBottom
+                className="h-full w-full rounded-xl"
+                imageContainerClassName="bg-card"
+                imageClassName="lg:h-44"
+              />
+            )}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -2,22 +2,11 @@
 
 import { MinusIcon, Trash2Icon, PlusIcon, ShoppingCartIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { useAddToBasket } from "@/features/cart/api/add-to-basket";
-import {
-  addMockCartItem,
-  getMockCartItems,
-  getMockCartServerSnapshot,
-  removeMockCartItem,
-  subscribeToMockCart,
-  updateMockCartItemQuantity,
-} from "@/features/cart/lib/mock-cart-storage";
-import type { CartItem } from "@/features/cart/model/cart";
+import { useBasketItem } from "@/features/cart/api/use-basket-item";
 import { cn } from "@/lib/utils";
 
 interface AddToCartButtonProps {
-  item: CartItem;
   storeProductId: number | null;
   className?: string;
   quantityClassName?: string;
@@ -26,7 +15,6 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({
-  item,
   storeProductId,
   className,
   quantityClassName,
@@ -34,16 +22,11 @@ export function AddToCartButton({
   unavailable = false,
 }: AddToCartButtonProps) {
   const { status } = useSession();
-  const { isPending, mutateAsync } = useAddToBasket();
-  const cartItems = useSyncExternalStore(
-    subscribeToMockCart,
-    getMockCartItems,
-    getMockCartServerSnapshot,
-  );
-  const cartItem = cartItems.find((cartItem) => cartItem.id === item.id);
+  const basketItem = useBasketItem(storeProductId);
+  const isInitialMutation = basketItem.isAdding || basketItem.isDeleting;
 
   async function handleAddToCart() {
-    if (isPending || storeProductId === null || unavailable) {
+    if (isInitialMutation || storeProductId === null || unavailable) {
       return;
     }
 
@@ -53,9 +36,11 @@ export function AddToCartButton({
     }
 
     try {
-      await mutateAsync({ storeProductId, quantity: 1 });
-      addMockCartItem(item);
-      toast.success("کالا به سبد خرید اضافه شد.");
+      const wasInBasket = basketItem.quantity > 0;
+      await basketItem.increase();
+      if (!wasInBasket) {
+        toast.success("کالا به سبد خرید اضافه شد.");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "افزودن کالا به سبد خرید ناموفق بود.");
     }
@@ -65,7 +50,15 @@ export function AddToCartButton({
     void handleAddToCart();
   }
 
-  if (cartItem) {
+  async function handleQuantityDecrease() {
+    try {
+      await basketItem.decrease();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تغییر تعداد کالا ناموفق بود.");
+    }
+  }
+
+  if (basketItem.quantity > 0) {
     return (
       <div
         className={cn("flex items-center gap-5", quantityClassName)}
@@ -77,25 +70,21 @@ export function AddToCartButton({
           aria-label="افزایش تعداد"
           className="bg-primary text-secondary hover:bg-primary-hover flex size-13 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60"
           onClick={handleQuantityIncrease}
-          disabled={isPending || storeProductId === null || unavailable}
+          disabled={isInitialMutation || storeProductId === null || unavailable}
         >
           <PlusIcon className="size-5" />
         </button>
         <span className="text-secondary min-w-4 text-center text-base font-bold">
-          {cartItem.quantity.toLocaleString("fa-IR")}
+          {basketItem.quantity.toLocaleString("fa-IR")}
         </span>
         <button
           type="button"
-          aria-label={cartItem.quantity === 1 ? "حذف کالا از سبد خرید" : "کاهش تعداد"}
+          aria-label={basketItem.quantity === 1 ? "حذف کالا از سبد خرید" : "کاهش تعداد"}
           className="text-destructive hover:bg-muted border-border flex size-13 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isPending}
-          onClick={() =>
-            cartItem.quantity === 1
-              ? removeMockCartItem(item.id)
-              : updateMockCartItemQuantity(item.id, cartItem.quantity - 1)
-          }
+          disabled={isInitialMutation}
+          onClick={() => void handleQuantityDecrease()}
         >
-          {cartItem.quantity === 1 ? (
+          {basketItem.quantity === 1 ? (
             <Trash2Icon className="size-5" />
           ) : (
             <MinusIcon className="size-5" />
@@ -110,11 +99,11 @@ export function AddToCartButton({
       type="button"
       className={cn("disabled:cursor-not-allowed disabled:opacity-60", className)}
       onClick={() => void handleAddToCart()}
-      disabled={isPending || storeProductId === null || unavailable}
-      aria-busy={isPending}
+      disabled={isInitialMutation || storeProductId === null || unavailable}
+      aria-busy={isInitialMutation}
     >
       {showIcon && <ShoppingCartIcon className="size-4" />}
-      {unavailable ? "ناموجود" : isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
+      {unavailable ? "ناموجود" : isInitialMutation ? "در حال افزودن..." : "افزودن به سبد خرید"}
     </button>
   );
 }

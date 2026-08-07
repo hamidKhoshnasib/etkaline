@@ -32,6 +32,7 @@ export interface CheckoutDetails {
   hekmatSubsidAmount: number;
   hekmatBuyCreditAmount: number;
   deliveryAmount: number;
+  serviceAmount: number;
   payableAmount: number;
   hekmatIsPaid: boolean;
   deliveryStartDate: string;
@@ -44,7 +45,7 @@ export interface GetCheckoutDetailsInput {
   basketId: number;
 }
 
-const REMOVE_DISCOUNT = false;
+const REMOVE_DISCOUNT = true;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -99,6 +100,7 @@ function parseCheckoutDetailsResponse(response: CheckoutDetailsResponse): Checko
     hekmatSubsidAmount: numberValue(value.hekmatSubsidAmount),
     hekmatBuyCreditAmount: numberValue(value.hekmatBuyCreditAmount),
     deliveryAmount: numberValue(value.deliveryAmount),
+    serviceAmount: numberValue(value.serviceAmount),
     payableAmount: numberValue(value.payableAmount),
     hekmatIsPaid: value.hekmatIsPaid === true,
     deliveryStartDate: stringValue(value.deliveryStartDate),

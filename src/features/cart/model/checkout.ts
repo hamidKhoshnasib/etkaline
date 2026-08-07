@@ -9,6 +9,9 @@ export interface DeliverySelection {
   dateLabel: string;
   time: string;
   pickup: boolean;
+  year?: number;
+  month?: number;
+  deliveryTimeId?: number;
 }
 
 export type DeliverySelections = Partial<Record<ParcelKind, DeliverySelection>>;

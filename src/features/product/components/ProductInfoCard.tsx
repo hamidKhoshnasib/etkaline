@@ -5,7 +5,6 @@ import { ScaleIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
 import { formatDiscountPercent } from "@/features/product/lib/format-price";
-import type { CartItem } from "@/features/cart/model/cart";
 import { cn } from "@/lib/utils";
 
 export interface ProductColor {
@@ -19,7 +18,6 @@ interface ProductInfoCardProps {
   originalPrice?: number;
   discount?: number;
   colors?: ProductColor[];
-  cartItem: CartItem;
   storeProductId: number | null;
   inventory: number;
   isAvailable: boolean;
@@ -109,7 +107,6 @@ export function ProductInfoCard({
   originalPrice,
   discount,
   colors = [],
-  cartItem,
   storeProductId,
   inventory,
   isAvailable,
@@ -159,7 +156,6 @@ export function ProductInfoCard({
 
       {/* Add to cart */}
       <AddToCartButton
-        item={cartItem}
         storeProductId={storeProductId}
         unavailable={!isAvailable}
         className="bg-primary flex w-full items-center justify-center gap-2 rounded-[28px] py-3 text-sm font-semibold transition-opacity hover:opacity-90"

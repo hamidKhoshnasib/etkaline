@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Palette, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import Price from "@/features/cart/checkout/Price";
 import type { OpenBasketItem } from "@/features/cart";
 import { formatDiscountPercent } from "@/features/product/lib/format-price";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface CartItemRowProps {
   item: OpenBasketItem;
@@ -17,19 +19,33 @@ interface CartItemRowProps {
 }
 
 export default function CartItemRow({ item, isDeleting, onQuantityChange }: CartItemRowProps) {
+  const storefront = useStorefront();
   const image = item.picUrl || item.pic || "/images/image-placeholder.svg";
   const finalPrice = item.offPrice > 0 ? item.offPrice : item.mainPrice;
   const hasDiscount = item.offPercent > 0 && item.offPrice > 0;
   const property = [item.propertyTitle, item.valueTitle].filter(Boolean).join(": ");
+  const productHref =
+    Number.isSafeInteger(item.productId) && item.productId > 0
+      ? storefront.productHref(item.productId, item.productTitle)
+      : null;
 
   return (
     <article
       className={cn(
-        "bg-card border-border grid min-h-32 grid-cols-[5.5rem_minmax(0,1fr)] gap-x-3 gap-y-4 rounded-xl border p-3 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:p-4",
+        "bg-card border-border relative grid min-h-32 grid-cols-[5.5rem_minmax(0,1fr)] gap-x-3 gap-y-4 rounded-xl border p-3 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:p-4",
         !item.hasInventory && "opacity-55",
       )}
       aria-busy={isDeleting}
     >
+      {productHref ? (
+        <Link
+          href={productHref}
+          aria-label={`مشاهده ${item.productTitle}`}
+          className="focus-visible:outline-primary absolute inset-0 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <span className="sr-only">مشاهده جزئیات محصول</span>
+        </Link>
+      ) : null}
       <div className="bg-muted row-span-2 flex size-22 items-center justify-center overflow-hidden rounded-lg sm:size-26">
         <AppImage
           src={image}
@@ -55,24 +71,24 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
           ) : null}
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="size-4" aria-hidden="true" />
-            {item.hasInventory ? "موجود در انبار" : "ناموجود"}
+            {item.hasInventory ? "گارانتی اتکلاین" : "موجود نیست"}
           </span>
         </div>
 
-        <div className="mt-auto flex flex-wrap items-end gap-2">
-          <Price value={finalPrice} className="text-secondary text-sm font-bold sm:text-base" />
+        <div className="mt-auto flex flex-col items-start gap-1">
           {hasDiscount ? (
-            <>
+            <div className="flex items-center gap-2">
               <Badge variant="offer">{formatDiscountPercent(item.offPercent)}٪</Badge>
               <s className="text-muted-foreground text-xs">
                 {item.mainPrice.toLocaleString("fa-IR")}
               </s>
-            </>
+            </div>
           ) : null}
+          <Price value={finalPrice} className="text-secondary text-sm font-bold sm:text-base" />
         </div>
       </div>
 
-      <div className="col-start-2 flex min-h-9 items-center justify-end gap-2 self-end sm:col-start-3 sm:row-start-1 sm:row-end-3 sm:min-w-28">
+      <div className="relative z-10 col-start-2 flex min-h-9 items-center justify-end gap-2 self-end sm:col-start-3 sm:row-start-1 sm:row-end-3 sm:min-w-28">
         {item.hasInventory ? (
           <>
             <Button
@@ -107,7 +123,29 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
             </Button>
           </>
         ) : (
-          <Badge variant="destructive">ناموجود</Badge>
+          <>
+            {productHref ? (
+              <Button
+                size="sm"
+                variant="outline"
+                render={<Link href={productHref} />}
+                className="rounded-full"
+              >
+                مشاهده محصول
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="destructive"
+              className="rounded-full"
+              aria-label={`حذف ${item.productTitle} از سبد خرید`}
+              disabled={isDeleting}
+              onClick={() => onQuantityChange(item, 0)}
+            >
+              <Trash2 />
+            </Button>
+          </>
         )}
       </div>
     </article>

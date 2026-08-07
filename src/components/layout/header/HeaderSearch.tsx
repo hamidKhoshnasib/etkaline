@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useSearchbar } from "@/features/search/api/use-searchbar";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { SITE_TYPES } from "@/lib/api-site-type";
+import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
 const RECENT_SEARCHES_STORAGE_KEY = "etkaline:recent-searches";
@@ -48,8 +49,14 @@ function persistRecentSearches(searches: string[]) {
   }
 }
 
-export function HeaderSearch() {
+type HeaderSearchProps = {
+  className?: string;
+  variant?: "default" | "mobile";
+};
+
+export function HeaderSearch({ className, variant = "default" }: HeaderSearchProps) {
   const storefront = useStorefront();
+  const isMobile = variant === "mobile";
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(() =>
@@ -108,28 +115,51 @@ export function HeaderSearch() {
   }, [isOpen]);
 
   return (
-    <div ref={searchRef} className="relative z-[70] flex flex-1 justify-center px-4">
+    <div
+      ref={searchRef}
+      className={cn(
+        "relative z-[70] flex flex-1 justify-center",
+        isMobile ? "px-0" : "px-4",
+        className,
+      )}
+    >
       <div className="relative w-full max-w-154.5">
-        <div className="flex h-12.5 w-full items-center overflow-hidden rounded-full bg-white">
+        <div
+          className={cn(
+            "flex w-full items-center overflow-hidden",
+            isMobile
+              ? "h-12 rounded-[28px] border border-[#F1F5F9] bg-transparent"
+              : "h-12.5 rounded-full bg-white",
+          )}
+        >
           {!query && (
-            <div className="text-primary flex shrink-0 items-center gap-2 px-4 py-2.5">
+            <div
+              className={cn(
+                "text-primary flex shrink-0 items-center gap-2",
+                isMobile ? "px-5" : "px-4 py-2.5",
+              )}
+            >
               <IconStore
-                size={18}
+                size={isMobile ? 20 : 18}
                 strokeWidth={1.5}
-                className={
-                  storefront.siteType === SITE_TYPES.supermarket
-                    ? "[&_path]:fill-[#43A047]"
-                    : undefined
-                }
+                className={cn(
+                  isMobile && "shrink-0",
+                  storefront.siteType === SITE_TYPES.supermarket && "[&_path]:fill-[#43A047]",
+                )}
               />
-              <span className="text-sm font-medium whitespace-nowrap text-gray-400">
+              <span
+                className={cn(
+                  "whitespace-nowrap",
+                  isMobile ? "text-sm text-[#94A3B8]" : "text-sm font-medium text-gray-400",
+                )}
+              >
                 خرید از
                 <span className="text-secondary font-bold"> انبار مرکزی اتکالاین </span>
               </span>
             </div>
           )}
 
-          {!query && <div className="bg-secondary/20 h-6 w-px shrink-0" />}
+          {!query && !isMobile && <div className="bg-secondary/20 h-6 w-px shrink-0" />}
 
           <div className="relative flex-1">
             <input
@@ -140,7 +170,7 @@ export function HeaderSearch() {
                 setQuery(event.target.value);
                 setIsOpen(true);
               }}
-              placeholder="جستجو در فروشگاه"
+              placeholder={isMobile && !query ? "" : "جستجو در فروشگاه"}
               className="text-secondary placeholder:text-secondary/40 w-full border-0 bg-transparent py-2.5 ps-8 pe-10 text-sm focus:outline-none"
               aria-label="جستجو در فروشگاه"
             />

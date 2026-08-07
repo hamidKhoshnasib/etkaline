@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, ChevronDown, Search } from "lucide-react";
+import { MapPin, ChevronDown } from "lucide-react";
 import EtkalineMobileLogo from "@/assets/icons/logo-mobile.svg";
 import SupermarketMobileLogo from "@/assets/icons/logo-supermarket-mobile.svg";
-import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 import { useAddresses } from "@/features/address/api/use-addresses";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import { AddressPicker } from "./AddressPicker";
+import { HeaderSearch } from "./HeaderSearch";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { useStorefront } from "@/providers/storefront-provider";
 
@@ -66,26 +66,7 @@ export function MobileHeader() {
 
       {/* ── Bottom row: search box ───────────────────────────────────── */}
       <div className="rounded-t-[32px] bg-white px-4 py-2.5">
-        <Link
-          href={storefront.searchHref}
-          className="flex h-12 items-center justify-between rounded-[28px] border border-[#F1F5F9] px-5"
-        >
-          <span className="flex items-center gap-2">
-            <IconStore
-              size={20}
-              className={
-                storefront.siteType === SITE_TYPES.supermarket
-                  ? "shrink-0 [&_path]:fill-[#43A047]"
-                  : "shrink-0"
-              }
-            />
-            <span className="text-sm">
-              <span className="text-[#94A3B8]">خرید از </span>
-              <span className="text-secondary font-bold">انبار مرکزی اتکلاین</span>
-            </span>
-          </span>
-          <Search size={18} className="text-secondary/50 shrink-0" />
-        </Link>
+        <HeaderSearch variant="mobile" />
       </div>
     </div>
   );

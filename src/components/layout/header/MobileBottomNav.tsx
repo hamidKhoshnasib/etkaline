@@ -66,14 +66,9 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
       />
       <nav
         aria-label="ناوبری اصلی موبایل"
-        className="bg-background fixed inset-x-0 bottom-0 z-40 rounded-t-2xl border-t shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden"
+        className="bg-background fixed inset-x-0 bottom-0 z-40 rounded-t-2xl border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden"
       >
-        <ul
-          className={cn(
-            "flex items-stretch pb-[env(safe-area-inset-bottom)]",
-            pathname.startsWith("/account") ? "h-[90px]" : "h-18",
-          )}
-        >
+        <ul className="flex h-18 items-stretch">
           {navigationItems.map(({ href, label, Icon, exact, opensCategoryMenu }) => {
             const isActive = opensCategoryMenu
               ? isCategoryMenuOpen || pathname.startsWith(href)

@@ -39,7 +39,7 @@ interface QuantityUpdateQueue {
 }
 
 const quantityUpdateQueues = new Map<string, QuantityUpdateQueue>();
-const QUANTITY_DEBOUNCE_MS = 350;
+const QUANTITY_DEBOUNCE_MS = 500;
 
 function validateInput(input: UpdateBasketQuantityInput) {
   if (!Number.isSafeInteger(input.storeProductId) || input.storeProductId < 1) {

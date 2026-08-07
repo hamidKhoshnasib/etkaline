@@ -50,6 +50,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
       }
     : null;
   const basketItem = useBasketItem(resolvedProduct?.storeProductId ?? null);
+  const isBasketActionPending = basketItem.isAdding || basketItem.isDeleting;
   const favoriteMutation = useToggleFavorite();
   const isLoadingDetail = product !== null && detailQuery.isPending;
   const isUnavailable =
@@ -157,7 +158,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                         type="button"
                         aria-label="افزایش تعداد"
                         onClick={() => void basketItem.increase()}
-                        disabled={basketItem.isMutating}
+                        disabled={isBasketActionPending}
                         className="flex size-8 items-center justify-center rounded-full hover:bg-white/15"
                       >
                         <Plus className="size-4" />
@@ -169,7 +170,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                         type="button"
                         aria-label="کاهش تعداد"
                         onClick={() => void basketItem.decrease()}
-                        disabled={basketItem.isMutating}
+                        disabled={isBasketActionPending}
                         className="flex size-8 items-center justify-center rounded-full hover:bg-white/15"
                       >
                         <Minus className="size-4" />
@@ -180,7 +181,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                       type="button"
                       size="xl"
                       onClick={() => void addToBasket()}
-                      disabled={isLoadingDetail || isUnavailable || basketItem.isMutating}
+                      disabled={isLoadingDetail || isUnavailable || isBasketActionPending}
                       className="rounded-2xl px-6 text-sm font-bold"
                     >
                       <ShoppingBag className="size-5" />
