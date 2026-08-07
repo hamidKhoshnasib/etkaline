@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__1dbfdfb5-78f3-4e1e-9baf-2fc610dd05f4__whoami",
+      "mcp__1dbfdfb5-78f3-4e1e-9baf-2fc610dd05f4__get_design_context",
+      "mcp__1dbfdfb5-78f3-4e1e-9baf-2fc610dd05f4__get_screenshot",
+      "Bash(curl -s -o sidebar.png \"https://www.figma.com/api/mcp/asset/3460c8d1-ed4d-4139-9631-6d076eb59f45\")",
+      "Bash(curl -s -o banner.png \"https://www.figma.com/api/mcp/asset/4339d5a2-942e-48bb-94f3-0e4a722fd045\")",
+      "Bash(curl -s -o featured.png \"https://www.figma.com/api/mcp/asset/49b11b55-fc89-4ee4-a453-e9e260ddd54e\")",
+      "Bash(grep -iE \"^\\(layout-grid|tag|lightbulb|trees|bath|cooking-pot|sparkles|blinds|armchair|clock|eye|play|arrow-left|sofa|lamp\\)\\\\.js$\")"
+    ]
+  }
+}
