@@ -29,7 +29,7 @@ export interface HomeLayoutItem {
 }
 
 interface HomeLayoutResponse {
-  value: HomeLayoutItem[];
+  value: HomeLayoutItem[] | null;
   isSuccess: boolean;
   errors: string[];
   message: string;
@@ -55,6 +55,10 @@ export async function getHomeLayout(
   }
 
   const payload = (await response.json()) as HomeLayoutResponse;
+  if (payload.value === null) {
+    return [];
+  }
+
   if (!payload.isSuccess || !Array.isArray(payload.value)) {
     throw new Error(payload.message || payload.errors?.[0] || "Invalid home layout response");
   }

@@ -14,6 +14,7 @@ import {
   getHomeLayout,
   HOME_COMPONENT_TYPE,
   type HomeLayoutItem,
+  type HomeLayoutType,
   type HomePlatformType,
 } from "@/features/home/appliances/api/get-home-layout";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
@@ -120,7 +121,8 @@ export default async function DynamicHomeLayout({ siteType }: { siteType: SiteTy
   const { device } = userAgentFromString(requestHeaders.get("user-agent") ?? undefined);
   const platformType: HomePlatformType =
     device.type === "mobile" || device.type === "tablet" ? 2 : 1;
-  const layout = await getHomeLayout(2, platformType, siteType);
+  const layoutType: HomeLayoutType = siteType === SITE_TYPES.supermarket ? 1 : 2;
+  const layout = await getHomeLayout(layoutType, platformType, siteType);
   const renderedLayoutItems = [];
 
   for (let index = 0; index < layout.length; index += 1) {

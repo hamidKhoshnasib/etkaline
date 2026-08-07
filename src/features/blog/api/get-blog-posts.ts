@@ -45,11 +45,14 @@ function toImageUrl(value: unknown): string | null {
 
 function parseBlogPosts(raw: unknown): BlogPost[] {
   const response = raw as BlogPostsResponse;
-  if (response.isSuccess !== true || !Array.isArray(response.value)) {
+  const posts =
+    (Array.isArray(response.value) ? response.value : asRecord(response.value)?.posts) ?? null;
+
+  if (response.isSuccess !== true || !Array.isArray(posts)) {
     throw new Error("Blog posts response was unsuccessful");
   }
 
-  return response.value.flatMap((value): BlogPost[] => {
+  return posts.flatMap((value): BlogPost[] => {
     const post = asRecord(value);
     const id = post && asInteger(post.id);
     const title = post && asText(post.title);
