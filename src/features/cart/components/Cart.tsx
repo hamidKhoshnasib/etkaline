@@ -302,6 +302,7 @@ export default function CartPage() {
         if (
           !basketId ||
           !selection?.dateIso ||
+          typeof deliveryTimeId !== "number" ||
           !Number.isSafeInteger(deliveryTimeId) ||
           deliveryTimeId < 1
         ) {

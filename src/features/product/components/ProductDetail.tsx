@@ -10,10 +10,6 @@ import { ReviewsSection } from "./reviews/ReviewsSection";
 import { ArrowLeftIcon } from "lucide-react";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
-import Image35 from "@/assets/images/image 35.png";
-import Image36 from "@/assets/images/image 36.png";
-import Image37 from "@/assets/images/image 37.png";
-import Swiper1 from "@/assets/images/swiper1.png";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -58,8 +54,6 @@ interface ProductViewModel {
   inventory: number;
   isAvailable: boolean;
   productExists: boolean;
-  rating: number;
-  reviewCount: number;
   specs: Array<{ label: string; value: string }>;
   specifications: Array<{ label: string; value: string }>;
   colors: Array<{ id: string; hex: string; label: string }>;
@@ -69,14 +63,6 @@ interface ProductViewModel {
   breadcrumbs: ProductBreadcrumbEntry[];
 }
 
-const PRODUCT_BREADCRUMBS: ProductBreadcrumbEntry[] = [
-  { label: "خانه", href: "/" },
-  { label: "لوازم خانگی", href: "/category/home-appliances" },
-  { label: "یخچال فریزر", href: "/category/refrigerator" },
-  { label: "یخچال فریزر سامسونگ" },
-];
-
-const PRODUCT_IMAGES = [Image35.src, Image36.src, Image37.src, Swiper1.src];
 const NO_IMAGE_URL = "/images/image-placeholder.svg";
 
 function toPlainText(value: string): string {
@@ -85,40 +71,6 @@ function toPlainText(value: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
-
-const PRODUCT: ProductViewModel = {
-  id: 6,
-  storeProductId: null,
-  storeInfos: [],
-  title:
-    "یخچال فریزر سامسونگ ۳۶ اینچ ۲۸ فوت مکعبی درب فرانسوی با یخساز (RF28R7201SR/AA) - استیل ضد زنگ",
-  isFavorite: false,
-  price: 330000000,
-  originalPrice: 420000000,
-  discount: 30,
-  inventory: 0,
-  isAvailable: false,
-  productExists: false,
-  rating: 3.5,
-  reviewCount: 566,
-  specs: [
-    { label: "برند", value: "سامسونگ" },
-    { label: "مدل", value: "لولای راست" },
-    { label: "رنگ", value: "سفید" },
-  ],
-  specifications: [],
-  colors: [
-    { id: "white", hex: "#ffffff", label: "سفید" },
-    { id: "silver", hex: "#c0c0c0", label: "نقره‌ای" },
-    { id: "black", hex: "#1a1a2e", label: "مشکی" },
-  ],
-  images: Array.from({ length: 5 }, (_, i) => PRODUCT_IMAGES[i % PRODUCT_IMAGES.length]),
-  shortDescription:
-    "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد کتابهای زیادی در شصت و سه درصد گذشته حال و آینده",
-  description:
-    "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.",
-  breadcrumbs: PRODUCT_BREADCRUMBS,
-};
 
 function createProductViewModel(
   product: ProductDetailData,
@@ -179,8 +131,6 @@ function createProductViewModel(
     inventory: Math.max(0, store?.inventory ?? 0),
     isAvailable: product.isExist && (store?.inventory ?? 0) > 0,
     productExists: product.isExist,
-    rating: PRODUCT.rating,
-    reviewCount: PRODUCT.reviewCount,
     specs: [
       ...(product.brand ? [{ label: "برند", value: product.brand.title }] : []),
       ...propertySpecs,
@@ -362,8 +312,6 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
 
             <ProductSummary
               title={product.title}
-              rating={PRODUCT.rating}
-              reviewCount={PRODUCT.reviewCount}
               specs={product.specs}
               colors={product.colors}
               shortDescription={product.shortDescription}
@@ -378,7 +326,7 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
             specifications={product.specifications}
           />
 
-          <ReviewsSection productId={product.id} averageRating={4} totalRatings={40} />
+          <ReviewsSection productId={product.id} />
         </div>
         <div className="hidden w-[300px] shrink-0 lg:block">
           <ProductInfoCard

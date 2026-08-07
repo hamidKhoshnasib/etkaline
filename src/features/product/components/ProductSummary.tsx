@@ -13,8 +13,8 @@ interface Spec {
 
 interface ProductSummaryProps {
   title: string;
-  rating: number;
-  reviewCount: number;
+  rating?: number;
+  reviewCount?: number;
   specs: Spec[];
   colors: ProductColor[];
   shortDescription: string;
@@ -43,26 +43,27 @@ export function ProductSummary({
         {title}
       </h1>
 
-      {/* Rating */}
-      <div className="mb-5 flex flex-col flex-wrap gap-3 lg:mb-6">
-        <div className="flex items-center gap-1.5">
-          <div className="flex">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <StarIcon
-                key={i}
-                className={cn(
-                  "size-3.5",
-                  i < Math.round(rating)
-                    ? "fill-primary text-primary"
-                    : "fill-gray-200 text-gray-200",
-                )}
-              />
-            ))}
+      {rating !== undefined && reviewCount !== undefined ? (
+        <div className="mb-5 flex flex-col flex-wrap gap-3 lg:mb-6">
+          <div className="flex items-center gap-1.5">
+            <div className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <StarIcon
+                  key={i}
+                  className={cn(
+                    "size-3.5",
+                    i < Math.round(rating)
+                      ? "fill-primary text-primary"
+                      : "fill-gray-200 text-gray-200",
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-sm font-semibold text-gray-700">{rating}</span>
+            <span className="text-sm text-gray-500">({toPersian(reviewCount)} نظر)</span>
           </div>
-          <span className="text-sm font-semibold text-gray-700">{rating}</span>
-          <span className="text-sm text-gray-500">({toPersian(reviewCount)} نظر)</span>
         </div>
-      </div>
+      ) : null}
 
       <div className="mb-6 space-y-5 lg:hidden">
         <ProductGuarantees />

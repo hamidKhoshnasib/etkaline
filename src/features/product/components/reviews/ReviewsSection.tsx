@@ -32,8 +32,8 @@ const SORT_OPTIONS = [
 
 interface ReviewsSectionProps {
   productId: number;
-  averageRating: number;
-  totalRatings: number;
+  averageRating?: number;
+  totalRatings?: number;
 }
 
 export function ReviewsSection({ productId, averageRating, totalRatings }: ReviewsSectionProps) {
@@ -45,14 +45,14 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
   const { data, error, isLoading } = useProductComments(productId, page);
   const toggleCommentLike = useToggleProductCommentLike();
   const comments = data?.comments ?? [];
-  const approvedCommentCount = data?.totalCount ?? totalRatings;
+  const approvedCommentCount = data?.totalCount ?? totalRatings ?? 0;
   const ratedComments = comments.filter((comment) => comment.score !== null);
   const apiAverageRating =
     ratedComments.length > 0
       ? ratedComments.reduce((total, comment) => total + (comment.score ?? 0), 0) /
         ratedComments.length
       : null;
-  const displayedAverageRating = apiAverageRating ?? averageRating;
+  const displayedAverageRating = apiAverageRating ?? averageRating ?? 0;
 
   function handleLike(comment: ProductComment) {
     if (status !== "authenticated") {

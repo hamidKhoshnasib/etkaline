@@ -58,13 +58,18 @@ function parseDeliveryTimes(value: unknown): SupermarketDeliveryTime[] {
   }
 
   return value.flatMap((item) => {
-    if (!isRecord(item) || !Number.isSafeInteger(item.id) || item.id < 1) {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const id = item.id;
+    if (typeof id !== "number" || !Number.isSafeInteger(id) || id < 1) {
       return [];
     }
 
     return [
       {
-        id: item.id,
+        id,
         title: stringValue(item.title),
         startTime: stringValue(item.startTime),
         endTime: stringValue(item.endTime),
