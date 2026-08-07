@@ -58,7 +58,7 @@ import {
 } from "@/features/address/api/use-provinces";
 import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
 import { cn } from "@/lib/utils";
-import { setClientSessionSnapshot } from "@/lib/axios-client";
+import { getErrorMessage, setClientSessionSnapshot } from "@/lib/axios-client";
 import { useStorefront } from "@/providers/storefront-provider";
 
 type AddressStep = "addresses" | "location" | "details" | "store";
@@ -111,6 +111,7 @@ export function AddressPicker({
   const [cityId, setCityId] = useState(0);
   const [coordinates, setCoordinates] = useState({ latitude: "", longitude: "" });
   const [selectedFullAddress, setSelectedFullAddress] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const formId = useId();
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
@@ -182,6 +183,8 @@ export function AddressPicker({
   }
 
   async function handleSaveAddress(payload: AddressPayload) {
+    setSaveError(null);
+
     try {
       const isCreatingAddress = !activeEditingAddress;
 
@@ -214,7 +217,9 @@ export function AddressPicker({
         handleOpenChange(false);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "ثبت آدرس ناموفق بود.");
+      const message = getErrorMessage(error);
+      setSaveError(message);
+      toast.error(message);
     }
   }
 
@@ -371,6 +376,7 @@ export function AddressPicker({
               coordinates={activeCoordinates}
               formId={formId}
               isPending={createAddress.isPending || updateAddress.isPending}
+              saveError={saveError}
               onSave={handleSaveAddress}
               suggestedFullAddress={selectedFullAddress}
             />
@@ -754,6 +760,7 @@ function DetailsStep({
   coordinates,
   formId,
   isPending,
+  saveError,
   onSave,
   suggestedFullAddress,
 }: {
@@ -762,6 +769,7 @@ function DetailsStep({
   coordinates: { latitude: string; longitude: string };
   formId: string;
   isPending: boolean;
+  saveError: string | null;
   onSave: (payload: AddressPayload) => Promise<void>;
   suggestedFullAddress: string;
 }) {
@@ -933,6 +941,11 @@ function DetailsStep({
           </FieldLabel>
         </Field>
       </FieldGroup>
+      {saveError && (
+        <p aria-live="polite" className="body-small text-destructive mt-4" role="alert">
+          {saveError}
+        </p>
+      )}
       <Button
         aria-busy={isPending}
         className="mt-6 h-14 w-full rounded-full text-base font-bold"

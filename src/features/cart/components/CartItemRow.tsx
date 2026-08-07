@@ -15,10 +15,72 @@ import { useStorefront } from "@/providers/storefront-provider";
 interface CartItemRowProps {
   item: OpenBasketItem;
   isDeleting: boolean;
+  pendingRemoval?: { seconds: number; progress: number };
+  isRestoring?: boolean;
   onQuantityChange: (item: OpenBasketItem, quantity: number) => void;
+  onUndoRemoval: (storeProductId: number) => void;
 }
 
-export default function CartItemRow({ item, isDeleting, onQuantityChange }: CartItemRowProps) {
+export function RestoreButton({
+  countdown,
+  onClick,
+  disabled = false,
+}: {
+  countdown: { seconds: number; progress: number };
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const circumference = 2 * Math.PI * 10;
+  const dashOffset = circumference * (1 - countdown.progress);
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      disabled={disabled}
+      className="h-9 gap-2 rounded-full bg-[#FFF1F2] px-3 text-[#E11D48] hover:bg-[#FFF1F2] hover:text-[#E11D48]"
+    >
+      بازگردانی
+      <span className="relative grid size-6 place-items-center" aria-hidden="true">
+        <svg viewBox="0 0 24 24" className="absolute size-full -rotate-90">
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            opacity="0.2"
+          />
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            className="transition-[stroke-dashoffset] duration-75 ease-linear"
+          />
+        </svg>
+        <span className="text-[10px] font-bold">{countdown.seconds.toLocaleString("fa-IR")}</span>
+      </span>
+    </Button>
+  );
+}
+
+export default function CartItemRow({
+  item,
+  isDeleting,
+  pendingRemoval,
+  isRestoring = false,
+  onQuantityChange,
+  onUndoRemoval,
+}: CartItemRowProps) {
   const storefront = useStorefront();
   const image = item.picUrl || item.pic || "/images/image-placeholder.svg";
   const finalPrice = item.offPrice > 0 ? item.offPrice : item.mainPrice;
@@ -53,7 +115,7 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
           width={104}
           height={104}
           sizes="(min-width: 640px) 104px, 88px"
-          className="size-full object-contain p-2"
+          className="size-full object-cover"
         />
       </div>
 
@@ -95,6 +157,7 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
               type="button"
               size="icon-sm"
               className="rounded-full"
+              disabled={isDeleting || pendingRemoval !== undefined}
               aria-label={`افزایش تعداد ${item.productTitle}`}
               onClick={() => onQuantityChange(item, item.productCount + 1)}
             >
@@ -106,21 +169,29 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
             >
               {item.productCount.toLocaleString("fa-IR")}
             </span>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant={item.productCount === 1 ? "destructive" : "outline-primary"}
-              className="rounded-full"
-              aria-label={
-                item.productCount === 1
-                  ? `حذف ${item.productTitle} از سبد خرید`
-                  : `کاهش تعداد ${item.productTitle}`
-              }
-              disabled={isDeleting}
-              onClick={() => onQuantityChange(item, item.productCount - 1)}
-            >
-              {item.productCount === 1 ? <Trash2 /> : <Minus />}
-            </Button>
+            {item.productCount === 1 && pendingRemoval ? (
+              <RestoreButton
+                countdown={pendingRemoval}
+                disabled={isRestoring}
+                onClick={() => onUndoRemoval(item.storeProductId)}
+              />
+            ) : (
+              <Button
+                type="button"
+                size="icon-sm"
+                variant={item.productCount === 1 ? "destructive" : "outline-primary"}
+                className="rounded-full"
+                aria-label={
+                  item.productCount === 1
+                    ? `حذف ${item.productTitle} از سبد خرید`
+                    : `کاهش تعداد ${item.productTitle}`
+                }
+                disabled={isDeleting}
+                onClick={() => onQuantityChange(item, item.productCount - 1)}
+              >
+                {item.productCount === 1 ? <Trash2 /> : <Minus />}
+              </Button>
+            )}
           </>
         ) : (
           <>
@@ -134,17 +205,25 @@ export default function CartItemRow({ item, isDeleting, onQuantityChange }: Cart
                 مشاهده محصول
               </Button>
             ) : null}
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="destructive"
-              className="rounded-full"
-              aria-label={`حذف ${item.productTitle} از سبد خرید`}
-              disabled={isDeleting}
-              onClick={() => onQuantityChange(item, 0)}
-            >
-              <Trash2 />
-            </Button>
+            {pendingRemoval ? (
+              <RestoreButton
+                countdown={pendingRemoval}
+                disabled={isRestoring}
+                onClick={() => onUndoRemoval(item.storeProductId)}
+              />
+            ) : (
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="destructive"
+                className="rounded-full"
+                aria-label={`حذف ${item.productTitle} از سبد خرید`}
+                disabled={isDeleting}
+                onClick={() => onQuantityChange(item, 0)}
+              >
+                <Trash2 />
+              </Button>
+            )}
           </>
         )}
       </div>

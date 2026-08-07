@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import {
   CalendarClock,
+  ArrowRight,
   ChevronLeft,
   Clock3,
   Map,
@@ -46,6 +47,7 @@ interface AddressStepProps {
   selections: DeliverySelections;
   onSelectionsChange: (selections: DeliverySelections) => void;
   onReadyChange: (ready: boolean) => void;
+  onBack: () => void;
 }
 
 interface DeliveryDateOption {
@@ -251,27 +253,28 @@ function ApplianceDeliveryChoices({
                 selection?.year === date.year &&
                 selection.month === date.month &&
                 selection.deliveryTimeId === time.id;
-              const dayLabel =
+              const dayRangeLabel =
                 time.startDayOfMonth === time.endDayOfMonth
-                  ? `${time.startDayOfMonth.toLocaleString("fa-IR")} ${date.title}`
-                  : `${time.startDayOfMonth.toLocaleString("fa-IR")} تا ${time.endDayOfMonth.toLocaleString("fa-IR")} ${date.title}`;
+                  ? time.startDayOfMonth.toLocaleString("fa-IR")
+                  : `${time.startDayOfMonth.toLocaleString("fa-IR")} تا ${time.endDayOfMonth.toLocaleString("fa-IR")}`;
+              const buttonLabel = time.title || dayRangeLabel;
 
               return (
                 <Button
                   key={time.id}
                   type="button"
-                  variant={active ? "default" : "outline"}
+                  variant="outline"
                   disabled={!addressSelected || time.isFull}
                   role="radio"
                   aria-checked={active}
                   className={cn(
-                    "h-auto min-w-28 flex-col gap-1 rounded-xl px-3 py-3",
-                    active && "ring-checkout-accent ring-2",
+                    "h-auto min-w-28 flex-col gap-1 rounded-xl border-2 px-3 py-3",
+                    active && "border-checkout-accent bg-transparent hover:bg-transparent",
                   )}
                   onClick={() =>
                     onChange({
                       dateIso: `${date.year}-${date.month}-${time.id}`,
-                      dateLabel: dayLabel,
+                      dateLabel: buttonLabel,
                       time: time.title,
                       pickup: false,
                       year: date.year,
@@ -280,10 +283,7 @@ function ApplianceDeliveryChoices({
                     })
                   }
                 >
-                  <span className="font-bold">{dayLabel}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {time.title || "بازه ارسال"}
-                  </span>
+                  <span className="font-bold">{buttonLabel}</span>
                   {time.isFull ? (
                     <span className="text-destructive text-xs">تکمیل ظرفیت</span>
                   ) : null}
@@ -646,6 +646,7 @@ export default function AddressStep({
   selections,
   onSelectionsChange,
   onReadyChange,
+  onBack,
 }: AddressStepProps) {
   const { siteType } = useStorefront();
   const isApplianceStorefront = siteType === SITE_TYPES.appliance;
@@ -705,8 +706,19 @@ export default function AddressStep({
   return (
     <div className="flex flex-col gap-6">
       <Card className="rounded-2xl py-7 shadow-none">
-        <CardHeader className="px-5 text-center">
+        <CardHeader className="relative px-5 text-center">
           <CardTitle className="text-secondary text-xl font-bold">آدرس و زمان ارسال</CardTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="absolute start-5 top-1/2"
+            style={{ transform: "translateY(-50%)", transition: "none" }}
+          >
+            <ArrowRight data-icon="inline-start" />
+            بازگشت به سبد خرید
+          </Button>
         </CardHeader>
       </Card>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -17,6 +17,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useDeleteBasketItem } from "@/features/cart/api/delete-basket-item";
+import { useAddToBasket } from "@/features/cart/api/add-to-basket";
 import { useCheckoutDetails } from "@/features/cart/api/get-checkout-details";
 import { useOpenBasket } from "@/features/cart/api/get-open-basket";
 import { type SavedBasket, useSaveBasket } from "@/features/cart/api/save-basket";
@@ -40,6 +41,13 @@ import { useStorefront } from "@/providers/storefront-provider";
 import { SITE_TYPES } from "@/lib/api-site-type";
 
 export type CheckoutStep = "cart" | "address" | "review";
+
+interface PendingRemoval {
+  storeProductId: number;
+  quantity: number;
+  item: OpenBasketItem;
+  expiresAt: number;
+}
 
 function toCheckoutItem(item: OpenBasketItem): CartItem {
   return {
@@ -90,12 +98,16 @@ export default function CartPage() {
   const [savedBasket, setSavedBasket] = useState<SavedBasket | null>(null);
   const [paymentSelection, setPaymentSelection] = useState<PayBasketInput | null>(null);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
+  const [pendingRemovals, setPendingRemovals] = useState<PendingRemoval[]>([]);
+  const [removalClock, setRemovalClock] = useState(() => Date.now());
+  const [restoringStoreProductId, setRestoringStoreProductId] = useState<number | null>(null);
   const openBasketQuery = useOpenBasket();
   const addressesQuery = useAddresses();
   const checkoutQuery = useCheckoutDetails(
     openBasketQuery.data ? { basketId: openBasketQuery.data.id } : null,
   );
   const updateQuantityMutation = useUpdateBasketQuantity();
+  const addToBasketMutation = useAddToBasket();
   const deleteItemMutation = useDeleteBasketItem();
   const saveBasketMutation = useSaveBasket();
   const setApplianceDeliveryTimeMutation = useSetApplianceDeliveryTime();
@@ -103,6 +115,15 @@ export default function CartPage() {
   const payBasketMutation = usePayBasket();
   const checkoutDetails = checkoutQuery.data;
   const items = checkoutDetails?.basketItems ?? [];
+  const displayItems = [
+    ...items,
+    ...pendingRemovals
+      .filter(
+        (pendingRemoval) =>
+          !items.some((item) => item.storeProductId === pendingRemoval.storeProductId),
+      )
+      .map((pendingRemoval) => pendingRemoval.item),
+  ];
   const checkoutItems = items.map(toCheckoutItem);
   const selectedAddress =
     addressesQuery.data?.find((address) => address.isDefault) ?? addressesQuery.data?.[0] ?? null;
@@ -113,6 +134,44 @@ export default function CartPage() {
     setPaymentSelection(selection);
   }, []);
 
+  useEffect(() => {
+    if (pendingRemovals.length === 0) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => setRemovalClock(Date.now()), 50);
+    return () => window.clearInterval(intervalId);
+  }, [pendingRemovals.length]);
+
+  useEffect(() => {
+    if (pendingRemovals.length === 0) {
+      return;
+    }
+
+    const timeoutIds = pendingRemovals.map((pendingRemoval) =>
+      window.setTimeout(
+        () =>
+          setPendingRemovals((current) =>
+            current.filter((item) => item.storeProductId !== pendingRemoval.storeProductId),
+          ),
+        Math.max(0, pendingRemoval.expiresAt - Date.now()),
+      ),
+    );
+
+    return () => timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+  }, [pendingRemovals]);
+
+  const pendingRemovalCountdowns = pendingRemovals.reduce<
+    Record<number, { seconds: number; progress: number }>
+  >((countdownsByStoreProductId, pendingRemoval) => {
+    const remainingMs = Math.max(0, pendingRemoval.expiresAt - removalClock);
+    countdownsByStoreProductId[pendingRemoval.storeProductId] = {
+      seconds: Math.max(1, Math.ceil(remainingMs / 1000)),
+      progress: remainingMs / 5_000,
+    };
+    return countdownsByStoreProductId;
+  }, {});
+
   function handleQuantityChange(item: OpenBasketItem, quantity: number) {
     const basketId = openBasketQuery.data?.id;
     if (!basketId) {
@@ -120,9 +179,28 @@ export default function CartPage() {
     }
 
     if (quantity < 1) {
+      setRemovalClock(Date.now());
+      setPendingRemovals((current) =>
+        current.some((pendingRemoval) => pendingRemoval.storeProductId === item.storeProductId)
+          ? current
+          : [
+              ...current,
+              {
+                storeProductId: item.storeProductId,
+                quantity: item.productCount,
+                item,
+                expiresAt: Date.now() + 5_000,
+              },
+            ],
+      );
       void deleteItemMutation
         .mutateAsync({ basketId, storeProductId: item.storeProductId })
         .catch((error: unknown) => {
+          setPendingRemovals((current) =>
+            current.filter(
+              (pendingRemoval) => pendingRemoval.storeProductId !== item.storeProductId,
+            ),
+          );
           toast.error(error instanceof Error ? error.message : "حذف کالا ناموفق بود.", {
             id: `cart-delete-${item.storeProductId}`,
           });
@@ -134,6 +212,10 @@ export default function CartPage() {
       return;
     }
 
+    setPendingRemovals((current) =>
+      current.filter((pendingRemoval) => pendingRemoval.storeProductId !== item.storeProductId),
+    );
+
     void updateQuantityMutation
       .mutateAsync({ basketId, storeProductId: item.storeProductId, quantity })
       .catch((error: unknown) => {
@@ -142,6 +224,32 @@ export default function CartPage() {
         });
       });
   }
+
+  const handleUndoRemoval = useCallback(
+    (storeProductId: number) => {
+      const pendingRemoval = pendingRemovals.find((item) => item.storeProductId === storeProductId);
+      if (!pendingRemoval) {
+        return;
+      }
+
+      setRestoringStoreProductId(storeProductId);
+      void addToBasketMutation
+        .mutateAsync({
+          storeProductId: pendingRemoval.storeProductId,
+          quantity: pendingRemoval.quantity,
+        })
+        .then(() => {
+          setPendingRemovals((current) =>
+            current.filter((item) => item.storeProductId !== storeProductId),
+          );
+        })
+        .catch((error: unknown) => {
+          toast.error(error instanceof Error ? error.message : "بازگردانی کالا ناموفق بود.");
+        })
+        .finally(() => setRestoringStoreProductId(null));
+    },
+    [addToBasketMutation, pendingRemovals],
+  );
 
   async function handlePrimary() {
     if (step === "cart") {
@@ -349,7 +457,7 @@ export default function CartPage() {
     );
   }
 
-  if (!openBasketQuery.data || !checkoutDetails || items.length === 0) {
+  if (!openBasketQuery.data || !checkoutDetails || displayItems.length === 0) {
     return (
       <main className="bg-muted/60 min-h-[60vh] py-12">
         <Container>
@@ -380,13 +488,16 @@ export default function CartPage() {
         <div className="min-w-0">
           {step === "cart" ? (
             <CartStep
-              items={items}
+              items={displayItems}
               deletingStoreProductId={
                 deleteItemMutation.isPending
                   ? deleteItemMutation.variables?.storeProductId
                   : undefined
               }
+              pendingRemovalCountdowns={pendingRemovalCountdowns}
+              restoringStoreProductId={restoringStoreProductId ?? undefined}
               onQuantityChange={handleQuantityChange}
+              onUndoRemoval={handleUndoRemoval}
             />
           ) : null}
           {step === "address" ? (
@@ -396,6 +507,7 @@ export default function CartPage() {
               selections={deliverySelections}
               onSelectionsChange={setDeliverySelections}
               onReadyChange={handleReadyChange}
+              onBack={handleBack}
             />
           ) : null}
           {step === "review" && selectedAddress ? (
@@ -428,7 +540,6 @@ export default function CartPage() {
             (step === "review" && payBasketMutation.isPending)
           }
           onPrimary={handlePrimary}
-          onBack={handleBack}
         />
       </Container>
     </main>

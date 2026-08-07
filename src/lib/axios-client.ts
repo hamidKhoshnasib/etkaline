@@ -80,7 +80,27 @@ export type ApiError = AxiosError<{ message: string }>;
 
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    return (error.response?.data as { message?: string })?.message ?? error.message;
+    const response = error.response?.data as
+      | { message?: unknown; errors?: unknown }
+      | undefined;
+
+    if (typeof response?.message === "string" && response.message.trim()) {
+      return response.message;
+    }
+
+    if (Array.isArray(response?.errors)) {
+      const message = response.errors.find(
+        (item): item is string => typeof item === "string" && item.trim().length > 0,
+      );
+      if (message) {
+        return message;
+      }
+    }
+
+    return error.message;
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
   }
   return "خطای ناشناخته‌ای رخ داد";
 }

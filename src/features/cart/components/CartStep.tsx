@@ -14,7 +14,10 @@ import { useStorefront } from "@/providers/storefront-provider";
 interface CartStepProps {
   items: OpenBasketItem[];
   deletingStoreProductId?: number;
+  pendingRemovalCountdowns: Record<number, { seconds: number; progress: number }>;
+  restoringStoreProductId?: number;
   onQuantityChange: (item: OpenBasketItem, quantity: number) => void;
+  onUndoRemoval: (storeProductId: number) => void;
 }
 
 const EMPTY_RECENT_PRODUCTS: Product[] = [];
@@ -27,7 +30,10 @@ function subscribeToStorage(onStoreChange: () => void) {
 export default function CartStep({
   items,
   deletingStoreProductId,
+  pendingRemovalCountdowns,
+  restoringStoreProductId,
   onQuantityChange,
+  onUndoRemoval,
 }: CartStepProps) {
   const { siteType } = useStorefront();
   const recentProducts = useSyncExternalStore(
@@ -55,7 +61,10 @@ export default function CartStep({
               key={item.id}
               item={item}
               isDeleting={deletingStoreProductId === item.storeProductId}
+              pendingRemoval={pendingRemovalCountdowns[item.storeProductId]}
+              isRestoring={restoringStoreProductId === item.storeProductId}
               onQuantityChange={onQuantityChange}
+              onUndoRemoval={onUndoRemoval}
             />
           ))}
         </div>

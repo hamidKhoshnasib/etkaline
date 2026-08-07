@@ -5,7 +5,7 @@ import { TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
@@ -23,7 +23,6 @@ interface OrderSummaryProps {
   canProceed?: boolean;
   isSubmitting?: boolean;
   onPrimary: () => void | Promise<void>;
-  onBack?: () => void;
 }
 
 function Row({ label, value, muted = false }: { label: string; value: number; muted?: boolean }) {
@@ -43,7 +42,6 @@ export default function OrderSummary({
   canProceed = true,
   isSubmitting = false,
   onPrimary,
-  onBack,
 }: OrderSummaryProps) {
   const [discountCode, setDiscountCode] = useState("");
   const fallbackTotals = calculateCartTotals(items, step);
@@ -128,23 +126,31 @@ export default function OrderSummary({
           </div>
 
           {step === "review" ? (
-            <FieldGroup className="mt-5 gap-3">
-              <Field>
-                <FieldLabel htmlFor="discount-code">کد تخفیف</FieldLabel>
-                <div className="flex flex-col gap-2">
-                  <Input
-                    id="discount-code"
-                    value={discountCode}
-                    onChange={(event) => setDiscountCode(event.target.value)}
-                    placeholder="کد را وارد کنید"
-                    className="h-11 flex-1 rounded-full"
-                  />
-                  <Button type="button" variant="outline" size="md" className="rounded-full">
-                    ثبت
-                  </Button>
-                </div>
-              </Field>
-            </FieldGroup>
+            <div className="mt-5">
+              <FieldLabel
+                htmlFor="discount-code"
+                className="text-secondary mb-2 block text-left text-xs font-bold"
+              >
+                کد تخفیف
+              </FieldLabel>
+              <div className="border-input flex h-11 items-center gap-2 rounded-full border p-1 ps-1">
+                <Input
+                  id="discount-code"
+                  value={discountCode}
+                  onChange={(event) => setDiscountCode(event.target.value)}
+                  placeholder="کد را وارد کنید"
+                  className="h-full flex-1 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:border-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 rounded-full bg-[#F1F5F9] px-4 text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#64748B]"
+                >
+                  ثبت
+                </Button>
+              </div>
+            </div>
           ) : null}
 
           <div className="mt-5 flex items-start gap-2 text-xs leading-5 text-[#1E293B]">
@@ -155,7 +161,7 @@ export default function OrderSummary({
           </div>
         </CardContent>
 
-        <CardFooter className="flex-col gap-3 border-0 bg-transparent p-5 pt-4">
+        <CardFooter className="border-0 bg-transparent p-5 pt-4">
           <Button
             type="button"
             onClick={() => void onPrimary()}
@@ -166,7 +172,10 @@ export default function OrderSummary({
               (isCartStep && checkoutDetails.basketItems.length === 0)
             }
             aria-busy={isSubmitting}
-            className="w-full rounded-full font-bold"
+            className={cn(
+              "w-full rounded-full font-bold",
+              step === "review" && "bg-[#00C853] hover:bg-[#00B84A]",
+            )}
           >
             {step === "cart"
               ? "تایید و تکمیل سفارش"
@@ -176,18 +185,6 @@ export default function OrderSummary({
                   : "زمان انتخاب نشده!"
                 : "پرداخت"}
           </Button>
-          {step !== "cart" && onBack ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              disabled={isSubmitting}
-              onClick={onBack}
-              className="w-full rounded-full"
-            >
-              بازگشت به مرحله قبل
-            </Button>
-          ) : null}
         </CardFooter>
       </Card>
     </aside>

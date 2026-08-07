@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Box, CreditCard, Info, MapPin, Package, Truck } from "lucide-react";
+import {
+  ArrowRight,
+  Box,
+  ChevronDown,
+  CreditCard,
+  Info,
+  MapPin,
+  Package,
+  Truck,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,9 +49,11 @@ function ShipmentTime({
   if (!selection) {
     return null;
   }
+  const isApplianceDelivery =
+    Number.isSafeInteger(selection.year) && Number.isSafeInteger(selection.month);
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2">
       <div className="text-secondary flex items-center gap-2 font-bold">
         {kind === "heavy" ? (
           <Truck className="text-primary-hover size-5" />
@@ -51,9 +62,9 @@ function ShipmentTime({
         )}
         {label}
       </div>
-      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-2 ps-7 text-sm">
         <span>{selection.dateLabel}</span>
-        {!selection.pickup ? (
+        {!selection.pickup && !isApplianceDelivery && selection.time ? (
           <>
             <Separator orientation="vertical" className="h-5" />
             <span>
@@ -63,6 +74,39 @@ function ShipmentTime({
         ) : null}
       </div>
     </div>
+  );
+}
+
+function ShipmentProductGroup({ title, items }: { title: string; items: OpenBasketItem[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="flex flex-col gap-3">
+      <h4 className="text-secondary text-sm font-bold">
+        {items.reduce((sum, item) => sum + item.productCount, 0).toLocaleString("fa-IR")} {title}
+      </h4>
+      <div className="flex flex-col gap-3">
+        {items.map((item) => (
+          <div key={item.storeProductId} className="flex items-center gap-3">
+            <AppImage
+              src={item.picUrl || item.pic || "/images/image-placeholder.svg"}
+              alt={item.productTitle}
+              width={48}
+              height={48}
+              className="size-12 rounded-lg object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-secondary truncate text-sm font-medium">{item.productTitle}</p>
+              <p className="text-muted-foreground text-xs">
+                تعداد: {item.productCount.toLocaleString("fa-IR")}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -132,14 +176,13 @@ export default function ReviewStep({
 }: ReviewStepProps) {
   const [payTypeId, setPayTypeId] = useState<number | null>(null);
   const [paygateId, setPaygateId] = useState<number | null>(null);
+  const [isShipmentOpen, setIsShipmentOpen] = useState(false);
   const payTypesQuery = usePayTypes(checkoutDetails.id);
   const paygatesQuery = usePaygates(payTypeId === 1);
-  const heavyCount = items
-    .filter((item) => item.isHeavyWeight)
-    .reduce((sum, item) => sum + item.productCount, 0);
-  const lightCount = items
-    .filter((item) => !item.isHeavyWeight)
-    .reduce((sum, item) => sum + item.productCount, 0);
+  const heavyItems = items.filter((item) => item.isHeavyWeight);
+  const lightItems = items.filter((item) => !item.isHeavyWeight);
+  const heavyCount = heavyItems.reduce((sum, item) => sum + item.productCount, 0);
+  const lightCount = lightItems.reduce((sum, item) => sum + item.productCount, 0);
 
   const paymentSelection = useMemo<PayBasketInput | null>(
     () =>
@@ -162,27 +205,30 @@ export default function ReviewStep({
   return (
     <div className="flex flex-col gap-6">
       <Card className="relative rounded-2xl py-7 shadow-none">
-        <CardHeader className="px-5 text-center">
+        <CardHeader className="relative px-5 text-center">
+          <CardTitle className="text-secondary text-xl font-bold">بررسی نهایی</CardTitle>
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={onEdit}
-            className="absolute start-4 top-5"
+            className="absolute start-5 top-1/2"
+            style={{ transform: "translateY(-50%)", transition: "none" }}
           >
+            <ArrowRight data-icon="inline-start" />
             تغییر آدرس و زمان ارسال
-            <ArrowLeft data-icon="inline-end" />
           </Button>
-          <CardTitle className="text-secondary text-xl font-bold">بررسی نهایی</CardTitle>
         </CardHeader>
       </Card>
 
-      <div className="text-muted-foreground flex items-start gap-2 px-2 text-sm">
-        <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        <p>
-          این سفارش ممکن است در چند نوبت ارسال شود، چون شامل کالای سنگین یا روش ارسال متفاوت است.
-        </p>
-      </div>
+      {heavyCount > 0 ? (
+        <div className="text-muted-foreground flex items-start gap-2 px-2 text-sm">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <p>
+            این سفارش ممکن است در چند نوبت ارسال شود، چون شامل کالای سنگین یا روش ارسال متفاوت است.
+          </p>
+        </div>
+      ) : null}
 
       <Card className="rounded-2xl py-5 shadow-none">
         <CardContent className="flex flex-col gap-5 px-5">
@@ -203,20 +249,44 @@ export default function ReviewStep({
       </Card>
 
       <Card className="rounded-2xl py-5 shadow-none">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 px-5">
-          <div className="text-secondary flex items-center gap-2 font-bold">
-            <Box className="text-primary-hover" aria-hidden="true" />
-            مرسوله
-          </div>
-          <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setIsShipmentOpen((open) => !open)}
+          aria-expanded={isShipmentOpen}
+          aria-controls="shipment-products"
+          className="h-auto w-full justify-between rounded-2xl px-5 py-0 text-start hover:bg-transparent aria-expanded:bg-transparent"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-secondary flex items-center gap-2 font-bold">
+              <Box className="text-primary-hover" aria-hidden="true" />
+              مرسوله
+            </span>
             {lightCount > 0 ? (
-              <Badge variant="outline">{lightCount.toLocaleString("fa-IR")} کالای سبک</Badge>
+              <span className="text-secondary">{lightCount.toLocaleString("fa-IR")} کالای سبک</span>
+            ) : null}
+            {lightCount > 0 && heavyCount > 0 ? (
+              <Separator orientation="vertical" className="h-5" />
             ) : null}
             {heavyCount > 0 ? (
-              <Badge variant="outline">{heavyCount.toLocaleString("fa-IR")} کالای سنگین</Badge>
+              <span className="text-secondary">{heavyCount.toLocaleString("fa-IR")} کالای سنگین</span>
             ) : null}
           </div>
-        </CardContent>
+          <ChevronDown
+            className={cn(
+              "text-muted-foreground transition-transform",
+              isShipmentOpen && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        </Button>
+        {isShipmentOpen ? (
+          <CardContent id="shipment-products" className="flex flex-col gap-5 px-5 pt-5">
+            <ShipmentProductGroup title="کالای سبک" items={lightItems} />
+            {lightItems.length > 0 && heavyItems.length > 0 ? <Separator /> : null}
+            <ShipmentProductGroup title="کالای سنگین" items={heavyItems} />
+          </CardContent>
+        ) : null}
       </Card>
 
       <Card className="rounded-2xl py-5 shadow-none">
