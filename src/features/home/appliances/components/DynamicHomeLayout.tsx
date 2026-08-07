@@ -1,9 +1,10 @@
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import { userAgentFromString } from "next/server";
 
 import CategoryGridCard from "@/features/catalog/components/CategoryGridCard";
-import ProductSection from "@/features/product/components/ProductSection";
 import ProductSectionList from "@/features/product/components/ProductSectionList";
+import { LazyProductSection } from "@/features/product/components/LazyProductSection";
 import { getProductsByLayoutId } from "@/features/product/api/get-products-by-layout-id";
 import {
   getBannersByLayoutId,
@@ -17,7 +18,8 @@ import {
 } from "@/features/home/appliances/api/get-home-layout";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import CategoryBanners from "./CategoryBanners";
-import FlashDeals from "./FlashDeals";
+import { LazyFlashDeals } from "./LazyFlashDeals";
+import { HomeLayoutItemSkeleton } from "./HomeSectionSkeletons";
 import { StorefrontSwitchTab } from "./StorefrontSwitchTab";
 import { getStorefront } from "@/config/storefront";
 import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
@@ -60,7 +62,7 @@ function renderLayoutItem(
       return <CategoryBanners banners={banners} />;
     case HOME_COMPONENT_TYPE.SINGLE_ROW_SLIDER:
       return (
-        <ProductSection
+        <LazyProductSection
           title={item.title}
           description={description}
           showMoreLink={showMoreLink}
@@ -94,7 +96,7 @@ function renderLayoutItem(
         />
       );
     case HOME_COMPONENT_TYPE.OFFER:
-      return <FlashDeals items={products} />;
+      return <LazyFlashDeals items={products} />;
     default:
       return null;
   }
@@ -127,7 +129,9 @@ export default async function DynamicHomeLayout({ siteType }: { siteType: SiteTy
     if (layoutItem.componentType !== HOME_COMPONENT_TYPE.GRID_2X2) {
       renderedLayoutItems.push(
         <SectionErrorBoundary key={layoutItem.id} title={`دریافت «${layoutItem.title}» ممکن نشد.`}>
-          <DynamicHomeLayoutItem item={layoutItem} siteType={siteType} />
+          <Suspense fallback={<HomeLayoutItemSkeleton />}>
+            <DynamicHomeLayoutItem item={layoutItem} siteType={siteType} />
+          </Suspense>
         </SectionErrorBoundary>,
       );
       continue;
@@ -143,7 +147,9 @@ export default async function DynamicHomeLayout({ siteType }: { siteType: SiteTy
       <div key={`category-grid-${gridItems[0].id}`} className="grid gap-4 lg:grid-cols-4">
         {gridItems.map((item) => (
           <SectionErrorBoundary key={item.id} title={`دریافت «${item.title}» ممکن نشد.`}>
-            <DynamicHomeLayoutItem item={item} siteType={siteType} />
+            <Suspense fallback={<HomeLayoutItemSkeleton />}>
+              <DynamicHomeLayoutItem item={item} siteType={siteType} />
+            </Suspense>
           </SectionErrorBoundary>
         ))}
       </div>,

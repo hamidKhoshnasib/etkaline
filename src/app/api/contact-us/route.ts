@@ -55,9 +55,9 @@ function getUpstreamMessage(payload: unknown) {
 }
 
 export async function POST(request: Request) {
-  const siteType = parseSiteType(request.headers.get("SiteType"));
+  const siteType = parseSiteType(request.headers.get("site-type"));
   if (!siteType) {
-    return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
+    return NextResponse.json({ message: "site-type نامعتبر است." }, { status: 400 });
   }
 
   let input: unknown;

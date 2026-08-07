@@ -1,11 +1,12 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Tag } from "lucide-react";
+import { CategoryMenuIcon } from "@/components/layout/header/CategoryMenuIcon";
 import { cn } from "@/lib/utils";
 
 interface Category {
+  id: number;
   label: string;
-  icon: LucideIcon;
+  iconName?: string;
   href?: string;
   active?: boolean;
 }
@@ -25,8 +26,8 @@ export default function CategoryCard({ categories }: CategoryCardProps) {
 
       {/* Items */}
       <ul className="flex flex-col gap-4">
-        {categories.map(({ label, icon: Icon, href = "#", active }) => (
-          <li key={label}>
+        {categories.map(({ id, label, iconName, href = "/blog", active }) => (
+          <li key={id}>
             <Link
               href={href}
               className={cn(
@@ -36,9 +37,23 @@ export default function CategoryCard({ categories }: CategoryCardProps) {
                   : "border-[#F0F1F1] hover:bg-[#FAFAFA]",
               )}
             >
-              <Icon
-                className={cn("size-6 shrink-0", active ? "text-primary-hover" : "text-[#3E4344]")}
-              />
+              {iconName ? (
+                <CategoryMenuIcon
+                  iconName={iconName}
+                  className={cn(
+                    "size-6 shrink-0 object-contain",
+                    active ? "text-primary-hover" : "text-[#3E4344]",
+                  )}
+                />
+              ) : (
+                <Tag
+                  className={cn(
+                    "size-6 shrink-0",
+                    active ? "text-primary-hover" : "text-[#3E4344]",
+                  )}
+                  aria-hidden="true"
+                />
+              )}
               <span className={cn("body-medium", active ? "text-[#510616]" : "text-[#3E4344]")}>
                 {label}
               </span>

@@ -17,5 +17,5 @@ export function parseSiteType(value: unknown): SiteType | null {
 }
 
 export function getSiteTypeHeaders(siteType: SiteType) {
-  return { SiteType: siteType } as const;
+  return { "site-type": siteType } as const;
 }

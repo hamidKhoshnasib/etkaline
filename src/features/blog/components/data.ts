@@ -1,21 +1,10 @@
-import { Tag, Blinds, Lightbulb, Trees, Bath, CookingPot } from "lucide-react";
 import Image35 from "@/assets/images/image 35.png";
 import Image36 from "@/assets/images/image 36.png";
 import Image37 from "@/assets/images/image 37.png";
 import Swiper1 from "@/assets/images/swiper1.png";
-import type { Category } from "./CategoryCard";
 import type { CompactBlogCardProps } from "@/features/blog/components/CompactBlogCard";
 
 const blogImages = [Image35.src, Image36.src, Image37.src, Swiper1.src];
-
-export const categories: Category[] = [
-  { label: "جدیدترین مطالب", icon: Tag, href: "#" },
-  { label: "دکوراسیون", icon: Blinds, href: "#" },
-  { label: "نور و روشنایی", icon: Lightbulb, href: "#" },
-  { label: "فضای باز و باغچه", icon: Trees, href: "#" },
-  { label: "سرویس خواب و حمام", icon: Bath, href: "#" },
-  { label: "لوازم آشپزخانه", icon: CookingPot, href: "#", active: true },
-];
 
 interface GridPost {
   id: number;

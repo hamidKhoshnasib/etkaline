@@ -15,7 +15,7 @@ export type AuthServerResponse<T> = {
 
 export async function requestEtkalaAuthWithCookies<T>(
   endpoint: AuthEndpoint,
-  siteType: SiteType,
+  siteType: SiteType | null,
   init?: RequestInit,
 ): Promise<AuthServerResponse<T>> {
   const response = await fetch(`${AUTH_API_BASE_URL}/api/Auth/${endpoint}`, {
@@ -25,7 +25,7 @@ export async function requestEtkalaAuthWithCookies<T>(
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      ...getSiteTypeHeaders(siteType),
+      ...(siteType ? getSiteTypeHeaders(siteType) : {}),
       ...init?.headers,
     },
     signal: AbortSignal.timeout(15_000),

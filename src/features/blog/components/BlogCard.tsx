@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { AppImage } from "@/components/ui/image";
 import { cn } from "@/lib/utils";

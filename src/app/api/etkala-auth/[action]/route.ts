@@ -26,21 +26,16 @@ function jsonWithCookies(payload: unknown, setCookies: string[], init?: Response
   return response;
 }
 
-export async function GET(_request: Request, { params }: { params: Promise<{ action: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
 
   if (action !== "captcha") {
     return NextResponse.json({ message: "مسیر نامعتبر است." }, { status: 404 });
   }
 
-  const siteType = parseSiteType(_request.headers.get("SiteType"));
-  if (!siteType) {
-    return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
-  }
-
   try {
-    const result = await requestEtkalaAuthWithCookies<CaptchaValue>("GetCaptcha", siteType, {
-      headers: { Cookie: _request.headers.get("cookie") ?? "" },
+    const result = await requestEtkalaAuthWithCookies<CaptchaValue>("GetCaptcha", null, {
+      headers: { Cookie: request.headers.get("cookie") ?? "" },
     });
     return jsonWithCookies(result.payload, result.setCookies, {
       headers: { "Cache-Control": "no-store" },
@@ -58,9 +53,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ act
     return NextResponse.json({ message: "مسیر نامعتبر است." }, { status: 404 });
   }
 
-  const siteType = parseSiteType(request.headers.get("SiteType"));
+  const siteType = parseSiteType(request.headers.get("site-type"));
   if (!siteType) {
-    return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
+    return NextResponse.json({ message: "site-type نامعتبر است." }, { status: 400 });
   }
 
   try {

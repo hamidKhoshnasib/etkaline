@@ -49,6 +49,7 @@ import type {
   ApiResult,
 } from "@/features/address/api/use-addresses";
 import { useAddresses } from "@/features/address/api/use-addresses";
+import { useProfile } from "@/features/account/api/use-profile";
 import {
   geocodeLocation,
   reverseGeocodeLocation,
@@ -98,6 +99,7 @@ export function AddressPicker({
 }: AddressPickerProps) {
   const { siteType } = useStorefront();
   const { data: session, status, update } = useSession();
+  const { data: addresses = [], isSuccess: hasLoadedAddresses } = useAddresses();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -117,6 +119,8 @@ export function AddressPicker({
     (siteType === "supermarket"
       ? !session.user.superMarketStoreId
       : !session.user.applianceStoreId);
+  const shouldPromptForAddress = hasNoStore && hasLoadedAddresses;
+  const shouldStartAddressCreation = shouldPromptForAddress && addresses.length === 0;
   const isExternallyEditing = Boolean(externalEditingAddress);
   const activeEditingAddress = externalEditingAddress ?? editingAddress;
   const activeCityId = externalEditingAddress?.cityId ?? cityId;
@@ -127,8 +131,8 @@ export function AddressPicker({
   const isOpen = controlledOpen ?? open;
 
   useEffect(() => {
-    if (!showMissingAddressPrompt || !hasNoStore || hasAutoPromptedRef.current) {
-      if (!hasNoStore) {
+    if (!showMissingAddressPrompt || !shouldPromptForAddress || hasAutoPromptedRef.current) {
+      if (!shouldPromptForAddress) {
         hasAutoPromptedRef.current = false;
       }
       return;
@@ -142,9 +146,25 @@ export function AddressPicker({
     }
 
     window.sessionStorage.setItem(promptStorageKey, "true");
-    const promptTimer = window.setTimeout(() => setOpen(true), 0);
+    const promptTimer = window.setTimeout(() => {
+      if (shouldStartAddressCreation) {
+        setEditingAddress(null);
+        setCityId(0);
+        setCoordinates({ latitude: "", longitude: "" });
+        setSelectedFullAddress("");
+        setStep("location");
+      } else {
+        setStep("addresses");
+      }
+      setOpen(true);
+    }, 0);
     return () => window.clearTimeout(promptTimer);
-  }, [hasNoStore, session?.user.backendId, showMissingAddressPrompt]);
+  }, [
+    session?.user.backendId,
+    shouldPromptForAddress,
+    shouldStartAddressCreation,
+    showMissingAddressPrompt,
+  ]);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -745,9 +765,30 @@ function DetailsStep({
   onSave: (payload: AddressPayload) => Promise<void>;
   suggestedFullAddress: string;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const { data: profile } = useProfile();
   const [isAlternateReceiver, setIsAlternateReceiver] = useState(
     address?.hasOtherReceiver ?? false,
   );
+
+  useEffect(() => {
+    if (!profile || !formRef.current) {
+      return;
+    }
+
+    const values = {
+      receiverFirstName: profile.firstName,
+      receiverLastName: profile.lastName,
+      receiverPhone: profile.mobile,
+    };
+
+    for (const [name, value] of Object.entries(values)) {
+      const input = formRef.current.elements.namedItem(name);
+      if (input instanceof HTMLInputElement && !input.value.trim() && value) {
+        input.value = value;
+      }
+    }
+  }, [profile]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -781,7 +822,7 @@ function DetailsStep({
   }
 
   return (
-    <form className="p-5" id={formId} onSubmit={handleSubmit}>
+    <form ref={formRef} className="p-5" id={formId} onSubmit={handleSubmit}>
       <FieldGroup className="gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>

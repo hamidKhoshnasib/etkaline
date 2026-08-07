@@ -1,5 +1,3 @@
-"use client";
-
 import SectionHeader from "@/components/ui/SectionHeader";
 import { ProductCard, type ProductCardProps } from "@/features/product/components/ProductCard";
 

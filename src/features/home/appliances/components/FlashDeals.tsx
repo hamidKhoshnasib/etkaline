@@ -7,7 +7,6 @@ import type { Swiper as SwiperType } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
-import Bazel from "@/assets/icons/bazell.svg";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppImage } from "@/components/ui/image";
@@ -19,7 +18,7 @@ import { SITE_TYPES } from "@/lib/api-site-type";
 import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
-interface FlashDealsProps {
+export interface FlashDealsProps {
   items: Product[];
 }
 
@@ -232,7 +231,14 @@ export default function FlashDeals({ items }: FlashDealsProps) {
           <div className="bg-primary-hover absolute top-0 h-1/2 w-full" />
           <div className="absolute bottom-0 h-1/2 w-full bg-white" />
           <div className="bg-primary-hover z-10 flex h-18.75 shrink-0 items-center gap-2 rounded-l-[16px] px-2 pl-5">
-            <Bazel className="size-auto" />
+            <AppImage
+              src="/images/bazell.png"
+              alt=""
+              width={46}
+              height={55}
+              sizes="46px"
+              className="size-auto"
+            />
             <span className="headline-large text-white">شگفتانه لحظه‌ای</span>
           </div>
 

@@ -20,7 +20,7 @@ type ProductItem = Pick<
   id: number | string;
 };
 
-interface ProductSectionProps {
+export interface ProductSectionProps {
   title: string;
   description?: string;
   showMoreLink?: string;
