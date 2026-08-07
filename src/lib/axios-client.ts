@@ -80,9 +80,7 @@ export type ApiError = AxiosError<{ message: string }>;
 
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const response = error.response?.data as
-      | { message?: unknown; errors?: unknown }
-      | undefined;
+    const response = error.response?.data as { message?: unknown; errors?: unknown } | undefined;
 
     if (typeof response?.message === "string" && response.message.trim()) {
       return response.message;

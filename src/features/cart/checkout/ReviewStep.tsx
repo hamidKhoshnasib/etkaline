@@ -269,7 +269,9 @@ export default function ReviewStep({
               <Separator orientation="vertical" className="h-5" />
             ) : null}
             {heavyCount > 0 ? (
-              <span className="text-secondary">{heavyCount.toLocaleString("fa-IR")} کالای سنگین</span>
+              <span className="text-secondary">
+                {heavyCount.toLocaleString("fa-IR")} کالای سنگین
+              </span>
             ) : null}
           </div>
           <ChevronDown
