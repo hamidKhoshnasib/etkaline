@@ -1,8 +1,9 @@
 "use client";
 
-import { Heart, Minus, Plus, ShoppingBag, X } from "lucide-react";
+import { Heart, Minus, Plus, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,11 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
       return;
     }
 
-    await basketItem.increase();
+    try {
+      await basketItem.increase();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "افزودن کالا به سبد خرید ناموفق بود.");
+    }
   };
 
   const toggleFavorite = async () => {
@@ -96,7 +101,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
           data-site="supermarket"
           dir="rtl"
           showCloseButton={false}
-          className="gap-0 overflow-hidden rounded-[28px] border-0 bg-white p-0 ring-0 sm:max-w-[430px]"
+          className="h-[509px] gap-0 overflow-hidden rounded-[28px] border-0 bg-white p-0 ring-0 sm:max-w-[430px]"
           overlayClassName="bg-slate-950/35 backdrop-blur-[2px]"
         >
           {resolvedProduct ? (
@@ -106,7 +111,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                 افزودن سریع محصول به سبد خرید
               </DialogDescription>
 
-              <div className="relative flex min-h-80 items-center justify-center bg-white p-10">
+              <div className="relative flex h-[368px] shrink-0 items-center justify-center bg-white">
                 <DialogClose
                   aria-label="بستن"
                   className="bg-muted text-muted-foreground hover:text-foreground absolute top-4 left-4 flex size-11 items-center justify-center rounded-full transition-colors"
@@ -127,31 +132,17 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                   src={resolvedProduct.image}
                   alt={resolvedProduct.title}
                   width={300}
-                  height={300}
-                  className="h-64 w-full object-contain"
+                  height={368}
+                  className="h-full w-full object-contain"
                 />
               </div>
 
-              <div className="bg-slate-50 p-5">
+              <div className="h-[141px] shrink-0 bg-slate-50 px-5 py-3">
                 <h2 className="line-clamp-2 min-h-14 text-base leading-7 font-bold text-slate-900">
                   {resolvedProduct.title}
                 </h2>
 
-                <div className="mt-7 flex flex-wrap items-end justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <div className="text-primary flex items-center gap-1" dir="ltr">
-                      <TomanIcon className="size-5 shrink-0 [&_path]:fill-current" />
-                      <span className="text-lg font-bold">
-                        {formatProductPrice(resolvedProduct.price)}
-                      </span>
-                    </div>
-                    {resolvedProduct.discount ? (
-                      <span className="bg-primary/15 text-primary rounded-md px-2 py-1 text-xs font-bold">
-                        {formatDiscountPercent(resolvedProduct.discount)}٪
-                      </span>
-                    ) : null}
-                  </div>
-
+                <div className="mt-3 flex flex-nowrap items-center justify-between gap-3">
                   {basketItem.quantity > 0 ? (
                     <div className="bg-primary text-primary-foreground flex h-12 items-center gap-4 rounded-2xl px-3">
                       <button
@@ -179,12 +170,11 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                   ) : (
                     <Button
                       type="button"
-                      size="xl"
+                      size="lg"
                       onClick={() => void addToBasket()}
                       disabled={isLoadingDetail || isUnavailable || isBasketActionPending}
-                      className="rounded-2xl px-6 text-sm font-bold"
+                      className="rounded-full px-5 font-bold"
                     >
-                      <ShoppingBag className="size-5" />
                       {isLoadingDetail
                         ? "در حال دریافت..."
                         : isUnavailable
@@ -192,13 +182,21 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                           : "افزودن به سبد خرید"}
                     </Button>
                   )}
-                </div>
 
-                {basketItem.error ? (
-                  <p role="alert" className="text-destructive mt-3 text-xs">
-                    {basketItem.error.message}
-                  </p>
-                ) : null}
+                  <div className="flex min-w-0 items-center gap-2">
+                    {resolvedProduct.discount ? (
+                      <span className="bg-primary/15 text-primary shrink-0 rounded-md px-2 py-1 text-xs font-bold">
+                        {formatDiscountPercent(resolvedProduct.discount)}٪
+                      </span>
+                    ) : null}
+                    <div className="text-primary flex min-w-0 items-center gap-1" dir="ltr">
+                      <TomanIcon className="size-5 shrink-0 [&_path]:fill-current" />
+                      <span className="truncate text-lg font-bold">
+                        {formatProductPrice(resolvedProduct.price)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
                 {detailQuery.isError ? (
                   <p role="alert" className="text-destructive mt-3 text-xs">
                     دریافت اطلاعات به‌روز محصول ممکن نشد.
