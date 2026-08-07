@@ -147,7 +147,7 @@ export default function OrderSummary({
             </FieldGroup>
           ) : null}
 
-          <div className="text-[#1E293B] mt-5 flex items-start gap-2 text-xs leading-5">
+          <div className="mt-5 flex items-start gap-2 text-xs leading-5 text-[#1E293B]">
             <TriangleAlert className="text-primary mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <p>
               هزینه این سفارش هنوز پرداخت نشده و در صورت اتمام موجودی، کالاها از سبد حذف می‌شوند.
