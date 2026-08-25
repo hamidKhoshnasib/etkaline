@@ -7,9 +7,14 @@ export const API_DEFAULT_HEADERS = {
 } as const;
 
 export function getClientApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL;
+  return "/api/backend";
 }
 
 export function getServerApiBaseUrl() {
-  return process.env.ETKALA_API_URL ?? process.env.API_BASE_URL ?? getClientApiBaseUrl();
+  return (
+    process.env.ETKALA_API_URL ??
+    process.env.API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    DEFAULT_API_URL
+  );
 }

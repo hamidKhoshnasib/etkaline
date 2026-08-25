@@ -1,7 +1,6 @@
 "use client";
 
 import { useApiQuery } from "@/hooks/use-api-query";
-import type { AuthToken, EtkalaUser } from "@/types/auth";
 import { useSession } from "next-auth/react";
 
 export interface Address {
@@ -36,11 +35,6 @@ export interface AddressPayload {
   receiverPhone: string;
   isDefault: boolean;
   cityId: number;
-}
-
-export interface AddressAuthValue {
-  user: EtkalaUser;
-  accessToken: AuthToken;
 }
 
 export interface ApiResult<T> {

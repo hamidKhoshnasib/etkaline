@@ -21,6 +21,7 @@ import FlashDeals from "./FlashDeals";
 import { StorefrontSwitchTab } from "./StorefrontSwitchTab";
 import { getStorefront } from "@/config/storefront";
 import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
+import { getHomeLayoutType } from "../lib/home-layout-type";
 
 function isProductLayout(item: HomeLayoutItem) {
   return (
@@ -118,7 +119,7 @@ export default async function DynamicHomeLayout({ siteType }: { siteType: SiteTy
   const { device } = userAgentFromString(requestHeaders.get("user-agent") ?? undefined);
   const platformType: HomePlatformType =
     device.type === "mobile" || device.type === "tablet" ? 2 : 1;
-  const layout = await getHomeLayout(2, platformType, siteType);
+  const layout = await getHomeLayout(getHomeLayoutType(siteType), platformType, siteType);
   const renderedLayoutItems = [];
 
   for (let index = 0; index < layout.length; index += 1) {

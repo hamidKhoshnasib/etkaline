@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { API_TIMEOUT_MS, getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, parseSiteType } from "@/lib/api-site-type";
+import { getRequestIdentity, takeRateLimit } from "@/lib/security/rate-limit";
 
 const fieldLimits = {
   fullName: 150,
@@ -46,18 +47,27 @@ function parsePayload(value: unknown): ContactPayload | null {
 }
 
 function getUpstreamMessage(payload: unknown) {
-  if (!payload || typeof payload !== "object") {
-    return null;
-  }
-
-  const message = (payload as Record<string, unknown>).message;
-  return typeof message === "string" && message.trim() ? message.trim() : null;
+  void payload;
+  return null;
 }
 
 export async function POST(request: Request) {
-  const siteType = parseSiteType(request.headers.get("SiteType"));
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ message: "درخواست نامعتبر است." }, { status: 403 });
+  }
+
+  const siteType = parseSiteType(request.headers.get("site-type"));
   if (!siteType) {
     return NextResponse.json({ message: "SiteType نامعتبر است." }, { status: 400 });
+  }
+
+  const limit = takeRateLimit(`contact:${getRequestIdentity(request)}`, 5, 10 * 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { message: "تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
   }
 
   let input: unknown;

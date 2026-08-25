@@ -29,10 +29,10 @@ export interface HomeLayoutItem {
 }
 
 interface HomeLayoutResponse {
-  value: HomeLayoutItem[];
+  value?: unknown;
   isSuccess: boolean;
-  errors: string[];
-  message: string;
+  errors?: string[];
+  message?: string;
 }
 
 export async function getHomeLayout(
@@ -55,9 +55,13 @@ export async function getHomeLayout(
   }
 
   const payload = (await response.json()) as HomeLayoutResponse;
-  if (!payload.isSuccess || !Array.isArray(payload.value)) {
-    throw new Error(payload.message || payload.errors?.[0] || "Invalid home layout response");
+  if (Array.isArray(payload.value)) {
+    return payload.value;
   }
 
-  return payload.value;
+  if (!payload.isSuccess && payload.value === null && !payload.message && !payload.errors?.length) {
+    return [];
+  }
+
+  throw new Error(payload.message || payload.errors?.[0] || "Invalid home layout response");
 }

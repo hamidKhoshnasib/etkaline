@@ -2,6 +2,7 @@ import "server-only";
 
 import { auth } from "@/features/auth/server";
 import { getSiteTypeHeaders, SITE_TYPES } from "@/lib/api-site-type";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import type { ApiResponse } from "@/types/auth";
 import type {
   AddToBasketRequest,
@@ -10,8 +11,7 @@ import type {
 } from "@/features/cart/model/basket";
 
 // دسترسی به سبد فقط در سرور انجام می‌شود تا access token وارد bundle کلاینت نشود
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
+const API_BASE_URL = getServerApiBaseUrl();
 
 async function basketRequest<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
   const session = await auth();

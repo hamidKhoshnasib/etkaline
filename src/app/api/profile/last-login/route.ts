@@ -23,7 +23,7 @@ function parseLastLogin(value: unknown): LastLoginValue | null {
 }
 
 export async function GET(request: Request) {
-  const siteType = parseSiteType(request.headers.get("SiteType"));
+  const siteType = parseSiteType(request.headers.get("site-type"));
   if (!siteType) {
     return NextResponse.json({ message: "SiteType is required." }, { status: 400 });
   }

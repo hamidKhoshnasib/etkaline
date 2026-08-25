@@ -7,10 +7,10 @@ import {
 } from "@/features/product/model/product";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 
 // آدرس API فقط در لایه سرور خوانده می‌شود تا جزئیات بک‌اند به کلاینت نشت نکند
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
+const API_BASE_URL = getServerApiBaseUrl();
 
 interface HomeProductsResponse {
   value: BackendHomeProductGroup[];

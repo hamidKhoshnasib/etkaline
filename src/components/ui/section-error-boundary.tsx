@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw, TriangleAlert } from "lucide-react";
-import { unstable_catchError, type ErrorInfo } from "next/error";
+import { catchError, type ErrorInfo } from "next/error";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,7 @@ interface SectionErrorBoundaryProps {
 
 function SectionErrorFallback(
   { title = "دریافت این بخش ممکن نشد.", className }: SectionErrorBoundaryProps,
-  { unstable_retry }: ErrorInfo,
+  { retry }: ErrorInfo,
 ) {
   return (
     <Empty
@@ -37,7 +37,7 @@ function SectionErrorFallback(
         <EmptyDescription className="text-destructive">{title}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Button type="button" variant="outline" size="sm" onClick={unstable_retry}>
+        <Button type="button" variant="outline" size="sm" onClick={retry}>
           <RefreshCw data-icon="inline-start" />
           تلاش دوباره
         </Button>
@@ -46,4 +46,4 @@ function SectionErrorFallback(
   );
 }
 
-export const SectionErrorBoundary = unstable_catchError(SectionErrorFallback);
+export const SectionErrorBoundary = catchError(SectionErrorFallback);

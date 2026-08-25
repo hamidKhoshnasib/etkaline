@@ -1,10 +1,10 @@
 import "server-only";
 
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import type { ApiResponse, AuthValue } from "@/types/auth";
 
-const AUTH_API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
+const AUTH_API_BASE_URL = getServerApiBaseUrl();
 
 type AuthEndpoint = "GetCaptcha" | "Login" | "VerifyCode" | "RefreshToken" | "ResendCode";
 

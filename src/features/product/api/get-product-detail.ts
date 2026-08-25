@@ -3,9 +3,9 @@ import "server-only";
 import { cache } from "react";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
+const API_BASE_URL = getServerApiBaseUrl();
 
 interface ProductDetailResponse {
   value?: unknown;

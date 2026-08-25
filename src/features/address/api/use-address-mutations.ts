@@ -2,11 +2,11 @@
 
 import { useApiMutation } from "@/hooks/use-api-mutation";
 
-import type { AddressAuthValue, AddressPayload, ApiResult } from "./use-addresses";
+import type { AddressPayload, ApiResult } from "./use-addresses";
 
-export type CreateAddressResponse = ApiResult<AddressAuthValue>;
+export type CreateAddressResponse = ApiResult<unknown>;
 export type UpdateAddressResponse = ApiResult<never>;
-export type SetDefaultAddressResponse = ApiResult<AddressAuthValue>;
+export type SetDefaultAddressResponse = ApiResult<unknown>;
 export type DeleteAddressResponse = ApiResult<never>;
 
 export interface UpdateAddressPayload extends AddressPayload {

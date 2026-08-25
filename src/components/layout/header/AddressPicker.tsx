@@ -42,12 +42,7 @@ import {
   useSetDefaultAddress,
   useUpdateAddress,
 } from "@/features/address/api/use-address-mutations";
-import type {
-  Address,
-  AddressAuthValue,
-  AddressPayload,
-  ApiResult,
-} from "@/features/address/api/use-addresses";
+import type { Address, AddressPayload } from "@/features/address/api/use-addresses";
 import { useAddresses } from "@/features/address/api/use-addresses";
 import {
   geocodeLocation,
@@ -57,10 +52,9 @@ import {
 } from "@/features/address/api/use-provinces";
 import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
 import { cn } from "@/lib/utils";
-import { setClientSessionSnapshot } from "@/lib/axios-client";
 import { useStorefront } from "@/providers/storefront-provider";
-
-type AddressStep = "addresses" | "location" | "details" | "store";
+import { getAddressResponseMessage } from "./address-picker/get-response-message";
+import type { AddressStep } from "./address-picker/types";
 
 const ADDRESS_PROMPT_STORAGE_KEY = "etkaline:address-prompt-shown";
 
@@ -78,16 +72,6 @@ interface AddressPickerProps {
   showMissingAddressPrompt?: boolean;
 }
 
-function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
-  if (typeof response.message === "string" && response.message.trim()) {
-    return response.message;
-  }
-  if (Array.isArray(response.errors) && typeof response.errors[0] === "string") {
-    return response.errors[0];
-  }
-  return fallback;
-}
-
 export function AddressPicker({
   trigger,
   startInCreateMode = false,
@@ -97,7 +81,7 @@ export function AddressPicker({
   showMissingAddressPrompt = false,
 }: AddressPickerProps) {
   const { siteType } = useStorefront();
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -154,9 +138,7 @@ export function AddressPicker({
     }
   }
 
-  async function refreshAddressSession(value: AddressAuthValue) {
-    await update({ user: value.user, accessToken: value.accessToken });
-    setClientSessionSnapshot({ accessToken: value.accessToken.token });
+  async function refreshAddressData() {
     await queryClient.invalidateQueries();
     router.refresh();
   }
@@ -173,15 +155,15 @@ export function AddressPicker({
 
         const response = await updateAddress.mutateAsync({ ...payload, id });
         if (response.isSuccess !== true) {
-          throw new Error(getResponseMessage(response, "ویرایش آدرس ناموفق بود."));
+          throw new Error(getAddressResponseMessage(response, "ویرایش آدرس ناموفق بود."));
         }
         toast.success("آدرس با موفقیت ویرایش شد.");
       } else {
         const response = await createAddress.mutateAsync(payload);
-        if (response.isSuccess !== true || !response.value) {
-          throw new Error(getResponseMessage(response, "ثبت آدرس ناموفق بود."));
+        if (response.isSuccess !== true) {
+          throw new Error(getAddressResponseMessage(response, "ثبت آدرس ناموفق بود."));
         }
-        await refreshAddressSession(response.value);
+        await refreshAddressData();
         toast.success("آدرس با موفقیت ثبت شد.");
       }
 
@@ -326,8 +308,8 @@ export function AddressPicker({
                 setCoordinates({ latitude: address.latitude, longitude: address.longitude });
                 setStep("details");
               }}
-              onSelectAddress={async (address, value) => {
-                await refreshAddressSession(value);
+              onSelectAddress={async (address) => {
+                await refreshAddressData();
                 setSelectedAddress(address.id);
               }}
               onConfirm={() => handleOpenChange(false)}
@@ -376,7 +358,7 @@ function AddressListStep({
 }: {
   selectedAddress: string;
   onEditAddress: (address: Address) => void;
-  onSelectAddress: (address: Address, value: AddressAuthValue) => Promise<void>;
+  onSelectAddress: (address: Address) => Promise<void>;
   onConfirm: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -402,11 +384,11 @@ function AddressListStep({
 
     try {
       const response = await setDefaultAddress.mutateAsync({ addressId });
-      if (response.isSuccess !== true || !response.value) {
-        throw new Error(getResponseMessage(response, "انتخاب آدرس ناموفق بود."));
+      if (response.isSuccess !== true) {
+        throw new Error(getAddressResponseMessage(response, "انتخاب آدرس ناموفق بود."));
       }
 
-      await onSelectAddress(address, response.value);
+      await onSelectAddress(address);
       toast.success("آدرس پیش‌فرض تغییر کرد.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "انتخاب آدرس ناموفق بود.");

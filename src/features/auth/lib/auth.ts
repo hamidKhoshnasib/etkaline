@@ -5,6 +5,12 @@ import type { JWT } from "@auth/core/jwt";
 import { refreshAuthTokens, verifyCode } from "@/features/auth/api/etkala-auth-server";
 import { DEFAULT_SITE_TYPE, isSiteType } from "@/lib/api-site-type";
 
+const authSecret = process.env.AUTH_SECRET;
+
+if (!authSecret && process.env.NODE_ENV === "production") {
+  throw new Error("AUTH_SECRET must be configured in production.");
+}
+
 interface SessionAddressUpdate {
   accessToken?: unknown;
   user?: unknown;
@@ -57,9 +63,7 @@ function applyAddressUpdate(token: JWT, session: unknown) {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret:
-    process.env.AUTH_SECRET ??
-    (process.env.NODE_ENV === "development" ? "etkaline-local-development-secret" : undefined),
+  secret: authSecret ?? "etkaline-local-development-secret",
   providers: [
     Credentials({
       credentials: {

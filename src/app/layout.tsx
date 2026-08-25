@@ -55,6 +55,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const publicSession = session ? { ...session, accessToken: undefined } : null;
 
   return (
     <html lang="fa" dir="rtl" className={`${iranYekan.variable} h-full antialiased`}>
@@ -62,7 +63,7 @@ export default async function RootLayout({
         className={`${iranYekan.className} flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans! text-base! leading-normal! font-normal! lg:pb-0`}
       >
         <DirectionProvider direction="rtl">
-          <Providers session={session}>
+          <Providers session={publicSession}>
             {children}
             <Toaster />
             <Script src="/js/map-service.js" strategy="afterInteractive" />

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { AccountSidebar } from "@/features/account";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
 import { getCurrentStorefrontSiteType } from "@/lib/get-current-storefront-site-type";
+import { auth } from "@/features/auth/server";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "حساب کاربری",
@@ -9,6 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/?login=1&callbackUrl=/account");
+  }
+
   const siteType = await getCurrentStorefrontSiteType();
 
   return (

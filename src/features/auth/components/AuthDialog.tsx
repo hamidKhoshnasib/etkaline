@@ -4,7 +4,6 @@ import * as React from "react";
 import { Info, PencilLine, RefreshCw } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { CLIENT_SESSION_SYNC_EVENT } from "@/lib/axios-client";
 import { useLoginBanner } from "@/features/auth/api/use-login-banner";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,13 @@ import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
 import { WELCOME_DIALOG_EVENT, type LastLoginInfo } from "./WelcomeDialog";
+import {
+  getResponseMessage,
+  getSafeCallbackUrl,
+  normalizeCaptchaImage,
+  toEnglishDigits,
+  toPersianDigits,
+} from "@/features/auth/lib/auth-dialog-utils";
 import {
   isValidMobile as validateMobile,
   isValidOtp as validateOtp,
@@ -64,59 +70,6 @@ async function showWelcomeDialog(siteType: ReturnType<typeof useStorefront>["sit
   }
 }
 
-const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
-const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
-
-function toEnglishDigits(value: string) {
-  return value
-    .replace(/[۰-۹]/g, (digit) => String(persianDigits.indexOf(digit)))
-    .replace(/[٠-٩]/g, (digit) => String(arabicDigits.indexOf(digit)));
-}
-
-function toPersianDigits(value: string | number) {
-  return String(value).replace(/\d/g, (digit) => persianDigits[Number(digit)]);
-}
-
-function normalizeCaptchaImage(image: string) {
-  if (/^(data:|https?:|\/)/i.test(image)) {
-    return image;
-  }
-  return `data:image/png;base64,${image}`;
-}
-
-function responseMessage(response: ApiResponse<unknown>, fallback: string) {
-  return response.message || response.errors?.[0] || fallback;
-}
-
-function waitForAuthenticatedSessionSync() {
-  let resolveReady!: () => void;
-  const ready = new Promise<void>((resolve) => {
-    resolveReady = resolve;
-  });
-  const cleanup = () => {
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
-    window.removeEventListener(CLIENT_SESSION_SYNC_EVENT, handleSessionSync);
-  };
-  const handleSessionSync = (event: Event) => {
-    if (!(event instanceof CustomEvent) || typeof event.detail !== "string" || !event.detail) {
-      return;
-    }
-
-    cleanup();
-    resolveReady();
-  };
-
-  window.addEventListener(CLIENT_SESSION_SYNC_EVENT, handleSessionSync);
-  const timeoutId = window.setTimeout(() => {
-    cleanup();
-    resolveReady();
-  }, 5_000);
-
-  return { ready, cancel: cleanup };
-}
-
 async function authRequest<T>(
   url: string,
   siteType: ReturnType<typeof useStorefront>["siteType"],
@@ -134,7 +87,7 @@ async function authRequest<T>(
   const payload = (await response.json()) as ApiResponse<T>;
 
   if (!response.ok) {
-    throw new Error(responseMessage(payload, "ارتباط با سرور برقرار نشد."));
+    throw new Error(getResponseMessage(payload, "ارتباط با سرور برقرار نشد."));
   }
   return payload;
 }
@@ -167,7 +120,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
       try {
         const response = await authRequest<CaptchaValue>("/api/etkala-auth/captcha", siteType);
         if (!response.isSuccess || !response.value) {
-          throw new Error(responseMessage(response, "دریافت تصویر امنیتی ناموفق بود."));
+          throw new Error(getResponseMessage(response, "دریافت تصویر امنیتی ناموفق بود."));
         }
         setCaptchaValue(response.value);
       } catch (requestError) {
@@ -256,7 +209,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
       });
 
       if (!response.isSuccess) {
-        throw new Error(responseMessage(response, "شماره موبایل یا عبارت امنیتی صحیح نیست."));
+        throw new Error(getResponseMessage(response, "شماره موبایل یا عبارت امنیتی صحیح نیست."));
       }
 
       setStep("verify");
@@ -279,7 +232,6 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
     setError("");
 
     try {
-      const sessionSync = waitForAuthenticatedSessionSync();
       const result = await signIn("credentials", {
         mobile: normalizedMobile,
         code: verificationCode,
@@ -288,18 +240,16 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
       });
 
       if (!result?.ok || result.error) {
-        sessionSync.cancel();
         throw new Error("کد تأیید واردشده صحیح نیست یا منقضی شده است.");
       }
 
-      await sessionSync.ready;
       window.dispatchEvent(new Event("etkala:authenticated"));
       void showWelcomeDialog(siteType);
       const search = new URLSearchParams(window.location.search);
-      const callbackUrl = search.get("callbackUrl");
+      const callbackUrl = getSafeCallbackUrl(search.get("callbackUrl"), window.location.origin);
       handleOpenChange(false);
 
-      if (callbackUrl?.startsWith("/")) {
+      if (callbackUrl) {
         window.location.assign(callbackUrl);
       }
     } catch (requestError) {
@@ -325,7 +275,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
       });
 
       if (!response.isSuccess) {
-        throw new Error(responseMessage(response, "ارسال مجدد کد ناموفق بود."));
+        throw new Error(getResponseMessage(response, "ارسال مجدد کد ناموفق بود."));
       }
 
       setSecondsLeft(RESEND_SECONDS);

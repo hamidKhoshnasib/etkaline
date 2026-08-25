@@ -1,9 +1,9 @@
 import "server-only";
 
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
+const API_BASE_URL = getServerApiBaseUrl();
 
 export interface BlogBanner {
   id: number;
