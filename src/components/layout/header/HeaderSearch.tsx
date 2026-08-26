@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpLeft, Menu, Search, X } from "lucide-react";
+import { ArrowRight, ArrowUpLeft, Menu, Search, X } from "lucide-react";
 import IconStore from "@/assets/icons/icons8_online_store_2 1.svg";
 import { Spinner } from "@/components/ui/spinner";
 import { useSearchbar } from "@/features/search/api/use-searchbar";
@@ -64,6 +64,7 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
   );
   const recentSearchesRef = useRef(recentSearches);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const normalizedQuery = query.trim();
   const debouncedQuery = useDebouncedValue(normalizedQuery);
   const hasSearchQuery = normalizedQuery.length >= 2;
@@ -73,7 +74,7 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
     isOpen && hasSearchQuery && isCurrentQuery,
   );
 
-  const showResults = isOpen && normalizedQuery.length > 0;
+  const showResults = isOpen && (isMobile || normalizedQuery.length > 0);
   const isSearching = hasSearchQuery && (isFetching || !isCurrentQuery);
   const hasResults = Boolean(data && (data.categories.length || data.products.length));
 
@@ -99,8 +100,13 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
     setIsOpen(false);
   };
 
+  const closeMobileSearch = () => {
+    setQuery("");
+    setIsOpen(false);
+  };
+
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || isMobile) {
       return;
     }
 
@@ -112,18 +118,54 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
 
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [isOpen]);
+  }, [isMobile, isOpen]);
+
+  useEffect(() => {
+    if (!isMobile || !isOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    inputRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMobileSearch();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobile, isOpen]);
 
   return (
     <div
       ref={searchRef}
       className={cn(
         "relative z-[70] flex flex-1 justify-center",
-        isMobile ? "px-0" : "px-4",
+        isMobile && isOpen
+          ? "bg-background fixed inset-0 z-[100] block overflow-y-auto px-4 py-3"
+          : isMobile
+            ? "px-0"
+            : "px-4",
         className,
       )}
     >
       <div className="relative w-full max-w-154.5">
+        {isMobile && isOpen ? (
+          <button
+            type="button"
+            onClick={closeMobileSearch}
+            className="focus-visible:outline-ring mb-4 flex size-10 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
+            aria-label="بستن جستجو"
+          >
+            <ArrowRight className="size-6" aria-hidden="true" />
+          </button>
+        ) : null}
         <div
           className={cn(
             "flex w-full items-center overflow-hidden",
@@ -132,7 +174,7 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
               : "h-12.5 rounded-full bg-white",
           )}
         >
-          {!query && (
+          {!query && !(isMobile && isOpen) && (
             <div
               className={cn(
                 "text-primary flex shrink-0 items-center gap-2",
@@ -164,13 +206,14 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
           <div className="relative flex-1">
             <input
               type="text"
+              ref={inputRef}
               value={query}
               onFocus={() => setIsOpen(true)}
               onChange={(event) => {
                 setQuery(event.target.value);
                 setIsOpen(true);
               }}
-              placeholder={isMobile && !query ? "" : "جستجو در فروشگاه"}
+              placeholder={isMobile && !query && !isOpen ? "" : "جستجو در فروشگاه"}
               className="text-secondary placeholder:text-secondary/40 w-full border-0 bg-transparent py-2.5 ps-8 pe-10 text-sm focus:outline-none"
               aria-label="جستجو در فروشگاه"
             />
@@ -198,7 +241,12 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
 
         {showResults ? (
           <div
-            className="text-secondary animate-in fade-in-0 slide-in-from-top-2 zoom-in-95 absolute inset-x-0 top-[calc(100%+8px)] z-[70] rounded-[28px] bg-white p-4 shadow-2xl duration-200 ease-out motion-reduce:animate-none"
+            className={cn(
+              "text-secondary animate-in fade-in-0 slide-in-from-top-2 zoom-in-95 duration-200 ease-out motion-reduce:animate-none",
+              isMobile
+                ? "bg-background relative mt-5 pb-8"
+                : "absolute inset-x-0 top-[calc(100%+8px)] z-[70] rounded-[28px] bg-white p-4 shadow-2xl",
+            )}
             aria-busy={isSearching}
           >
             {normalizedQuery.length < 2 ? (
