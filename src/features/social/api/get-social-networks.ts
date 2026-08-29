@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 export interface SocialNetwork {
   id: number;
@@ -75,10 +76,9 @@ function parseSocialNetwork(value: unknown): SocialNetwork | null {
 }
 
 export async function getSocialNetworks(siteType: SiteType): Promise<SocialNetwork[]> {
-  const response = await fetch(new URL("/api/SocialNetworks", getServerApiBaseUrl()), {
+  const response = await fetchWithTimeout(new URL("/api/SocialNetworks", getServerApiBaseUrl()), {
     headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
     next: { revalidate: 300, tags: [`social-networks-${siteType}`] },
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

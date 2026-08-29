@@ -5,6 +5,7 @@ import {
   type BackendLayoutProduct,
   type Product,
 } from "@/features/product/model/product";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -16,6 +17,19 @@ interface LayoutProductsResponse {
   isSuccess: boolean;
   errors?: string[];
   message?: string;
+}
+
+function deduplicateProducts(products: Product[]) {
+  const productIds = new Set<Product["id"]>();
+
+  return products.filter((product) => {
+    if (productIds.has(product.id)) {
+      return false;
+    }
+
+    productIds.add(product.id);
+    return true;
+  });
 }
 
 export async function getProductsByLayoutId(
@@ -36,10 +50,9 @@ export async function getProductsByLayoutId(
   url.searchParams.set("LayoutId", String(layoutId));
   url.searchParams.set("Count", String(count));
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: await getServerApiHeaders(siteType),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {
@@ -51,5 +64,5 @@ export async function getProductsByLayoutId(
     throw new Error(payload.message || payload.errors?.[0] || "Invalid layout products response");
   }
 
-  return payload.value.map(mapBackendLayoutProduct);
+  return deduplicateProducts(payload.value.map(mapBackendLayoutProduct));
 }

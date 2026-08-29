@@ -1,8 +1,11 @@
 import "server-only";
 
+import { cache } from "react";
+
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import { getStorefront } from "@/config/storefront";
 import { getServerApiBaseUrl } from "@/lib/api-config";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -107,11 +110,12 @@ function buildMenuCategories(categories: ApiCategory[], siteType: SiteType): Men
   return roots;
 }
 
-export async function getMenuCategories(siteType: SiteType): Promise<MenuCategory[]> {
-  const response = await fetch(new URL("/api/Categories", getServerApiBaseUrl()), {
+export const getMenuCategories = cache(async function getMenuCategories(
+  siteType: SiteType,
+): Promise<MenuCategory[]> {
+  const response = await fetchWithTimeout(new URL("/api/Categories", getServerApiBaseUrl()), {
     headers: await getServerApiHeaders(siteType),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok) {
     throw new Error(`Menu categories request failed with status ${response.status}`);
@@ -128,7 +132,7 @@ export async function getMenuCategories(siteType: SiteType): Promise<MenuCategor
       .filter((category): category is ApiCategory => category !== null),
     siteType,
   );
-}
+});
 
 function findCategoryPathById(
   categories: MenuCategory[],

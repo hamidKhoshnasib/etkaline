@@ -6,7 +6,7 @@ import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/config/site";
 import { getStorefront } from "@/config/storefront";
-import { auth } from "@/features/auth/lib/auth";
+import { getServerSession } from "@/features/auth/lib/get-server-session";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import "./globals.css";
 
@@ -54,7 +54,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  const session = await getServerSession();
 
   return (
     <html lang="fa" dir="rtl" className={`${iranYekan.variable} h-full antialiased`}>

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -89,10 +90,9 @@ export async function getCategoryBanners(siteType: SiteType): Promise<CategoryBa
   const url = new URL("/api/Banners/GetByType", API_BASE_URL);
   url.searchParams.set("Type", "3");
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: await getServerApiHeaders(siteType),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

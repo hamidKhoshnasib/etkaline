@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import type { SiteType } from "@/lib/api-site-type";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 
 interface BlogPost {
@@ -77,10 +78,9 @@ export async function getBlogPosts(siteType: SiteType, pageLength = 4): Promise<
   url.searchParams.set("Page", "1");
   url.searchParams.set("PageLength", String(pageLength));
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: await getServerApiHeaders(siteType),
     next: { revalidate: 60, tags: [`blog-posts-${siteType}`] },
-    signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok) {
     throw new Error(`Blog posts request failed with status ${response.status}`);

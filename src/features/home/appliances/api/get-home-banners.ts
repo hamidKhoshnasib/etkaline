@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -88,10 +89,9 @@ export async function getHomeBanners(siteType: SiteType): Promise<HomeBanner[]> 
   url.searchParams.set("PlatformType", "1");
   url.searchParams.set("Count", "5");
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: await getServerApiHeaders(siteType),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {
