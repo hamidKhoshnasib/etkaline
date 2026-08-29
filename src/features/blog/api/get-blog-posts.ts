@@ -4,6 +4,7 @@ import { getServerApiBaseUrl } from "@/lib/api-config";
 import type { SiteType } from "@/lib/api-site-type";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import { formatBlogDate } from "@/features/blog/model/format-blog-date";
 
 interface BlogPost {
   id: number;
@@ -11,6 +12,7 @@ interface BlogPost {
   summary: string;
   image: string;
   date: string;
+  studyTime: string;
 }
 
 interface BlogPostsResponse {
@@ -49,8 +51,16 @@ function parseBlogPosts(raw: unknown): BlogPost[] {
   const posts =
     (Array.isArray(response.value) ? response.value : asRecord(response.value)?.posts) ?? null;
 
-  if (response.isSuccess !== true || !Array.isArray(posts)) {
+  if (response.isSuccess !== true) {
     throw new Error("Blog posts response was unsuccessful");
+  }
+
+  if (posts === null) {
+    return [];
+  }
+
+  if (!Array.isArray(posts)) {
+    throw new Error("Blog posts response has an invalid value");
   }
 
   return posts.flatMap((value): BlogPost[] => {
@@ -67,7 +77,8 @@ function parseBlogPosts(raw: unknown): BlogPost[] {
         title,
         summary: asText(post.summary) ?? "",
         image: toImageUrl(post.picUrl) ?? toImageUrl(post.pic) ?? "/images/image-placeholder.svg",
-        date: asText(post.createDateFa) ?? "",
+        date: formatBlogDate(asText(post.createDate) ?? asText(post.createDateFa)),
+        studyTime: asText(post.studyTime) ?? "",
       },
     ];
   });

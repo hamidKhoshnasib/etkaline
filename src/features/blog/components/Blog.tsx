@@ -3,8 +3,8 @@ import BlogCategoryList from "./BlogCategoryList";
 import BlogPostList from "./BlogPostList";
 import PopularReadsCard from "./PopularReadsCard";
 import BlogPromoBanner from "./BlogPromoBanner";
-import { popularPosts } from "./data";
 import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
+import { getBlogPosts } from "@/features/blog/api/get-blog-posts";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import type { SiteType } from "@/lib/api-site-type";
@@ -24,6 +24,22 @@ async function BlogPromoBanners({ siteType }: { siteType: SiteType }) {
   ));
 }
 
+async function PopularBlogPosts({ siteType }: { siteType: SiteType }) {
+  const posts = await getBlogPosts(siteType);
+
+  return (
+    <PopularReadsCard
+      posts={posts.map((post) => ({
+        id: post.id,
+        title: post.title,
+        time: post.date,
+        image: post.image,
+        href: `/blog/${encodeURIComponent(String(post.id))}`,
+      }))}
+      showMoreLink="/blog"
+    />
+  );
+}
 export default function BlogPage({ siteType }: { siteType: SiteType }) {
   return (
     <Container as="main" className="space-y-6 py-6">
@@ -31,7 +47,9 @@ export default function BlogPage({ siteType }: { siteType: SiteType }) {
       <section className="flex flex-col gap-6 lg:flex-row">
         <aside className="flex w-full shrink-0 flex-col gap-6 lg:w-[308px]">
           <BlogCategoryList />
-          <PopularReadsCard posts={popularPosts} showMoreLink="/blog" />
+          <SectionErrorBoundary title="دریافت خواندنی‌های مجله ممکن نشد.">
+            <PopularBlogPosts siteType={siteType} />
+          </SectionErrorBoundary>
         </aside>
 
         <div className="min-w-0 flex-1">

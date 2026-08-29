@@ -32,8 +32,16 @@ function asText(value: unknown): string | null {
 
 function parseBlogCategories(raw: unknown): BlogCategory[] {
   const response = raw as BlogCategoriesResponse;
-  if (response.isSuccess !== true || !Array.isArray(response.value)) {
+  if (response.isSuccess !== true) {
     throw new Error("Blog categories response was unsuccessful");
+  }
+
+  if (response.value === null || response.value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(response.value)) {
+    throw new Error("Blog categories response has an invalid value");
   }
 
   return response.value
