@@ -74,7 +74,7 @@ export function MegaMenu({
             <ChevronLeft size={16} className="shrink-0" />
           </Link>
 
-          <div className="grid grid-cols-4 gap-x-6 gap-y-6 pb-5">
+          <div className="grid grid-cols-4 gap-x-12 gap-y-19.25 pb-5">
             {activeCategory.children.map((subcategory) => (
               <div key={subcategory.id}>
                 <Link

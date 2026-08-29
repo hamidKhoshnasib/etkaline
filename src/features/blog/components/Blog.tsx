@@ -3,8 +3,7 @@ import BlogCategoryList from "./BlogCategoryList";
 import BlogPostList from "./BlogPostList";
 import PopularReadsCard from "./PopularReadsCard";
 import BlogPromoBanner from "./BlogPromoBanner";
-import FeaturedBlog from "./FeaturedBlog";
-import { popularPosts, featuredPost } from "./data";
+import { popularPosts } from "./data";
 import { getBlogBanners } from "@/features/blog/api/get-blog-banners";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
@@ -47,16 +46,16 @@ export default function BlogPage({ siteType }: { siteType: SiteType }) {
       </SectionErrorBoundary>
 
       {/* ── Featured article + sidebar ──────────────────────────────── */}
-      <section className="flex flex-col gap-6 lg:flex-row">
-        <aside className="w-full shrink-0 lg:w-[308px]">
-          <PopularReadsCard posts={popularPosts} showMoreLink="/blog" />
-        </aside>
+      {/*<section className="flex flex-col gap-6 lg:flex-row">*/}
+      {/*  <aside className="w-full shrink-0 lg:w-[308px]">*/}
+      {/*    <PopularReadsCard posts={popularPosts} showMoreLink="/blog" />*/}
+      {/*  </aside>*/}
 
-        <div className="min-w-0 flex-1">
-          <BlogSectionHeader title="جدیدترین مطالب" showMoreLink="/blog" />
-          <FeaturedBlog {...featuredPost} />
-        </div>
-      </section>
+      {/*  <div className="min-w-0 flex-1">*/}
+      {/*    <BlogSectionHeader title="جدیدترین مطالب" showMoreLink="/blog" />*/}
+      {/*    <FeaturedBlog {...featuredPost} />*/}
+      {/*  </div>*/}
+      {/*</section>*/}
     </Container>
   );
 }

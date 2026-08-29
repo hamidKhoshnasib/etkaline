@@ -35,8 +35,12 @@ import {
   useUpdateProfile,
   type Profile,
 } from "@/features/account/api/use-profile";
+import { ACCOUNT_OUTLINE_ACTION_CLASS } from "@/features/account/components/account-action-styles";
 import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
+
+const PROFILE_CONFIRM_ACTION_CLASS =
+  "border-[#2962FF] bg-[#2962FF] text-white hover:bg-[#2962FF]/90 hover:text-white";
 
 type ProfileDetail = {
   label: string;
@@ -160,7 +164,7 @@ function ProfileEditForm({
           ویرایش حساب کاربری
         </h1>
         <Button
-          className={cn(routeMode && "w-36")}
+          className={cn(PROFILE_CONFIRM_ACTION_CLASS, routeMode && "w-36")}
           size="lg"
           type="submit"
           disabled={updateProfile.isPending}
@@ -306,8 +310,8 @@ export function ProfileOverview({ editPage = false }: { editPage?: boolean }) {
           </h1>
           {editPage ? (
             <Button
-              className="w-36"
-              variant="outline-primary"
+              className={cn(ACCOUNT_OUTLINE_ACTION_CLASS, "w-36")}
+              variant="outline"
               size="lg"
               type="button"
               onClick={() => setIsEditing(true)}
@@ -320,7 +324,8 @@ export function ProfileOverview({ editPage = false }: { editPage?: boolean }) {
               <Link
                 href="/account/profile/edit"
                 className={cn(
-                  buttonVariants({ variant: "outline-primary", size: "lg" }),
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  ACCOUNT_OUTLINE_ACTION_CLASS,
                   "lg:hidden",
                 )}
               >
@@ -328,8 +333,8 @@ export function ProfileOverview({ editPage = false }: { editPage?: boolean }) {
                 ویرایش اطلاعات
               </Link>
               <Button
-                className="hidden lg:inline-flex"
-                variant="outline-primary"
+                className={cn(ACCOUNT_OUTLINE_ACTION_CLASS, "hidden lg:inline-flex")}
+                variant="outline"
                 size="lg"
                 type="button"
                 onClick={() => setIsEditing(true)}

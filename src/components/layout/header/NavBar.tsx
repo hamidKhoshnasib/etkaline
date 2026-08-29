@@ -12,6 +12,7 @@ import { useAddresses } from "@/features/address/api/use-addresses";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import type { ExtraPageLink } from "@/features/extra-pages/api/get-extra-pages";
 import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href";
+import { useStorefront } from "@/providers/storefront-provider";
 
 const [categoriesLink, ...otherNavLinks] = navLinks;
 const CategoryIcon = categoriesLink.icon;
@@ -22,6 +23,7 @@ interface NavBarProps {
 }
 
 export function NavBar({ categories, extraPages }: NavBarProps) {
+  const storefront = useStorefront();
   const { data: addresses = [] } = useAddresses();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(
@@ -80,16 +82,20 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
               </button>
             </div>
 
-            {otherNavLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="label-large hover:text-primary-hover hover:border-primary-hover flex h-full items-center gap-3 border-b-2 border-transparent text-gray-600 transition-colors"
-              >
-                <Icon className="size-4" />
-                <span>{label}</span>
-              </Link>
-            ))}
+            {otherNavLinks.map(({ href, label, icon: Icon }) => {
+              const resolvedHref = typeof href === "function" ? href(storefront) : href;
+
+              return (
+                <Link
+                  key={resolvedHref}
+                  href={resolvedHref}
+                  className="label-large hover:text-primary-hover hover:border-primary-hover flex h-full items-center gap-3 border-b-2 border-transparent text-gray-600 transition-colors"
+                >
+                  <Icon className="size-4" />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
             {extraPages.map((page) => (
               <Link
                 key={page.id}

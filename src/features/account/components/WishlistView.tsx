@@ -14,6 +14,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
+import { ACCOUNT_OUTLINE_ACTION_CLASS } from "@/features/account/components/account-action-styles";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFavoriteProducts } from "@/features/account/api/use-favorite-products";
 import { ProductCard } from "@/features/product/components/ProductCard";
@@ -108,7 +109,7 @@ export function WishlistView() {
             type="button"
             variant="outline"
             size="lg"
-            className="border-primary-hover text-primary-hover bg-transparent"
+            className={ACCOUNT_OUTLINE_ACTION_CLASS}
           >
             <Plus data-icon="inline-start" />
             افزودن لیست

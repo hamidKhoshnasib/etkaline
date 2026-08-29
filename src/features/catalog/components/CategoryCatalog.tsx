@@ -37,6 +37,7 @@ const SORT_TYPE_BY_ID: Record<string, number> = {
   specialoffer: 5,
   bestselling: 6,
 };
+const DEFAULT_SORT = "popular";
 const FILTER_QUERY_KEYS = [
   "available",
   "minPrice",
@@ -65,6 +66,10 @@ function parsePriceRange(searchParams: Pick<URLSearchParams, "get">) {
   return Number.isFinite(minPrice) && Number.isFinite(maxPrice) && maxPrice > minPrice
     ? { minPrice, maxPrice }
     : null;
+}
+
+function parseSort(value: string | null) {
+  return value && Object.hasOwn(SORT_TYPE_BY_ID, value) ? value : DEFAULT_SORT;
 }
 
 interface CatalogBreadcrumbEntry {
@@ -147,7 +152,7 @@ export default function CategoryCatalog({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [sort, setSort] = useState("popular");
+  const sort = parseSort(searchParams.get("sort"));
   const [page, setPage] = useState(1);
   const onlyAvailable = searchParams.get("available") === "1";
   const priceRange = parsePriceRange(searchParams);
@@ -183,7 +188,13 @@ export default function CategoryCatalog({
   const isLoadingProducts = isPending || isFetching;
 
   const updateSort = (nextSort: string) => {
-    setSort(nextSort);
+    replaceFilterParams((params) => {
+      if (nextSort === DEFAULT_SORT) {
+        params.delete("sort");
+      } else {
+        params.set("sort", nextSort);
+      }
+    });
     setPage(1);
   };
 
