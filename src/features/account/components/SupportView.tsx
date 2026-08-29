@@ -1,102 +1,207 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, Plus, RefreshCw, Upload } from "lucide-react";
+import { type FormEvent, useState } from "react";
+import { ChevronLeft, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { AppImage } from "@/components/ui/image";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { useFaqs } from "@/features/account/api/use-faqs";
+import { useCreateTicket, useTicketCaptcha } from "@/features/account/api/use-tickets";
+import { toEnglishDigits, toPersianDigits } from "@/features/auth/model/auth";
 
-const FINANCIAL_ISSUES = [
-  "کسر از حساب و عدم ثبت سفارش",
-  "عدم بازگشت وجه به کیف پول",
-  "کسر از حساب و عدم ثبت سفارش",
-  "کسر از حساب و عدم ثبت سفارش",
-] as const;
+import { ACCOUNT_OUTLINE_ACTION_CLASS } from "./account-action-styles";
 
-function NewTicketDialog({
+function normalizeCaptchaImage(image: string) {
+  return /^(data:|https?:|\/)/i.test(image) ? image : `data:image/png;base64,${image}`;
+}
+
+export function NewTicketDialog({
   open,
   onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [captcha, setCaptcha] = useState("");
+  const [formError, setFormError] = useState("");
+  const captchaQuery = useTicketCaptcha(open);
+  const createTicket = useCreateTicket();
+
+  function resetForm() {
+    setTitle("");
+    setMessage("");
+    setCaptcha("");
+    setFormError("");
+    createTicket.reset();
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      resetForm();
+    }
+    onOpenChange(nextOpen);
+  }
+
+  async function refreshCaptcha() {
+    setCaptcha("");
+    setFormError("");
+    await captchaQuery.refetch();
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const captchaValue = captchaQuery.data;
+    if (!title.trim() || !message.trim() || !captcha.trim() || !captchaValue) {
+      setFormError("لطفاً موضوع، پیام و عبارت امنیتی را کامل وارد کنید.");
+      return;
+    }
+
+    setFormError("");
+    try {
+      await createTicket.mutateAsync({
+        title,
+        text: message,
+        captcha: toEnglishDigits(captcha),
+        cpCode: captchaValue.cpCode,
+      });
+      toast.success("تیکت با موفقیت ارسال شد.");
+      handleOpenChange(false);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "ارسال تیکت ناموفق بود.");
+      setCaptcha("");
+      await captchaQuery.refetch();
+    }
+  }
+
+  const captchaError = formError || captchaQuery.error?.message || "";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
         className="w-[calc(100%-2rem)] max-w-[480px] gap-0 overflow-hidden rounded-[26px] p-0 sm:max-w-[480px]"
         overlayClassName="bg-black/45"
       >
-        <DialogHeader className="border-b px-6 py-5 text-end">
+        <DialogHeader className="border-b px-6 py-6">
           <DialogTitle className="text-secondary text-lg font-bold">تیکت جدید</DialogTitle>
         </DialogHeader>
 
-        <form
-          className="flex flex-col gap-5 px-6 py-4"
-          onSubmit={(event) => event.preventDefault()}
-        >
+        <form className="flex flex-col gap-5 px-6 py-4" onSubmit={handleSubmit} noValidate>
           <FieldGroup className="gap-4">
-            <Field className="gap-1.5">
-              <FieldLabel
-                htmlFor="ticket-subject"
-                className="text-primary-hover text-sm font-medium"
-              >
+            <Field className="gap-1.5" data-invalid={Boolean(formError) && !title.trim()}>
+              <FieldLabel htmlFor="ticket-subject" className="text-secondary text-xs font-medium">
                 موضوع
               </FieldLabel>
               <Input
                 id="ticket-subject"
+                name="title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
                 placeholder="مثلاً بازگشت وجه"
-                className="h-12 rounded-lg px-4 text-end"
+                required
+                maxLength={200}
+                aria-invalid={Boolean(formError) && !title.trim()}
+                className="focus-visible:border-auth-accent h-12 rounded-lg px-4 text-end"
                 style={{ direction: "rtl", textAlign: "right" }}
               />
             </Field>
-            <Field className="gap-1.5">
-              <FieldLabel
-                htmlFor="ticket-message"
-                className="text-primary-hover text-sm font-medium"
-              >
+            <Field className="gap-1.5" data-invalid={Boolean(formError) && !message.trim()}>
+              <FieldLabel htmlFor="ticket-message" className="text-secondary text-xs font-medium">
                 پیام شما
               </FieldLabel>
               <Textarea
                 id="ticket-message"
+                name="text"
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
                 placeholder="متن را اینجا بنویسید..."
-                className="min-h-39 resize-none rounded-lg px-4 py-3 text-end"
+                required
+                maxLength={5000}
+                aria-invalid={Boolean(formError) && !message.trim()}
+                className="focus-visible:border-auth-accent min-h-39 resize-none rounded-lg px-4 py-3 text-end focus-visible:ring-0"
                 style={{ direction: "rtl", textAlign: "right" }}
               />
             </Field>
           </FieldGroup>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-muted-foreground text-sm">یادداشت برای اطلاعات بیشتر</span>
-            <div className="border-border relative flex min-h-19 items-center gap-3 rounded-lg border border-dashed px-4">
-              <Upload className="text-muted-foreground size-8 shrink-0" aria-hidden="true" />
-              <span className="text-muted-foreground me-16 flex min-w-0 flex-1 flex-col gap-1 text-end text-sm">
-                <span>برای آپلود یا کشیدن و رها کردن</span>
-                <span className="text-xs">حداکثر حجم فایل: ۳۰ مگابایت</span>
-              </span>
-              <span className="absolute end-4 flex h-10 items-center rounded-lg bg-[#4d83f7] px-3 text-sm font-medium text-white">
-                کلیک کنید
-              </span>
+          <Field data-invalid={Boolean(captchaError)}>
+            <FieldLabel htmlFor="ticket-captcha" className="sr-only">
+              عبارت امنیتی
+            </FieldLabel>
+            <div className="grid grid-cols-2 gap-2" dir="rtl">
+              <Input
+                id="ticket-captcha"
+                name="captcha"
+                dir="rtl"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="کد را وارد نمایید"
+                value={toPersianDigits(captcha)}
+                onChange={(event) =>
+                  setCaptcha(toEnglishDigits(event.target.value).replace(/\s/g, "").slice(0, 8))
+                }
+                required
+                aria-invalid={Boolean(captchaError)}
+                className="h-12 rounded-xl text-right text-base"
+              />
+              <div className="flex h-12 overflow-hidden rounded-xl border bg-white">
+                <div className="flex min-w-0 flex-1 items-center justify-center">
+                  {captchaQuery.data ? (
+                    <AppImage
+                      src={normalizeCaptchaImage(captchaQuery.data.img)}
+                      alt="تصویر عبارت امنیتی"
+                      width={180}
+                      height={44}
+                      unoptimized
+                      className="max-h-11 max-w-full object-contain"
+                    />
+                  ) : (
+                    <Spinner className="text-muted-foreground size-5" />
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label="دریافت عبارت امنیتی جدید"
+                  disabled={captchaQuery.isFetching}
+                  onClick={() => void refreshCaptcha()}
+                  className="h-full rounded-none border-s"
+                  aria-busy={captchaQuery.isFetching}
+                >
+                  <RefreshCw />
+                </Button>
+              </div>
             </div>
-          </div>
+          </Field>
 
-          <div className="flex gap-3" aria-label="کد امنیتی">
-            <output className="border-destructive/30 text-destructive order-2 flex h-13 w-38 items-center justify-center rounded-lg border text-2xl font-bold tracking-[0.3em]">
-              ۴۵۸۱۳۲
-            </output>
-            <div className="border-input text-muted-foreground order-1 flex h-13 min-w-0 flex-1 items-center gap-3 rounded-lg border px-4">
-              <RefreshCw className="text-[#4d83f7]" aria-hidden="true" />
-              <span className="flex-1 text-end">کد را وارد نمایید</span>
-            </div>
-          </div>
+          {captchaError && <FieldError>{captchaError}</FieldError>}
 
-          <Button type="submit" className="h-12 w-full rounded-full text-base font-bold">
-            ارسال
+          <Button
+            type="submit"
+            className="h-12 w-full rounded-full text-base font-bold"
+            disabled={createTicket.isPending || captchaQuery.isFetching || !captchaQuery.data}
+            aria-busy={createTicket.isPending}
+          >
+            {createTicket.isPending && <Spinner data-icon="inline-start" className="size-4" />}
+            {createTicket.isPending ? "در حال ارسال" : "ارسال"}
           </Button>
         </form>
       </DialogContent>
@@ -104,20 +209,9 @@ function NewTicketDialog({
   );
 }
 
-function IssueRow({ children, description }: { children: string; description?: string }) {
-  return (
-    <div className="bg-muted/60 flex min-h-13 flex-row-reverse items-center justify-between gap-4 px-5">
-      <ChevronLeft className="text-muted-foreground size-5 shrink-0" aria-hidden="true" />
-      <div className="min-w-0 text-start">
-        <p className="text-secondary text-sm">{children}</p>
-        {description && <p className="text-muted-foreground mt-1 text-xs">{description}</p>}
-      </div>
-    </div>
-  );
-}
-
 export function SupportView() {
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
+  const { data: faqs, error: faqError, isLoading: isFaqLoading } = useFaqs();
 
   return (
     <section dir="rtl" className="bg-muted/60 min-h-full lg:bg-transparent lg:pt-2">
@@ -132,34 +226,47 @@ export function SupportView() {
         </header>
 
         <div className="bg-card ring-foreground/10 overflow-hidden rounded-2xl p-3 shadow-none ring-1">
-          <section>
-            <h2 className="text-secondary mb-3 text-sm" style={{ textAlign: "right" }}>
-              مشکل در سفارش
-            </h2>
-            <div className="overflow-hidden rounded-xl">
-              <IssueRow description="تا ۲۴ ساعت بعد از دریافت سفارش">مشکل در سفارش</IssueRow>
-            </div>
-          </section>
-
-          <section className="mt-3">
-            <h2 className="text-secondary mb-3 text-sm" style={{ textAlign: "right" }}>
-              مشکل‌های مالی
-            </h2>
-            <div className="overflow-hidden rounded-xl">
-              {FINANCIAL_ISSUES.map((issue, index) => (
-                <div key={`${issue}-${index}`} className="border-border border-b last:border-b-0">
-                  <IssueRow>{issue}</IssueRow>
-                </div>
+          {isFaqLoading ? (
+            <div
+              className="flex flex-col gap-2"
+              aria-busy="true"
+              aria-label="در حال دریافت سوالات متداول"
+            >
+              {Array.from({ length: 4 }, (_, index) => (
+                <Skeleton key={index} className="h-13 w-full rounded-xl" />
               ))}
             </div>
-          </section>
+          ) : faqError ? (
+            <p className="text-destructive px-5 py-4 text-sm" role="alert">
+              {faqError.message}
+            </p>
+          ) : faqs?.length ? (
+            <div className="overflow-hidden rounded-xl">
+              <Accordion>
+                {faqs.map((faq) => (
+                  <AccordionItem key={faq.id} value={`faq-${faq.id}`} className="border-border">
+                    <AccordionTrigger className="bg-muted/60 text-secondary min-h-13 items-center px-5 py-3 text-right hover:no-underline aria-expanded:rounded-b-none">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-muted/60 text-muted-foreground rounded-t-none px-5 text-right">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          ) : (
+            <p className="text-muted-foreground px-5 py-4 text-sm">
+              سوال متداولی برای نمایش وجود ندارد.
+            </p>
+          )}
         </div>
 
         <div className="mt-7 flex flex-col items-start justify-between gap-4 lg:flex-row-reverse">
           <Button
             type="button"
             variant="outline"
-            className="border-[#0057a8] bg-transparent text-[#0057a8]"
+            className={ACCOUNT_OUTLINE_ACTION_CLASS}
             onClick={() => setIsTicketDialogOpen(true)}
           >
             <Plus data-icon="inline-start" />
