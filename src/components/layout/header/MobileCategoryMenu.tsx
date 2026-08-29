@@ -57,7 +57,7 @@ export function MobileCategoryMenu({ categories, isOpen, onClose }: MobileCatego
                   aria-pressed={isSelected}
                   onClick={() => setSelectedCategoryId(id)}
                   className={cn(
-                    "flex w-full cursor-default items-center justify-between gap-2 rounded-xl px-2 py-3 text-right text-base font-medium transition-colors",
+                    "label-large flex w-full cursor-default items-center justify-between gap-2 rounded-xl px-2 py-3 text-right transition-colors",
                     isSelected ? "text-auth-accent" : "text-secondary",
                   )}
                 >
@@ -77,7 +77,7 @@ export function MobileCategoryMenu({ categories, isOpen, onClose }: MobileCatego
         <Link
           href={selectedCategory.href}
           onClick={onClose}
-          className="text-auth-accent mb-12 flex items-center gap-2 text-xl font-bold"
+          className="text-auth-accent mb-12 flex items-center gap-2 text-base font-bold"
         >
           همه {selectedCategory.title}
           <ChevronLeft className="size-6" aria-hidden="true" />
@@ -89,7 +89,7 @@ export function MobileCategoryMenu({ categories, isOpen, onClose }: MobileCatego
               <Link
                 href={subcategory.href}
                 onClick={onClose}
-                className="text-foreground mb-4 flex items-center justify-between gap-2 text-lg font-bold"
+                className="title-small-bold text-foreground mb-4 flex items-center justify-between gap-2"
               >
                 <span className="border-auth-accent border-s-4 ps-2">{subcategory.title}</span>
                 <ChevronLeft className="size-6 shrink-0" aria-hidden="true" />

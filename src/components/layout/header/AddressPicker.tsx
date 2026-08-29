@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  cloneElement,
   useEffect,
   useId,
   useRef,
@@ -17,7 +16,9 @@ import {
   Pencil,
   Plus,
   Search,
-  X,
+  Building2,
+  BriefcaseBusiness,
+  House,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -57,6 +58,7 @@ import {
   useProvinces,
 } from "@/features/address/api/use-provinces";
 import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
+import { useSetDefaultStore } from "@/features/store/api/use-store-mutations";
 import { cn } from "@/lib/utils";
 import { getErrorMessage, setClientSessionSnapshot } from "@/lib/axios-client";
 import { useStorefront } from "@/providers/storefront-provider";
@@ -73,8 +75,10 @@ const AddressMap = dynamic(() => import("./AddressMap").then((module) => module.
 interface AddressPickerProps {
   trigger: ReactElement<{ onClick?: MouseEventHandler<HTMLElement> }>;
   startInCreateMode?: boolean;
+  startInStoreMode?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onStoreSelected?: (storeTitle: string) => void;
   editingAddress?: Address | null;
   showMissingAddressPrompt?: boolean;
 }
@@ -92,8 +96,10 @@ function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
 export function AddressPicker({
   trigger,
   startInCreateMode = false,
+  startInStoreMode = false,
   open: controlledOpen,
   onOpenChange,
+  onStoreSelected,
   editingAddress: externalEditingAddress,
   showMissingAddressPrompt = false,
 }: AddressPickerProps) {
@@ -104,9 +110,11 @@ export function AddressPicker({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const hasAutoPromptedRef = useRef(false);
+  const openStoreAfterAuthenticationRef = useRef(false);
   const [step, setStep] = useState<AddressStep>("addresses");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedStore, setSelectedStore] = useState("");
+  const [hideStoreBackButton, setHideStoreBackButton] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [cityId, setCityId] = useState(0);
   const [coordinates, setCoordinates] = useState({ latitude: "", longitude: "" });
@@ -124,12 +132,35 @@ export function AddressPicker({
   const shouldStartAddressCreation = shouldPromptForAddress && addresses.length === 0;
   const isExternallyEditing = Boolean(externalEditingAddress);
   const activeEditingAddress = externalEditingAddress ?? editingAddress;
-  const activeCityId = externalEditingAddress?.cityId ?? cityId;
-  const activeCoordinates = externalEditingAddress
-    ? { latitude: externalEditingAddress.latitude, longitude: externalEditingAddress.longitude }
+  const isExternalInitialDetails = isExternallyEditing && step === "addresses";
+  const activeCityId = isExternalInitialDetails
+    ? (externalEditingAddress?.cityId ?? cityId)
+    : cityId;
+  const activeCoordinates = isExternalInitialDetails
+    ? {
+        latitude: externalEditingAddress?.latitude ?? coordinates.latitude,
+        longitude: externalEditingAddress?.longitude ?? coordinates.longitude,
+      }
     : coordinates;
-  const activeStep: AddressStep = isExternallyEditing ? "details" : step;
+  const activeStep: AddressStep = isExternalInitialDetails ? "details" : step;
   const isOpen = controlledOpen ?? open;
+
+  useEffect(() => {
+    const handleAuthenticated = () => {
+      if (!openStoreAfterAuthenticationRef.current) {
+        return;
+      }
+
+      openStoreAfterAuthenticationRef.current = false;
+      setHideStoreBackButton(true);
+      setStep("store");
+      setOpen(true);
+      onOpenChange?.(true);
+    };
+
+    window.addEventListener("etkala:authenticated", handleAuthenticated);
+    return () => window.removeEventListener("etkala:authenticated", handleAuthenticated);
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (!showMissingAddressPrompt || !shouldPromptForAddress || hasAutoPromptedRef.current) {
@@ -168,14 +199,19 @@ export function AddressPicker({
   ]);
 
   function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen && startInStoreMode) {
+      setHideStoreBackButton(true);
+      setStep("store");
+    }
     setOpen(nextOpen);
     onOpenChange?.(nextOpen);
     if (!nextOpen) {
+      setHideStoreBackButton(false);
       setStep("addresses");
     }
   }
 
-  async function refreshAddressSession(value: AddressAuthValue) {
+  async function refreshSession(value: AddressAuthValue) {
     await update({ user: value.user, accessToken: value.accessToken });
     setClientSessionSnapshot({ accessToken: value.accessToken.token });
     await queryClient.invalidateQueries();
@@ -186,8 +222,6 @@ export function AddressPicker({
     setSaveError(null);
 
     try {
-      const isCreatingAddress = !activeEditingAddress;
-
       if (activeEditingAddress) {
         const id = Number(activeEditingAddress.id);
         if (!Number.isInteger(id)) {
@@ -204,18 +238,14 @@ export function AddressPicker({
         if (response.isSuccess !== true || !response.value) {
           throw new Error(getResponseMessage(response, "ثبت آدرس ناموفق بود."));
         }
-        await refreshAddressSession(response.value);
+        await refreshSession(response.value);
         toast.success("آدرس با موفقیت ثبت شد.");
       }
 
       await queryClient.invalidateQueries({ queryKey: ["address"] });
       setEditingAddress(null);
-      if (isCreatingAddress) {
-        setStep("store");
-      } else {
-        setStep("addresses");
-        handleOpenChange(false);
-      }
+      setHideStoreBackButton(true);
+      setStep("store");
     } catch (error) {
       const message = getErrorMessage(error);
       setSaveError(message);
@@ -228,31 +258,32 @@ export function AddressPicker({
     setCityId(0);
     setCoordinates({ latitude: "", longitude: "" });
     setSelectedFullAddress("");
+    setHideStoreBackButton(false);
     setStep("location");
   }
 
-  const configuredTrigger = startInCreateMode
-    ? cloneElement(trigger, {
-        onClick: (event) => {
-          trigger.props.onClick?.(event);
-          if (!event.defaultPrevented) {
-            startCreatingAddress();
-          }
-        },
-      })
-    : trigger;
+  const handleTriggerClick: MouseEventHandler<HTMLSpanElement> = (event) => {
+    if (event.defaultPrevented) {
+      return;
+    }
 
-  const guardedTrigger = cloneElement(configuredTrigger, {
-    onClick: (event) => {
-      configuredTrigger.props.onClick?.(event);
-      if (event.defaultPrevented || status !== "unauthenticated") {
-        return;
-      }
+    if (startInCreateMode) {
+      startCreatingAddress();
+    } else if (startInStoreMode) {
+      setHideStoreBackButton(true);
+      setStep("store");
+    }
 
-      event.preventDefault();
-      window.dispatchEvent(new Event("etkala:open-auth"));
-    },
-  });
+    if (status !== "unauthenticated") {
+      return;
+    }
+
+    event.preventDefault();
+    if (startInStoreMode) {
+      openStoreAfterAuthenticationRef.current = true;
+    }
+    window.dispatchEvent(new Event("etkala:open-auth"));
+  };
 
   const stepTitle = {
     addresses: "آدرس‌های شما",
@@ -260,10 +291,23 @@ export function AddressPicker({
     details: "اطلاعات تکمیلی آدرس",
     store: "انتخاب فروشگاه",
   }[activeStep];
+  const canGoBack = activeStep !== "addresses" && !(activeStep === "store" && hideStoreBackButton);
+
+  function handleBack() {
+    if (activeStep === "details" && isExternalInitialDetails) {
+      setCityId(activeCityId);
+      setCoordinates(activeCoordinates);
+    }
+    setStep(
+      activeStep === "store" ? "details" : activeStep === "details" ? "location" : "addresses",
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      {status === "unauthenticated" ? guardedTrigger : <DialogTrigger render={configuredTrigger} />}
+      <span className="contents" onClick={handleTriggerClick}>
+        {status === "unauthenticated" ? trigger : <DialogTrigger render={trigger} />}
+      </span>
       <DialogContent
         data-site={siteType}
         showCloseButton={false}
@@ -271,38 +315,30 @@ export function AddressPicker({
           "flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden rounded-[28px] p-0",
           activeStep === "addresses"
             ? "flex h-[min(calc(100dvh-2rem),36rem)] flex-col sm:max-w-[30rem]"
-            : "sm:max-w-[38rem]",
+            : activeStep === "store"
+              ? "sm:max-w-[30rem]"
+              : "sm:max-w-[38rem]",
         )}
       >
-        <DialogHeader
-          className={`relative shrink-0 flex-row items-center justify-between border-b px-6 ${
-            activeStep === "addresses" ? "h-[89px]" : "py-5"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            {activeStep !== "addresses" && !isExternallyEditing && (
-              <Button
-                aria-label="بازگشت به مرحله قبل"
-                className="text-secondary"
-                size="icon-sm"
-                variant="ghost"
-                onClick={() =>
-                  setStep(
-                    activeStep === "store"
-                      ? "details"
-                      : activeStep === "details"
-                        ? "location"
-                        : "addresses",
-                  )
-                }
-              >
-                <MoveRight data-icon="inline-start" />
-              </Button>
-            )}
+        <DialogHeader className="relative h-[72px] shrink-0 flex-row items-center justify-between border-b px-6">
+          {canGoBack && (
+            <Button
+              aria-label="بازگشت به مرحله قبل"
+              className="text-secondary absolute start-6"
+              size="icon-sm"
+              variant="ghost"
+              onClick={handleBack}
+            >
+              <MoveRight data-icon="inline-start" />
+            </Button>
+          )}
+          <div className="flex min-w-0 items-center">
             <DialogTitle
-              className={`title-medium-bold text-secondary ${
-                activeStep === "addresses" ? "" : "absolute left-1/2 -translate-x-1/2"
-              }`}
+              className={cn(
+                "title-medium-bold text-secondary",
+                activeStep !== "addresses" &&
+                  "absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2",
+              )}
             >
               {stepTitle}
             </DialogTitle>
@@ -323,15 +359,6 @@ export function AddressPicker({
                 افزودن آدرس جدید
               </Button>
             )}
-            <Button
-              aria-label="بستن انتخاب آدرس"
-              className="text-muted-foreground"
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => handleOpenChange(false)}
-            >
-              <X data-icon="inline-end" />
-            </Button>
           </div>
         </DialogHeader>
 
@@ -352,8 +379,10 @@ export function AddressPicker({
                 setStep("details");
               }}
               onSelectAddress={async (address, value) => {
-                await refreshAddressSession(value);
+                await refreshSession(value);
                 setSelectedAddress(address.id);
+                setHideStoreBackButton(true);
+                setStep("store");
               }}
               onConfirm={() => handleOpenChange(false)}
             />
@@ -376,6 +405,11 @@ export function AddressPicker({
               coordinates={activeCoordinates}
               formId={formId}
               isPending={createAddress.isPending || updateAddress.isPending}
+              onEditLocation={() => {
+                setCityId(activeCityId);
+                setCoordinates(activeCoordinates);
+                setStep("location");
+              }}
               saveError={saveError}
               onSave={handleSaveAddress}
               suggestedFullAddress={selectedFullAddress}
@@ -384,8 +418,17 @@ export function AddressPicker({
           {activeStep === "store" && (
             <StoreStep
               selectedStore={selectedStore}
-              onSelectStore={setSelectedStore}
-              onComplete={() => handleOpenChange(false)}
+              onSelectStore={(storeId, storeTitle) => {
+                setSelectedStore(storeId);
+                onStoreSelected?.(storeTitle);
+              }}
+              onComplete={async (storeTitle, value) => {
+                await refreshSession(value);
+                if (storeTitle) {
+                  onStoreSelected?.(storeTitle);
+                }
+                handleOpenChange(false);
+              }}
             />
           )}
         </div>
@@ -406,6 +449,7 @@ function AddressListStep({
   onConfirm: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [pendingAddressId, setPendingAddressId] = useState("");
   const { data: addresses = [], isError, isPending } = useAddresses();
   const setDefaultAddress = useSetDefaultAddress();
   const normalizedSearch = searchTerm.trim();
@@ -413,16 +457,26 @@ function AddressListStep({
     `${address.title} ${address.address}`.includes(normalizedSearch),
   );
   const activeAddressId =
-    selectedAddress || addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || "";
+    pendingAddressId ||
+    selectedAddress ||
+    addresses.find((address) => address.isDefault)?.id ||
+    addresses[0]?.id ||
+    "";
 
-  async function handleSelectAddress(address: Address) {
-    const addressId = Number(address.id);
-    if (!Number.isInteger(addressId)) {
-      toast.error("شناسه آدرس معتبر نیست.");
+  async function handleConfirmAddress() {
+    const address = addresses.find((item) => item.id === activeAddressId);
+    if (!address) {
       return;
     }
 
-    if (address.id === activeAddressId) {
+    if (address.isDefault) {
+      onConfirm();
+      return;
+    }
+
+    const addressId = Number(address.id);
+    if (!Number.isInteger(addressId)) {
+      toast.error("شناسه آدرس معتبر نیست.");
       return;
     }
 
@@ -468,7 +522,7 @@ function AddressListStep({
               const isSelected = address.id === activeAddressId;
               return (
                 <div
-                  className={`h-36 rounded-2xl border p-4 transition-colors ${
+                  className={`rounded-2xl border p-4 transition-colors ${
                     isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60"
                   }`}
                   key={address.id}
@@ -478,7 +532,8 @@ function AddressListStep({
                     <button
                       aria-pressed={isSelected}
                       className="focus-visible:ring-ring/50 min-w-0 flex-1 text-start focus-visible:ring-3 focus-visible:outline-none"
-                      onClick={() => void handleSelectAddress(address)}
+                      disabled={setDefaultAddress.isPending}
+                      onClick={() => setPendingAddressId(address.id)}
                       type="button"
                     >
                       <span className="body-medium-bold text-primary-hover block text-start">
@@ -531,9 +586,10 @@ function AddressListStep({
 
       <div className="bg-background shrink-0 border-t px-6 py-4">
         <Button
+          aria-busy={setDefaultAddress.isPending}
           className="h-[59px] w-full rounded-full text-base font-bold"
-          disabled={!activeAddressId || isPending || isError}
-          onClick={onConfirm}
+          disabled={!activeAddressId || isPending || isError || setDefaultAddress.isPending}
+          onClick={() => void handleConfirmAddress()}
           size="xl"
         >
           تأیید آدرس
@@ -760,6 +816,7 @@ function DetailsStep({
   coordinates,
   formId,
   isPending,
+  onEditLocation,
   saveError,
   onSave,
   suggestedFullAddress,
@@ -769,15 +826,40 @@ function DetailsStep({
   coordinates: { latitude: string; longitude: string };
   formId: string;
   isPending: boolean;
+  onEditLocation: () => void;
   saveError: string | null;
   onSave: (payload: AddressPayload) => Promise<void>;
   suggestedFullAddress: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const { data: profile } = useProfile();
+  const { data: stores = [] } = useNearApplianceStores();
+  const hasNewUserPlaceholderName =
+    `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim() === "کاربر جدید" ||
+    profile?.firstName?.trim() === "کاربر جدید" ||
+    profile?.lastName?.trim() === "کاربر جدید";
+  const profileFirstName = hasNewUserPlaceholderName ? "" : (profile?.firstName ?? "");
+  const profileLastName = hasNewUserPlaceholderName ? "" : (profile?.lastName ?? "");
+  const hasAddressPlaceholderName =
+    `${address?.receiverFirstName ?? ""} ${address?.receiverLastName ?? ""}`.trim() ===
+    "کاربر جدید";
+  const addressFirstName = hasAddressPlaceholderName ? "" : (address?.receiverFirstName ?? "");
+  const addressLastName = hasAddressPlaceholderName ? "" : (address?.receiverLastName ?? "");
+  const [addressTitle, setAddressTitle] = useState(address?.title ?? "");
   const [isAlternateReceiver, setIsAlternateReceiver] = useState(
     address?.hasOtherReceiver ?? false,
   );
+
+  const numericInput = (event: React.FormEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    input.value = input.value
+      .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+      .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+      .replace(/\D/g, "");
+  };
+
+  const requiredLabelClass =
+    "after:ml-2 after:inline-block after:size-1 after:rounded-full after:bg-orange-500 after:content-['']";
 
   useEffect(() => {
     if (!profile || !formRef.current) {
@@ -785,8 +867,8 @@ function DetailsStep({
     }
 
     const values = {
-      receiverFirstName: profile.firstName,
-      receiverLastName: profile.lastName,
+      receiverFirstName: profileFirstName,
+      receiverLastName: profileLastName,
       receiverPhone: profile.mobile,
     };
 
@@ -796,7 +878,7 @@ function DetailsStep({
         input.value = value;
       }
     }
-  }, [profile]);
+  }, [profile, profileFirstName, profileLastName]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -811,6 +893,20 @@ function DetailsStep({
 
     const formData = new FormData(event.currentTarget);
     const value = (name: string) => String(formData.get(name) ?? "").trim();
+    const receiverFirstName = isAlternateReceiver
+      ? value("alternateReceiverFirstName")
+      : value("receiverFirstName") || profileFirstName || addressFirstName;
+    const receiverLastName = isAlternateReceiver
+      ? value("alternateReceiverLastName")
+      : value("receiverLastName") || profileLastName || addressLastName;
+    const receiverPhone = isAlternateReceiver
+      ? value("alternateReceiverPhone")
+      : value("receiverPhone") || profile?.mobile || address?.phone || "";
+
+    if (!receiverFirstName || !receiverLastName || !receiverPhone) {
+      toast.error("اطلاعات گیرنده را کامل کنید.");
+      return;
+    }
 
     await onSave({
       title: value("title"),
@@ -821,9 +917,9 @@ function DetailsStep({
       unit: value("unit"),
       postalCode: value("postalCode"),
       hasOtherReceiver: isAlternateReceiver,
-      receiverFirstName: value("receiverFirstName"),
-      receiverLastName: value("receiverLastName"),
-      receiverPhone: value("receiverPhone"),
+      receiverFirstName,
+      receiverLastName,
+      receiverPhone,
       isDefault: address?.isDefault ?? true,
       cityId,
     });
@@ -831,41 +927,71 @@ function DetailsStep({
 
   return (
     <form ref={formRef} className="p-5" id={formId} onSubmit={handleSubmit}>
+      <div className="relative mb-4 h-36 overflow-hidden rounded-xl">
+        <div className="pointer-events-none h-full w-full [&_.nominatim]:hidden!">
+          <AddressMap
+            latitude={coordinates.latitude}
+            longitude={coordinates.longitude}
+            onSelect={() => undefined}
+            stores={stores}
+          />
+        </div>
+        <div className="absolute inset-0 z-[1100] flex items-center justify-center bg-black/50">
+          <Button
+            type="button"
+            variant="secondary-gray"
+            className="h-10 rounded-full bg-white px-4 text-sm font-bold"
+            onClick={onEditLocation}
+          >
+            <Pencil className="size-4" />
+            ویرایش موقعیت مکانی
+          </Button>
+        </div>
+      </div>
       <FieldGroup className="gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
-            <FieldLabel htmlFor={`${formId}-receiver-first-name`}>نام</FieldLabel>
+            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-first-name`}>
+              نام
+            </FieldLabel>
             <Input
               className="h-12"
-              defaultValue={address?.receiverFirstName ?? ""}
+              defaultValue={addressFirstName || profileFirstName}
               id={`${formId}-receiver-first-name`}
               name="receiverFirstName"
               required
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${formId}-receiver-last-name`}>نام خانوادگی</FieldLabel>
+            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-last-name`}>
+              نام خانوادگی
+            </FieldLabel>
             <Input
               className="h-12"
-              defaultValue={address?.receiverLastName ?? ""}
+              defaultValue={addressLastName || profileLastName}
               id={`${formId}-receiver-last-name`}
               name="receiverLastName"
               required
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${formId}-receiver-mobile`}>موبایل</FieldLabel>
+            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-mobile`}>
+              موبایل
+            </FieldLabel>
             <Input
               className="h-12"
-              defaultValue={address?.phone ?? ""}
+              defaultValue={address?.phone ?? profile?.mobile ?? ""}
               id={`${formId}-receiver-mobile`}
-              inputMode="tel"
+              inputMode="numeric"
               name="receiverPhone"
+              onInput={numericInput}
               required
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${formId}-national-code`}>کد ملی</FieldLabel>
+            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-national-code`}>
+              کد ملی
+            </FieldLabel>
             <Input
               className="h-12"
               dir="ltr"
@@ -873,21 +999,53 @@ function DetailsStep({
               inputMode="numeric"
               maxLength={10}
               name="nationalCode"
+              onInput={numericInput}
+              required
             />
           </Field>
         </div>
         <Field>
-          <FieldLabel htmlFor={`${formId}-title`}>عنوان آدرس</FieldLabel>
+          <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-title`}>
+            عنوان آدرس
+          </FieldLabel>
           <Input
             className="h-12"
-            defaultValue={address?.title ?? ""}
+            value={addressTitle}
             id={`${formId}-title`}
             name="title"
+            onChange={(event) => setAddressTitle(event.target.value)}
             required
           />
+          <div className="mt-[7px] flex gap-2">
+            {[
+              { label: "خانه", Icon: House },
+              { label: "محل کار", Icon: BriefcaseBusiness },
+              { label: "دانشگاه", Icon: Building2 },
+            ].map(({ label, Icon }) => {
+              const isSelected = addressTitle === label;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setAddressTitle(label)}
+                  className={cn(
+                    "flex h-9 flex-1 items-center justify-center gap-1 rounded-full border text-xs transition-colors",
+                    isSelected
+                      ? "border-primary-hover text-primary-hover bg-[#FFFDE7]"
+                      : "hover:text-primary-hover border-transparent text-[#9E9E9E]",
+                  )}
+                >
+                  <Icon className="size-3.5" />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </Field>
         <Field>
-          <FieldLabel htmlFor={`${formId}-address`}>آدرس</FieldLabel>
+          <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-address`}>
+            آدرس
+          </FieldLabel>
           <Input
             className="h-12"
             defaultValue={address?.address ?? suggestedFullAddress}
@@ -898,22 +1056,31 @@ function DetailsStep({
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
-            <FieldLabel htmlFor={`${formId}-plaque`}>پلاک</FieldLabel>
+            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-plaque`}>
+              پلاک
+            </FieldLabel>
             <Input
               className="h-12"
               defaultValue={address?.plaque ?? ""}
               id={`${formId}-plaque`}
+              inputMode="numeric"
               name="plaque"
+              onInput={numericInput}
               required
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${formId}-unit`}>واحد</FieldLabel>
+            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-unit`}>
+              واحد
+            </FieldLabel>
             <Input
               className="h-12"
               defaultValue={address?.unit ?? ""}
               id={`${formId}-unit`}
+              inputMode="numeric"
               name="unit"
+              onInput={numericInput}
+              required
             />
           </Field>
         </div>
@@ -925,7 +1092,7 @@ function DetailsStep({
             id={`${formId}-postal-code`}
             inputMode="numeric"
             name="postalCode"
-            required
+            onInput={numericInput}
           />
         </Field>
         <Field orientation="horizontal" className="items-center justify-start pt-1">
@@ -940,6 +1107,58 @@ function DetailsStep({
             شخص دیگری تحویل می‌گیرد
           </FieldLabel>
         </Field>
+        {isAlternateReceiver ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field>
+              <FieldLabel
+                className={requiredLabelClass}
+                htmlFor={`${formId}-alternate-receiver-first-name`}
+              >
+                نام گیرنده
+              </FieldLabel>
+              <Input
+                className="h-12"
+                defaultValue={address?.receiverFirstName ?? ""}
+                id={`${formId}-alternate-receiver-first-name`}
+                name="alternateReceiverFirstName"
+                required
+              />
+            </Field>
+            <Field>
+              <FieldLabel
+                className={requiredLabelClass}
+                htmlFor={`${formId}-alternate-receiver-last-name`}
+              >
+                نام خانوادگی گیرنده
+              </FieldLabel>
+              <Input
+                className="h-12"
+                defaultValue={address?.receiverLastName ?? ""}
+                id={`${formId}-alternate-receiver-last-name`}
+                name="alternateReceiverLastName"
+                required
+              />
+            </Field>
+            <Field className="sm:col-span-2">
+              <FieldLabel
+                className={requiredLabelClass}
+                htmlFor={`${formId}-alternate-receiver-mobile`}
+              >
+                شماره موبایل گیرنده
+              </FieldLabel>
+              <Input
+                className="h-12"
+                defaultValue={address?.phone ?? ""}
+                id={`${formId}-alternate-receiver-mobile`}
+                inputMode="numeric"
+                maxLength={11}
+                name="alternateReceiverPhone"
+                onInput={numericInput}
+                required
+              />
+            </Field>
+          </div>
+        ) : null}
       </FieldGroup>
       {saveError && (
         <p aria-live="polite" className="body-small text-destructive mt-4" role="alert">
@@ -965,15 +1184,41 @@ function StoreStep({
   onComplete,
 }: {
   selectedStore: string;
-  onSelectStore: (storeId: string) => void;
-  onComplete: () => void;
+  onSelectStore: (storeId: string, storeTitle: string) => void;
+  onComplete: (storeTitle: string, value: AddressAuthValue) => Promise<void>;
 }) {
   const { data: stores = [], isError, isPending } = useNearApplianceStores();
+  const setDefaultStore = useSetDefaultStore();
   const activeStoreId = selectedStore || stores[0]?.id || "";
+
+  async function handleComplete() {
+    const store = stores.find((item) => item.id === activeStoreId);
+    if (!store) {
+      return;
+    }
+
+    const storeId = Number(store.id);
+    if (!Number.isInteger(storeId)) {
+      toast.error("شناسه فروشگاه معتبر نیست.");
+      return;
+    }
+
+    try {
+      const response = await setDefaultStore.mutateAsync({ storeId });
+      if (response.isSuccess !== true || !response.value) {
+        throw new Error(getResponseMessage(response, "انتخاب فروشگاه ناموفق بود."));
+      }
+
+      await onComplete(store.title, response.value);
+      toast.success("فروشگاه پیش‌فرض تغییر کرد.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "انتخاب فروشگاه ناموفق بود.");
+    }
+  }
 
   return (
     <div className="p-5">
-      <p className="body-medium-bold text-secondary mb-5 text-center">
+      <p className="body-medium-bold text-secondary mb-5">
         یکی از فروشگاه‌های نزدیک اطراف خود را انتخاب نمایید:
       </p>
       <div className="flex flex-col gap-3">
@@ -993,8 +1238,9 @@ function StoreStep({
                 className={`focus-visible:ring-ring/50 flex h-20 w-full items-center gap-4 rounded-2xl border p-4 text-start transition-colors focus-visible:ring-3 focus-visible:outline-none ${
                   isSelected ? "border-primary-hover bg-muted/60" : "bg-muted/60 hover:bg-muted"
                 }`}
+                disabled={setDefaultStore.isPending}
                 key={store.id}
-                onClick={() => onSelectStore(store.id)}
+                onClick={() => onSelectStore(store.id, store.title)}
                 type="button"
               >
                 <MapPin className="fill-primary text-secondary size-10 shrink-0" />
@@ -1022,9 +1268,10 @@ function StoreStep({
         </p>
       )}
       <Button
+        aria-busy={setDefaultStore.isPending}
         className="mt-10 h-14 w-full rounded-full text-base font-bold"
-        disabled={!activeStoreId || isPending || isError}
-        onClick={onComplete}
+        disabled={!activeStoreId || isPending || isError || setDefaultStore.isPending}
+        onClick={() => void handleComplete()}
         size="xl"
       >
         ثبت و ادامه

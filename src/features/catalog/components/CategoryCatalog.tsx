@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftIcon, FilterIcon } from "lucide-react";
 
 import {
@@ -36,6 +37,35 @@ const SORT_TYPE_BY_ID: Record<string, number> = {
   specialoffer: 5,
   bestselling: 6,
 };
+const FILTER_QUERY_KEYS = [
+  "available",
+  "minPrice",
+  "maxPrice",
+  "valueIds",
+  "searchText",
+  "brandIds",
+] as const;
+
+function parsePositiveIds(value: string | null) {
+  return (value ?? "")
+    .split(",")
+    .map(Number)
+    .filter((item) => Number.isSafeInteger(item) && item > 0);
+}
+
+function parsePriceRange(searchParams: Pick<URLSearchParams, "get">) {
+  const minParam = searchParams.get("minPrice");
+  const maxParam = searchParams.get("maxPrice");
+  if (minParam === null || maxParam === null) {
+    return null;
+  }
+
+  const minPrice = Number(minParam);
+  const maxPrice = Number(maxParam);
+  return Number.isFinite(minPrice) && Number.isFinite(maxPrice) && maxPrice > minPrice
+    ? { minPrice, maxPrice }
+    : null;
+}
 
 interface CatalogBreadcrumbEntry {
   label: string;
@@ -114,20 +144,34 @@ export default function CategoryCatalog({
   categoryPath = [],
 }: CategoryCatalogProps) {
   const storefront = useStorefront();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [sort, setSort] = useState("popular");
   const [page, setPage] = useState(1);
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
-  const [priceRange, setPriceRange] = useState<{ minPrice: number; maxPrice: number } | null>(null);
+  const onlyAvailable = searchParams.get("available") === "1";
+  const priceRange = parsePriceRange(searchParams);
   const [priceFilterResetKey, setPriceFilterResetKey] = useState(0);
-  const [selectedValueIds, setSelectedValueIds] = useState<number[]>([]);
+  const selectedValueIds = parsePositiveIds(searchParams.get("valueIds"));
+  const brandIds = parsePositiveIds(searchParams.get("brandIds"));
+  const searchText = searchParams.get("searchText")?.trim() ?? "";
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  const replaceFilterParams = (update: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString());
+    update(params);
+    const query = params.toString();
+    router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+  };
 
   const request = {
     page,
     pageLength: PAGE_LENGTH,
     sortType: SORT_TYPE_BY_ID[sort] ?? SORT_TYPE_BY_ID.popular,
-    categoryId,
+    ...(categoryId > 0 ? { categoryId } : {}),
     ...(priceRange ?? {}),
+    ...(searchText ? { searchText } : {}),
+    ...(brandIds.length > 0 ? { brandIds } : {}),
     ...(onlyAvailable ? { justExist: true } : {}),
     ...(selectedValueIds.length > 0 ? { valueIds: selectedValueIds } : {}),
   };
@@ -135,6 +179,7 @@ export default function CategoryCatalog({
   const { data, error, isFetching, isPending } = useProductSearch(request);
   const { data: properties = [] } = useSearchableCategoryProperties(categoryId);
   const maxPriceLimit = data?.maxPrice && data.maxPrice > 0 ? data.maxPrice : undefined;
+  const minPriceLimit = data?.minPrice && data.minPrice > 0 ? data.minPrice : undefined;
   const isLoadingProducts = isPending || isFetching;
 
   const updateSort = (nextSort: string) => {
@@ -143,27 +188,43 @@ export default function CategoryCatalog({
   };
 
   const updateAvailability = (value: boolean) => {
-    setOnlyAvailable(value);
+    replaceFilterParams((params) => {
+      if (value) {
+        params.set("available", "1");
+      } else {
+        params.delete("available");
+      }
+    });
     setPage(1);
   };
 
   const applyPriceRange = (nextRange: { minPrice: number; maxPrice: number }) => {
-    setPriceRange(nextRange);
+    replaceFilterParams((params) => {
+      params.set("minPrice", String(nextRange.minPrice));
+      params.set("maxPrice", String(nextRange.maxPrice));
+    });
     setPage(1);
   };
 
   const clearFilters = () => {
-    setOnlyAvailable(false);
-    setPriceRange(null);
+    replaceFilterParams((params) => {
+      FILTER_QUERY_KEYS.forEach((key) => params.delete(key));
+    });
     setPriceFilterResetKey((value) => value + 1);
-    setSelectedValueIds([]);
     setPage(1);
   };
 
   const toggleValue = (valueId: number) => {
-    setSelectedValueIds((current) =>
-      current.includes(valueId) ? current.filter((id) => id !== valueId) : [...current, valueId],
-    );
+    const nextValueIds = selectedValueIds.includes(valueId)
+      ? selectedValueIds.filter((id) => id !== valueId)
+      : [...selectedValueIds, valueId];
+    replaceFilterParams((params) => {
+      if (nextValueIds.length) {
+        params.set("valueIds", nextValueIds.join(","));
+      } else {
+        params.delete("valueIds");
+      }
+    });
     setPage(1);
   };
 
@@ -173,13 +234,25 @@ export default function CategoryCatalog({
     maxPrice?: number;
     valueIds: number[];
   }) => {
-    setOnlyAvailable(filters.onlyAvailable);
-    setPriceRange(
-      filters.minPrice === undefined || filters.maxPrice === undefined
-        ? null
-        : { minPrice: filters.minPrice, maxPrice: filters.maxPrice },
-    );
-    setSelectedValueIds(filters.valueIds);
+    replaceFilterParams((params) => {
+      if (filters.onlyAvailable) {
+        params.set("available", "1");
+      } else {
+        params.delete("available");
+      }
+      if (filters.minPrice === undefined || filters.maxPrice === undefined) {
+        params.delete("minPrice");
+        params.delete("maxPrice");
+      } else {
+        params.set("minPrice", String(filters.minPrice));
+        params.set("maxPrice", String(filters.maxPrice));
+      }
+      if (filters.valueIds.length) {
+        params.set("valueIds", filters.valueIds.join(","));
+      } else {
+        params.delete("valueIds");
+      }
+    });
     setPage(1);
   };
 
@@ -216,7 +289,13 @@ export default function CategoryCatalog({
         onlyAvailable={onlyAvailable}
         selectedValueIds={selectedValueIds}
         maxPriceLimit={maxPriceLimit}
+        minPriceLimit={minPriceLimit}
+        priceRange={priceRange}
+        hasActiveFilters={Boolean(
+          onlyAvailable || priceRange || selectedValueIds.length || searchText || brandIds.length,
+        )}
         properties={properties}
+        onClearFilters={clearFilters}
         onApply={applyMobileFilters}
       />
 
@@ -227,6 +306,11 @@ export default function CategoryCatalog({
           onApplyPrice={applyPriceRange}
           priceFilterResetKey={priceFilterResetKey}
           maxPriceLimit={maxPriceLimit}
+          minPriceLimit={minPriceLimit}
+          priceRange={priceRange}
+          hasActiveFilters={Boolean(
+            onlyAvailable || priceRange || selectedValueIds.length || searchText || brandIds.length,
+          )}
           onClearFilters={clearFilters}
           properties={properties}
           selectedValueIds={selectedValueIds}
@@ -274,7 +358,7 @@ export default function CategoryCatalog({
                     className={
                       storefront.siteType === "supermarket"
                         ? "hidden lg:flex"
-                        : "hidden border-none! bg-[#F1F5F9]! lg:block lg:h-[310px]"
+                        : "hidden border-none! bg-transparent! lg:block lg:h-[310px]"
                     }
                     imageClassName={
                       storefront.siteType === "supermarket"
@@ -282,7 +366,7 @@ export default function CategoryCatalog({
                         : "object-cover lg:h-[190px]"
                     }
                     imageContainerClassName={
-                      storefront.siteType === "supermarket" ? undefined : "bg-[#F1F5F9]!"
+                      storefront.siteType === "supermarket" ? undefined : "bg-transparent!"
                     }
                   />
                 </Fragment>

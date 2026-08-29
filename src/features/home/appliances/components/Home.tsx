@@ -53,7 +53,7 @@ async function HomeBlog({ siteType }: { siteType: SiteType }) {
 
 export default function HomePage({ siteType }: { siteType: SiteType }) {
   return (
-    <main>
+    <main className="lg:bg-[#F1F5F9]">
       <SectionErrorBoundary title="دریافت بنرهای صفحهٔ اصلی ممکن نشد.">
         <Suspense fallback={<HomeHeroSkeleton />}>
           <HomeHero siteType={siteType} />

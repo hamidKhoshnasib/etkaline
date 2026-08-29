@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import Etehadie from "@/assets/icons/etehadie-icon.svg";
-import Enamad from "@/assets/icons/enamad-icon.svg";
 import Samandehi from "@/assets/icons/samandehi-icon.svg";
 import { AppSupportBar } from "@/components/layout/footer/AppSupportBar";
 import { FeatureBar } from "@/components/layout/footer/FeatureBar";
@@ -127,9 +126,22 @@ export function Footer({ siteType }: { siteType: SiteType }) {
                 </SectionErrorBoundary>
               </div>
               <div className="grid grid-cols-3 gap-3 lg:flex lg:gap-4">
-                <div className="flex h-16 items-center justify-center overflow-hidden rounded-xl bg-white lg:h-auto lg:bg-transparent">
-                  <Enamad />
-                </div>
+                <a
+                  referrerPolicy="origin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://trustseal.enamad.ir/?id=77678&Code=87lwkdHxXQHiB7TgnNov"
+                  className="flex h-16 items-center justify-center overflow-hidden rounded-xl bg-white lg:h-auto lg:bg-transparent"
+                >
+                  <img
+                    referrerPolicy="origin"
+                    src="https://trustseal.enamad.ir/logo.aspx?id=77678&Code=87lwkdHxXQHiB7TgnNov"
+                    alt="نماد اعتماد الکترونیکی"
+                    width={76}
+                    height={64}
+                    className="h-16 w-19 object-contain"
+                  />
+                </a>
                 <div className="flex h-16 items-center justify-center overflow-hidden rounded-xl bg-white lg:h-auto lg:bg-transparent">
                   <Etehadie />
                 </div>
@@ -144,7 +156,7 @@ export function Footer({ siteType }: { siteType: SiteType }) {
         <AppSupportBar />
         <AppSupportBar mobileVariant="download" />
 
-        <p className="bg-gray-500/15 px-4 py-4 text-center text-xs text-black">
+        <p className="bg-black/10 px-4 py-4 text-center text-xs text-black">
           © کلیه حقوق این سایت متعلق به شرکت فروشگاه‌های زنجیره‌ای اتکا می‌باشد.
         </p>
       </div>

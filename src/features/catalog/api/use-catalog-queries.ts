@@ -10,7 +10,7 @@ export interface ProductSearchRequest {
   page: number;
   pageLength: number;
   sortType: number;
-  categoryId: number;
+  categoryId?: number;
   tagId?: number;
   layoutTagId?: number;
   brandIds?: number[];
@@ -29,6 +29,7 @@ export interface ProductSearchResult {
   pageLength: number;
   totalCount: number;
   pageCount: number;
+  minPrice: number;
   maxPrice: number;
   products: Array<ProductCardData & { id: number }>;
 }
@@ -137,6 +138,9 @@ function parseProductSearch(raw: unknown, request: ProductSearchRequest): Produc
     pageLength: firstNumber(response, ["pageLength"]) ?? request.pageLength,
     totalCount: firstNumber(response, ["totalCount"]) ?? 0,
     pageCount: firstNumber(response, ["pageCount"]) ?? 0,
+    minPrice:
+      firstNumber(response, ["minPrice"]) ??
+      (products.length ? Math.min(...products.map((product) => product.price)) : 0),
     maxPrice: firstNumber(response, ["maxPrice"]) ?? 0,
     products,
   };

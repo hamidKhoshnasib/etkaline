@@ -161,11 +161,30 @@ export function AddressesView() {
   }
 
   return (
-    <section className="bg-muted/60 min-h-full lg:bg-transparent lg:px-0 lg:py-0">
-      <MobilePageHeader fallbackHref="/account/profile" title="آدرس‌های من" />
-      <div className="px-4 py-6 lg:px-0 lg:py-0">
-        <div className="mb-5 flex items-center justify-end gap-4 lg:justify-between">
-          <h1 className="text-secondary hidden text-lg font-bold lg:block">آدرس‌های من</h1>
+    <section className="bg-muted/60 min-h-dvh lg:min-h-full lg:bg-transparent lg:px-0 lg:py-0">
+      <MobilePageHeader
+        fallbackHref="/account/profile"
+        fixed
+        title="آدرس‌های من"
+        endContent={
+          <AddressPicker
+            startInCreateMode
+            trigger={
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-primary-hover hover:text-primary-hover h-auto rounded-none px-0 py-2 text-[12px]"
+              >
+                <Plus data-icon="inline-start" className="size-3" aria-hidden="true" />
+                افزودن آدرس
+              </Button>
+            }
+          />
+        }
+      />
+      <div className="px-4 pt-24 pb-6 lg:px-0 lg:py-0">
+        <div className="mb-5 hidden items-center justify-between gap-4 lg:flex">
+          <h1 className="text-secondary text-lg font-bold">آدرس‌های من</h1>
           <AddressPicker
             startInCreateMode
             trigger={

@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { Grid2X2, House, ShoppingCart, UserRound } from "lucide-react";
+import { Grid2X2, House, ShoppingCart, UserRound, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -16,17 +17,27 @@ interface MobileBottomNavProps {
   categories: MenuCategory[];
 }
 
+interface MobileNavigationItem {
+  href: string;
+  label: string;
+  Icon: LucideIcon;
+  iconSrc?: string;
+  exact: boolean;
+  opensCategoryMenu: boolean;
+}
+
 export function MobileBottomNav({ categories }: MobileBottomNavProps) {
   const storefront = useStorefront();
   const pathname = usePathname();
   const { status } = useSession();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = React.useState(false);
 
-  const navigationItems = [
+  const navigationItems: MobileNavigationItem[] = [
     {
       href: storefront.homeHref,
       label: "خانه",
       Icon: House,
+      iconSrc: undefined,
       exact: true,
       opensCategoryMenu: false,
     },
@@ -34,6 +45,7 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
       href: storefront.searchHref,
       label: "دسته‌بندی",
       Icon: Grid2X2,
+      iconSrc: "/icons/category-2.svg",
       exact: false,
       opensCategoryMenu: true,
     },
@@ -41,6 +53,7 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
       href: storefront.cartHref,
       label: "سبد خرید",
       Icon: ShoppingCart,
+      iconSrc: undefined,
       exact: false,
       opensCategoryMenu: false,
     },
@@ -48,10 +61,11 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
       href: "/account/profile",
       label: "پروفایل",
       Icon: UserRound,
+      iconSrc: undefined,
       exact: false,
       opensCategoryMenu: false,
     },
-  ] as const;
+  ];
 
   if (pathname.startsWith("/products/") || pathname.startsWith(`${storefront.basePath}/product/`)) {
     return null;
@@ -66,19 +80,21 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
       />
       <nav
         aria-label="ناوبری اصلی موبایل"
-        className="bg-background fixed inset-x-0 bottom-0 z-40 rounded-t-2xl border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_18px_rgb(15_23_42/8%)] lg:hidden"
+        className="bg-background/80 fixed inset-x-0 bottom-0 z-40 rounded-t-2xl border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_18px_rgb(15_23_42/8%)] backdrop-blur-[20px] lg:hidden"
       >
         <ul className="flex h-18 items-stretch">
-          {navigationItems.map(({ href, label, Icon, exact, opensCategoryMenu }) => {
-            const isActive = opensCategoryMenu
-              ? isCategoryMenuOpen || pathname.startsWith(href)
-              : href === "/account/profile"
-                ? pathname.startsWith("/account")
-                : exact
-                  ? pathname === href
-                  : pathname.startsWith(href);
+          {navigationItems.map(({ href, label, Icon, iconSrc, exact, opensCategoryMenu }) => {
+            const isActive = isCategoryMenuOpen
+              ? opensCategoryMenu
+              : opensCategoryMenu
+                ? pathname.startsWith(href)
+                : href === "/account/profile"
+                  ? pathname.startsWith("/account")
+                  : exact
+                    ? pathname === href
+                    : pathname.startsWith(href);
             const itemClassName = cn(
-              "relative flex flex-1 flex-col items-center justify-center gap-1 px-2 text-xs font-semibold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+              "relative flex flex-1 flex-col items-center justify-center gap-1 px-2 text-[10px] font-semibold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
               isActive ? "text-auth-accent" : "text-muted-foreground",
             );
 
@@ -92,7 +108,11 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
                     onClick={() => setIsCategoryMenuOpen((current) => !current)}
                     className={itemClassName}
                   >
-                    <Icon className="size-5" aria-hidden="true" />
+                    {iconSrc ? (
+                      <Image src={iconSrc} alt="" width={24} height={24} aria-hidden="true" />
+                    ) : (
+                      <Icon className="size-5" aria-hidden="true" />
+                    )}
                     <span>{label}</span>
                     {isActive && (
                       <span

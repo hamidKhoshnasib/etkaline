@@ -27,7 +27,7 @@ export function Header({ siteType }: { siteType: SiteType }) {
   return (
     <>
       <HomeAdvertisement />
-      <header className="top-0 z-50 lg:sticky">
+      <header className="sticky top-0 z-50">
         <MobileHeader />
 
         <div className="etkaline-pattern storefront-brand-surface text-secondary relative isolate hidden pb-15 lg:block">

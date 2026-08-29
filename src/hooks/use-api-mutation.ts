@@ -7,7 +7,7 @@ import { axiosClient, type ApiError } from "@/lib/axios-client";
 import { getSiteTypeHeaders } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 
-type HttpMethod = "POST" | "PUT" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export type UseApiMutationOptions<TBody, TData> = {
   url: string | ((body: TBody) => string);
