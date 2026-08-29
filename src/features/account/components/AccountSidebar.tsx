@@ -171,7 +171,7 @@ export function AccountSidebar() {
                 <WalletCards aria-hidden="true" />
                 <span>کیف پول</span>
               </div>
-              <span className="whitespace-nowrap">۳۰۴,۵۶۲,۵۰۰</span>
+              <span className="whitespace-nowrap">به زودی</span>
             </div>
           )}
         </CardContent>
