@@ -4432,6 +4432,8 @@ This file is generated from the server contract. When behavior and this document
 | `tel`      | No       | string or null | —                     |             |
 | `subject`  | No       | string or null | —                     |             |
 | `text`     | No       | string or null | —                     |             |
+| `captcha`  | Yes      | string or null | —                     |             |
+| `cpCode`   | Yes      | string or null | —                     |             |
 
 <a id="schema-crmmodule-application-ticketcqrs-messagedetailsdto"></a>
 

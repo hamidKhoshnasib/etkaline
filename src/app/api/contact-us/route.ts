@@ -9,10 +9,25 @@ const fieldLimits = {
   tel: 32,
   subject: 200,
   text: 5_000,
+  captcha: 8,
+  cpCode: 4_096,
 } as const;
 
 type ContactPayload = Record<keyof typeof fieldLimits, string>;
 
+const captchaCookieNames = new Set(["_s.co", "cookiesession1"]);
+
+function getCaptchaCookieHeader(cookieHeader: string | null) {
+  if (!cookieHeader) {
+    return "";
+  }
+
+  return cookieHeader
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter((cookie) => captchaCookieNames.has(cookie.split("=", 1)[0]))
+    .join("; ");
+}
 function parsePayload(value: unknown): ContactPayload | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -77,12 +92,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    const captchaCookieHeader = getCaptchaCookieHeader(request.headers.get("cookie"));
     const response = await fetch(`${getServerApiBaseUrl()}/api/ContactUs`, {
       method: "POST",
       cache: "no-store",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        ...(captchaCookieHeader ? { Cookie: captchaCookieHeader } : {}),
         ...getSiteTypeHeaders(siteType),
       },
       body: JSON.stringify(payload),
@@ -100,7 +117,14 @@ export async function POST(request: Request) {
     if (!isSuccess) {
       return NextResponse.json(
         { message: getUpstreamMessage(upstreamPayload) ?? "ارسال پیام با خطا مواجه شد." },
-        { status: response.status >= 400 && response.status < 500 ? response.status : 502 },
+        {
+          status:
+            response.status >= 400 && response.status < 500
+              ? response.status
+              : response.ok
+                ? 400
+                : 502,
+        },
       );
     }
 
