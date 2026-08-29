@@ -13,6 +13,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ import {
   type Profile,
 } from "@/features/account/api/use-profile";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 type ProfileDetail = {
   label: string;
@@ -42,6 +44,18 @@ type ProfileDetail = {
   icon: typeof UserRound;
   direction?: "ltr";
 };
+
+const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+function normalizeNationalCode(value: string) {
+  return value
+    .replace(/[۰-۹٠-٩]/g, (digit) => {
+      const digitIndex = PERSIAN_DIGITS.indexOf(digit);
+      return String(digitIndex >= 0 ? digitIndex : ARABIC_DIGITS.indexOf(digit));
+    })
+    .replace(/\D/g, "");
+}
 
 function maskNationalCode(nationalCode: string) {
   if (nationalCode.length <= 4) {
@@ -102,6 +116,8 @@ function ProfileEditForm({
   routeMode?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const { siteType } = useStorefront();
+  const { update: updateSession } = useSession();
   const updateProfile = useUpdateProfile();
   const [firstName, setFirstName] = useState(profile.firstName);
   const [lastName, setLastName] = useState(profile.lastName);
@@ -116,12 +132,15 @@ function ProfileEditForm({
         id: profile.id,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        nationalCode: nationalCode.trim(),
+        nationalCode: normalizeNationalCode(nationalCode),
         email: email.trim(),
       },
       {
         onSuccess: async () => {
-          await queryClient.invalidateQueries({ queryKey: profileQueryKeys.detail });
+          await queryClient.invalidateQueries({ queryKey: profileQueryKeys.detail(siteType) });
+          await updateSession({
+            user: { name: [firstName.trim(), lastName.trim()].filter(Boolean).join(" ") },
+          });
           toast.success("اطلاعات حساب کاربری با موفقیت ویرایش شد.");
           onSaved();
         },
@@ -182,8 +201,9 @@ function ProfileEditForm({
             id="profile-national-code"
             name="nationalCode"
             value={nationalCode}
-            onChange={(event) => setNationalCode(event.target.value)}
+            onChange={(event) => setNationalCode(normalizeNationalCode(event.target.value))}
             inputMode="numeric"
+            pattern="[0-9]*"
             dir="ltr"
             required
             className="bg-card h-12 text-right"

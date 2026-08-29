@@ -37,7 +37,7 @@ interface ProfileResponse {
 }
 
 export const profileQueryKeys = {
-  detail: ["profile", "detail"] as const,
+  detail: (siteType: SiteType) => [siteType, "profile", "detail"] as const,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -119,7 +119,7 @@ export function useProfile() {
   const { status } = useSession();
 
   const query = useQuery<Profile, Error>({
-    queryKey: [siteType, ...profileQueryKeys.detail],
+    queryKey: profileQueryKeys.detail(siteType),
     queryFn: () => getProfile(siteType),
     enabled: status === "authenticated",
     staleTime: 60_000,

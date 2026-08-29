@@ -211,14 +211,17 @@ export function AddressPicker({
     }
   }
 
-  async function refreshSession(value: AddressAuthValue) {
-    await update({ user: value.user, accessToken: value.accessToken });
+  async function refreshSession(value: AddressAuthValue, headerName?: string) {
+    await update({
+      user: { ...value.user, name: headerName || value.user.name },
+      accessToken: value.accessToken,
+    });
     setClientSessionSnapshot({ accessToken: value.accessToken.token });
     await queryClient.invalidateQueries();
     router.refresh();
   }
 
-  async function handleSaveAddress(payload: AddressPayload) {
+  async function handleSaveAddress(payload: AddressPayload, headerName: string) {
     setSaveError(null);
 
     try {
@@ -232,13 +235,14 @@ export function AddressPicker({
         if (response.isSuccess !== true) {
           throw new Error(getResponseMessage(response, "ویرایش آدرس ناموفق بود."));
         }
+        await update({ user: { name: headerName } });
         toast.success("آدرس با موفقیت ویرایش شد.");
       } else {
         const response = await createAddress.mutateAsync(payload);
         if (response.isSuccess !== true || !response.value) {
           throw new Error(getResponseMessage(response, "ثبت آدرس ناموفق بود."));
         }
-        await refreshSession(response.value);
+        await refreshSession(response.value, headerName);
         toast.success("آدرس با موفقیت ثبت شد.");
       }
 
@@ -453,9 +457,12 @@ function AddressListStep({
   const { data: addresses = [], isError, isPending } = useAddresses();
   const setDefaultAddress = useSetDefaultAddress();
   const normalizedSearch = searchTerm.trim();
-  const visibleAddresses = addresses.filter((address) =>
-    `${address.title} ${address.address}`.includes(normalizedSearch),
-  );
+  const visibleAddresses = addresses
+    .filter((address) => `${address.title} ${address.address}`.includes(normalizedSearch))
+    .sort(
+      (firstAddress, secondAddress) =>
+        Number(secondAddress.isDefault) - Number(firstAddress.isDefault),
+    );
   const activeAddressId =
     pendingAddressId ||
     selectedAddress ||
@@ -828,7 +835,7 @@ function DetailsStep({
   isPending: boolean;
   onEditLocation: () => void;
   saveError: string | null;
-  onSave: (payload: AddressPayload) => Promise<void>;
+  onSave: (payload: AddressPayload, headerName: string) => Promise<void>;
   suggestedFullAddress: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -893,6 +900,9 @@ function DetailsStep({
 
     const formData = new FormData(event.currentTarget);
     const value = (name: string) => String(formData.get(name) ?? "").trim();
+    const receiverPhoneInput = formRef.current?.elements.namedItem("receiverPhone");
+    const displayedReceiverPhone =
+      receiverPhoneInput instanceof HTMLInputElement ? receiverPhoneInput.value.trim() : "";
     const receiverFirstName = isAlternateReceiver
       ? value("alternateReceiverFirstName")
       : value("receiverFirstName") || profileFirstName || addressFirstName;
@@ -901,28 +911,37 @@ function DetailsStep({
       : value("receiverLastName") || profileLastName || addressLastName;
     const receiverPhone = isAlternateReceiver
       ? value("alternateReceiverPhone")
-      : value("receiverPhone") || profile?.mobile || address?.phone || "";
+      : displayedReceiverPhone || profile?.mobile || address?.phone || "";
+    const headerName = [
+      value("receiverFirstName") || profileFirstName || addressFirstName,
+      value("receiverLastName") || profileLastName || addressLastName,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-    if (!receiverFirstName || !receiverLastName || !receiverPhone) {
+    if (!receiverFirstName || !receiverLastName || !receiverPhone || !headerName) {
       toast.error("اطلاعات گیرنده را کامل کنید.");
       return;
     }
 
-    await onSave({
-      title: value("title"),
-      fullAddress: value("fullAddress"),
-      longitude: coordinates.longitude,
-      latitude: coordinates.latitude,
-      plaque: value("plaque"),
-      unit: value("unit"),
-      postalCode: value("postalCode"),
-      hasOtherReceiver: isAlternateReceiver,
-      receiverFirstName,
-      receiverLastName,
-      receiverPhone,
-      isDefault: address?.isDefault ?? true,
-      cityId,
-    });
+    await onSave(
+      {
+        title: value("title"),
+        fullAddress: value("fullAddress"),
+        longitude: coordinates.longitude,
+        latitude: coordinates.latitude,
+        plaque: value("plaque"),
+        unit: value("unit"),
+        postalCode: value("postalCode"),
+        hasOtherReceiver: isAlternateReceiver,
+        receiverFirstName,
+        receiverLastName,
+        receiverPhone,
+        isDefault: address?.isDefault ?? true,
+        cityId,
+      },
+      headerName,
+    );
   }
 
   return (
@@ -984,7 +1003,7 @@ function DetailsStep({
               id={`${formId}-receiver-mobile`}
               inputMode="numeric"
               name="receiverPhone"
-              onInput={numericInput}
+              disabled
               required
             />
           </Field>
