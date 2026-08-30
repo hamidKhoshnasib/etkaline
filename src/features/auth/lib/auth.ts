@@ -175,7 +175,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           error: undefined,
         };
       } catch {
-        return { ...token, error: "RefreshTokenError" as const };
+        return {
+          ...token,
+          accessToken: undefined,
+          refreshToken: undefined,
+          accessTokenExpires: undefined,
+          error: "RefreshTokenError" as const,
+        };
       }
     },
     session({ session, token }) {

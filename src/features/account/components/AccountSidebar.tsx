@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bell,
   ChevronLeft,
@@ -110,6 +111,15 @@ export function AccountSidebar() {
   const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
   const selectedItem =
     selectedSecondaryItem?.pathname === pathname ? selectedSecondaryItem.label : null;
+
+  const handleSecondaryItemSelect = (label: string) => {
+    if (label === "دعوت از دوستان") {
+      toast.info("قابلیت دعوت از دوستان به‌زودی فعال می‌شود.");
+      return;
+    }
+
+    setSelectedSecondaryItem({ label, pathname });
+  };
 
   return (
     <div
@@ -224,7 +234,7 @@ export function AccountSidebar() {
                         ? selectedItem === item.label
                         : itemHref !== undefined && pathname.startsWith(itemHref)
                     }
-                    onSelect={() => setSelectedSecondaryItem({ label: item.label, pathname })}
+                    onSelect={() => handleSecondaryItemSelect(item.label)}
                   />
                 );
               })}

@@ -21,7 +21,6 @@ import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import CategoryBanners from "./CategoryBanners";
 import { LazyFlashDeals } from "./LazyFlashDeals";
 import { HomeLayoutItemSkeleton } from "./HomeSectionSkeletons";
-import { StorefrontSwitchTab } from "./StorefrontSwitchTab";
 import { getStorefront } from "@/config/storefront";
 import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
@@ -158,12 +157,5 @@ export default async function DynamicHomeLayout({ siteType }: { siteType: SiteTy
     );
   }
 
-  return (
-    <div className="relative space-y-6 sm:space-y-9">
-      <div className="sticky top-[calc(50vh-82px)] z-40 h-0">
-        <StorefrontSwitchTab siteType={siteType} />
-      </div>
-      {renderedLayoutItems}
-    </div>
-  );
+  return <div className="relative space-y-6 sm:space-y-9">{renderedLayoutItems}</div>;
 }

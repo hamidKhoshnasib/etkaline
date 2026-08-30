@@ -26,7 +26,7 @@ export function StorefrontSwitchTab({ siteType }: { siteType: SiteType }) {
   const TargetIcon = siteType === SITE_TYPES.supermarket ? HousePlug : ShoppingBasket;
 
   return (
-    <div className="pointer-events-none absolute top-0 right-[calc((100vw-100%)/-2)]">
+    <div className="pointer-events-none absolute top-0 right-0">
       <Link
         href={target.href}
         target={target.openInNewTab ? "_blank" : undefined}
