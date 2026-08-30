@@ -323,6 +323,7 @@ export function AddressPicker({
       </span>
       <DialogContent
         data-site={siteType}
+        initialFocus={activeStep === "addresses" ? false : undefined}
         showCloseButton={false}
         className={cn(
           "flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden rounded-[28px] p-0",
