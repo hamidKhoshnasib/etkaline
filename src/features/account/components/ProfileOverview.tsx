@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  AlertCircle,
-  Check,
-  CreditCard,
-  Mail,
-  Pencil,
-  Phone,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
+import { AlertCircle, CreditCard, Mail, Pencil, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -169,7 +160,6 @@ function ProfileEditForm({
           type="submit"
           disabled={updateProfile.isPending}
         >
-          <Check data-icon="inline-start" className={cn(updateProfile.isPending && "hidden")} />
           {updateProfile.isPending ? "در حال ثبت" : "تایید"}
         </Button>
       </div>
