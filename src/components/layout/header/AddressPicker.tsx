@@ -128,6 +128,10 @@ export function AddressPicker({
     (siteType === "supermarket"
       ? !session.user.superMarketStoreId
       : !session.user.applianceStoreId);
+  const committedStoreId =
+    siteType === "supermarket"
+      ? String(session?.user.superMarketStoreId || "")
+      : String(session?.user.applianceStoreId || "");
   const shouldPromptForAddress = hasNoStore && hasLoadedAddresses;
   const shouldStartAddressCreation = shouldPromptForAddress && addresses.length === 0;
   const isExternallyEditing = Boolean(externalEditingAddress);
@@ -152,6 +156,7 @@ export function AddressPicker({
       }
 
       openStoreAfterAuthenticationRef.current = false;
+      setSelectedStore("");
       setHideStoreBackButton(true);
       setStep("store");
       setOpen(true);
@@ -200,12 +205,14 @@ export function AddressPicker({
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen && startInStoreMode) {
+      setSelectedStore("");
       setHideStoreBackButton(true);
       setStep("store");
     }
     setOpen(nextOpen);
     onOpenChange?.(nextOpen);
     if (!nextOpen) {
+      setSelectedStore("");
       setHideStoreBackButton(false);
       setStep("addresses");
     }
@@ -248,6 +255,7 @@ export function AddressPicker({
 
       await queryClient.invalidateQueries({ queryKey: ["address"] });
       setEditingAddress(null);
+      setSelectedStore("");
       setHideStoreBackButton(true);
       setStep("store");
     } catch (error) {
@@ -274,6 +282,7 @@ export function AddressPicker({
     if (startInCreateMode) {
       startCreatingAddress();
     } else if (startInStoreMode) {
+      setSelectedStore("");
       setHideStoreBackButton(true);
       setStep("store");
     }
@@ -339,7 +348,7 @@ export function AddressPicker({
           <div className="flex min-w-0 items-center">
             <DialogTitle
               className={cn(
-                "title-medium-bold text-secondary",
+                "title-medium-bold text-secondary font-bold",
                 activeStep !== "addresses" &&
                   "absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2",
               )}
@@ -422,9 +431,9 @@ export function AddressPicker({
           {activeStep === "store" && (
             <StoreStep
               selectedStore={selectedStore}
-              onSelectStore={(storeId, storeTitle) => {
+              committedStoreId={committedStoreId}
+              onSelectStore={(storeId) => {
                 setSelectedStore(storeId);
-                onStoreSelected?.(storeTitle);
               }}
               onComplete={async (storeTitle, value) => {
                 await refreshSession(value);
@@ -1199,16 +1208,22 @@ function DetailsStep({
 
 function StoreStep({
   selectedStore,
+  committedStoreId,
   onSelectStore,
   onComplete,
 }: {
   selectedStore: string;
-  onSelectStore: (storeId: string, storeTitle: string) => void;
+  committedStoreId: string;
+  onSelectStore: (storeId: string) => void;
   onComplete: (storeTitle: string, value: AddressAuthValue) => Promise<void>;
 }) {
   const { data: stores = [], isError, isPending } = useNearApplianceStores();
   const setDefaultStore = useSetDefaultStore();
-  const activeStoreId = selectedStore || stores[0]?.id || "";
+  const activeStoreId = selectedStore || committedStoreId || stores[0]?.id || "";
+  const orderedStores = [...stores].sort(
+    (firstStore, secondStore) =>
+      Number(secondStore.id === activeStoreId) - Number(firstStore.id === activeStoreId),
+  );
 
   async function handleComplete() {
     const store = stores.find((item) => item.id === activeStoreId);
@@ -1249,7 +1264,7 @@ function StoreStep({
         )}
         {!isPending &&
           !isError &&
-          stores.map((store) => {
+          orderedStores.map((store) => {
             const isSelected = store.id === activeStoreId;
             return (
               <button
@@ -1259,7 +1274,7 @@ function StoreStep({
                 }`}
                 disabled={setDefaultStore.isPending}
                 key={store.id}
-                onClick={() => onSelectStore(store.id, store.title)}
+                onClick={() => onSelectStore(store.id)}
                 type="button"
               >
                 <MapPin className="fill-primary text-secondary size-10 shrink-0" />
