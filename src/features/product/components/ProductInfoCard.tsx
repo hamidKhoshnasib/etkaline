@@ -108,7 +108,7 @@ export function ProductInfoCard({
   discount,
   colors = [],
   storeProductId,
-  inventory,
+  inventory: _inventory,
   isAvailable,
   selectedColorId,
   onColorSelect,
@@ -131,6 +131,8 @@ export function ProductInfoCard({
         </div>
       </div>
 
+      {/* Inventory visibility is temporarily disabled. */}
+      {/*
       <p
         className={cn(
           "mt-3 text-sm font-medium",
@@ -139,6 +141,7 @@ export function ProductInfoCard({
       >
         {isAvailable ? `${formatPrice(inventory)} عدد موجود در انبار` : "این محصول ناموجود است"}
       </p>
+      */}
 
       <div className="my-4 h-px bg-gray-100" />
 

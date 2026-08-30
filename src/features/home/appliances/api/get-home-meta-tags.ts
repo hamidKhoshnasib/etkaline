@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 const API_BASE_URL =
   process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
@@ -31,10 +32,9 @@ function isHomeMetaTags(value: unknown): value is HomeMetaTags {
 
 export async function getHomeMetaTags(siteType: SiteType): Promise<HomeMetaTags | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/Home/GetMetaTags`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/Home/GetMetaTags`, {
       headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
       next: { revalidate: 300, tags: [`home-meta-tags-${siteType}`] },
-      signal: AbortSignal.timeout(15_000),
     });
 
     if (!response.ok) {

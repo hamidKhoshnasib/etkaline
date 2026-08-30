@@ -1,7 +1,10 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 export interface ExtraPageLink {
   id: number;
@@ -37,11 +40,12 @@ function parseItems(value: unknown): ExtraPageLink[] {
   });
 }
 
-export async function getExtraPages(siteType: SiteType): Promise<ExtraPages> {
-  const response = await fetch(new URL("/api/ExtraPages", getServerApiBaseUrl()), {
+export const getExtraPages = cache(async function getExtraPages(
+  siteType: SiteType,
+): Promise<ExtraPages> {
+  const response = await fetchWithTimeout(new URL("/api/ExtraPages", getServerApiBaseUrl()), {
     headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
     next: { revalidate: 300, tags: [`extra-pages-${siteType}`] },
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {
@@ -58,4 +62,4 @@ export async function getExtraPages(siteType: SiteType): Promise<ExtraPages> {
     headerItems: parseItems(value.headerItems),
     footerItems: parseItems(value.footerItems),
   };
-}
+});

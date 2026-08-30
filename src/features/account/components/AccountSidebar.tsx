@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bell,
   ChevronLeft,
@@ -23,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OrderStats } from "@/features/account/components/OrderStats";
 import { useProfile } from "@/features/account/api/use-profile";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface AccountLink {
   label: string;
@@ -100,6 +103,7 @@ function SidebarItem({
 
 export function AccountSidebar() {
   const pathname = usePathname();
+  const { homeHref } = useStorefront();
   const [selectedSecondaryItem, setSelectedSecondaryItem] = useState<{
     label: string;
     pathname: string;
@@ -110,6 +114,20 @@ export function AccountSidebar() {
   const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
   const selectedItem =
     selectedSecondaryItem?.pathname === pathname ? selectedSecondaryItem.label : null;
+
+  const handleSecondaryItemSelect = (label: string) => {
+    if (label === "دعوت از دوستان") {
+      toast.info("قابلیت دعوت از دوستان به‌زودی فعال می‌شود.");
+      return;
+    }
+
+    setSelectedSecondaryItem({ label, pathname });
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    window.location.assign(homeHref);
+  };
 
   return (
     <div
@@ -171,7 +189,7 @@ export function AccountSidebar() {
                 <WalletCards aria-hidden="true" />
                 <span>کیف پول</span>
               </div>
-              <span className="whitespace-nowrap">۳۰۴,۵۶۲,۵۰۰</span>
+              <span className="whitespace-nowrap">به زودی</span>
             </div>
           )}
         </CardContent>
@@ -224,7 +242,7 @@ export function AccountSidebar() {
                         ? selectedItem === item.label
                         : itemHref !== undefined && pathname.startsWith(itemHref)
                     }
-                    onSelect={() => setSelectedSecondaryItem({ label: item.label, pathname })}
+                    onSelect={() => handleSecondaryItemSelect(item.label)}
                   />
                 );
               })}
@@ -232,6 +250,7 @@ export function AccountSidebar() {
 
             <button
               type="button"
+              onClick={() => void handleSignOut()}
               className="text-destructive flex min-h-16 items-center gap-3 px-5 text-start lg:min-h-12 lg:rounded-xl lg:px-3"
             >
               <LogOut aria-hidden="true" />

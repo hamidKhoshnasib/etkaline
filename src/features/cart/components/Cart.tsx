@@ -392,7 +392,7 @@ export default function CartPage() {
 
   if (isLoading) {
     return (
-      <main className="bg-muted/60 min-h-[60vh] py-8">
+      <main className="bg-muted/60 lg:bg-background min-h-[60vh] py-8">
         <Container className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <CartSkeleton />
         </Container>
@@ -402,7 +402,7 @@ export default function CartPage() {
 
   if (status !== "authenticated") {
     return (
-      <main className="bg-muted/60 min-h-[60vh] py-12">
+      <main className="bg-muted/60 lg:bg-background min-h-[60vh] py-12">
         <Container>
           <Empty className="bg-card border-border mx-auto max-w-xl border">
             <EmptyHeader>
@@ -430,7 +430,7 @@ export default function CartPage() {
 
   if (error) {
     return (
-      <main className="bg-muted/60 min-h-[60vh] py-12">
+      <main className="bg-muted/60 lg:bg-background min-h-[60vh] py-12">
         <Container>
           <Empty className="bg-card border-border mx-auto max-w-xl border">
             <EmptyHeader>
@@ -460,7 +460,7 @@ export default function CartPage() {
 
   if (!openBasketQuery.data || !checkoutDetails || displayItems.length === 0) {
     return (
-      <main className="bg-muted/60 min-h-[60vh] py-12">
+      <main className="bg-muted/60 lg:bg-background min-h-[60vh] py-12">
         <Container>
           <Empty className="bg-card border-border mx-auto max-w-xl border">
             <EmptyHeader>
@@ -484,7 +484,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="bg-muted/60 py-7 sm:py-10">
+    <main className="bg-muted/60 lg:bg-background py-7 sm:py-10">
       <Container className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div className="min-w-0">
           {step === "cart" ? (

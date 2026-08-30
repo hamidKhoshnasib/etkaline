@@ -38,16 +38,17 @@ export function MegaMenu({
     >
       <Container className="flex py-6">
         <div className="w-47.5 shrink-0 border-e border-gray-100">
-          {categories.map(({ id, title, iconName }) => {
+          {categories.map(({ id, title, iconName, href }) => {
             const active = id === activeCategory.id;
 
             return (
-              <button
+              <Link
                 key={id}
-                type="button"
+                href={href}
+                onClick={onClose}
                 onMouseEnter={() => onActiveCategoryChange(id)}
                 onFocus={() => onActiveCategoryChange(id)}
-                className={`label-large flex w-full cursor-default items-center gap-2 pb-4 transition-colors ${
+                className={`label-large flex w-full items-center gap-2 pb-4 transition-colors ${
                   active ? "text-primary-hover" : "hover:text-primary-hover text-gray-700"
                 }`}
               >
@@ -58,7 +59,7 @@ export function MegaMenu({
                   }`}
                 />
                 <span className="text-nowrap">{title}</span>
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -73,7 +74,7 @@ export function MegaMenu({
             <ChevronLeft size={16} className="shrink-0" />
           </Link>
 
-          <div className="grid grid-cols-4 gap-x-6 gap-y-6 pb-5">
+          <div className="grid grid-cols-4 gap-x-12 gap-y-19.25 pb-5">
             {activeCategory.children.map((subcategory) => (
               <div key={subcategory.id}>
                 <Link

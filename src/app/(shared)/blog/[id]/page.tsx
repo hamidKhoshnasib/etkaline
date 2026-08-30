@@ -89,12 +89,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {post.studyTime}
               </span>
             ) : null}
-            {post.creatorName ? (
-              <span className="flex items-center gap-1.5">
-                <UserRound className="size-4" aria-hidden="true" />
-                {post.creatorName}
-              </span>
-            ) : null}
+            <span className="flex items-center gap-1.5">
+              <UserRound className="size-4" aria-hidden="true" />
+              تحریریه اتکالاین
+            </span>
           </div>
         </header>
 

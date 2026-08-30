@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import PopularReadsIcon from "@/assets/icons/blog-popular-reads.svg";
 import CompactBlogCard, {
   type CompactBlogCardProps,
 } from "@/features/blog/components/CompactBlogCard";
@@ -13,8 +13,8 @@ export default function PopularReadsCard({ posts, showMoreLink = "#" }: PopularR
   return (
     <section className="flex flex-col gap-4 rounded-[16px] border border-[#D1D4D4] bg-white px-6 pt-4 pb-6">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-[#F0F1F1] p-4">
-        <Sparkles className="text-primary-hover size-6" />
+      <div className="flex items-center gap-2 border-b border-[#D1D4D4] p-4">
+        <PopularReadsIcon className="size-6 shrink-0" aria-hidden="true" />
         <span className="body-medium text-[#3E4344]">جذاب ترین خواندنی ها</span>
       </div>
 

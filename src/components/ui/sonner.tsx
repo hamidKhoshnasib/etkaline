@@ -33,11 +33,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
+          fontFamily: "var(--font-iran-yekan)",
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "etkaline-toast",
+          toast: "etkaline-toast font-sans!",
         },
       }}
       {...props}

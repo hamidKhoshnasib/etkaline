@@ -111,30 +111,34 @@ function createTimeOptions(deliveryTime: string) {
 function SelectedAddress({ address }: { address: Address }) {
   return (
     <div className="border-primary-hover flex flex-col gap-3 rounded-xl border p-4">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-        <span className="text-muted-foreground flex items-start gap-2">
-          <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          {address.address}
-        </span>
-        {address.postalCode ? (
-          <span className="text-muted-foreground flex items-center gap-2">
-            <Map className="size-4" aria-hidden="true" />
-            <bdi dir="ltr">{address.postalCode}</bdi>
+      <div className="border-border flex flex-col gap-3 border-s ps-4">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+          <span className="text-muted-foreground flex items-start gap-2">
+            <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            {address.address}
           </span>
-        ) : null}
-      </div>
-      <span className="text-secondary text-sm font-bold">گیرنده</span>
-      <div className="text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-        <span className="flex items-center gap-2">
-          <User className="size-4" aria-hidden="true" />
-          {address.recipient || "گیرنده ثبت نشده"}
-        </span>
-        {address.phone ? (
-          <span className="flex items-center gap-2">
-            <Phone className="size-4" aria-hidden="true" />
-            <bdi dir="ltr">{address.phone}</bdi>
-          </span>
-        ) : null}
+          {address.postalCode ? (
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Map className="size-4" aria-hidden="true" />
+              <bdi dir="ltr">{address.postalCode}</bdi>
+            </span>
+          ) : null}
+        </div>
+        <div className="flex flex-col gap-3">
+          <span className="text-secondary text-sm font-bold">گیرنده</span>
+          <div className="text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <span className="flex items-center gap-2">
+              <User className="size-4" aria-hidden="true" />
+              {address.recipient || "گیرنده ثبت نشده"}
+            </span>
+            {address.phone ? (
+              <span className="flex items-center gap-2">
+                <Phone className="size-4" aria-hidden="true" />
+                <bdi dir="ltr">{address.phone}</bdi>
+              </span>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

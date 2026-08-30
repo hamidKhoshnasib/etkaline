@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
+import { ACCOUNT_OUTLINE_ACTION_CLASS } from "@/features/account/components/account-action-styles";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type MessageCategory = "information" | "discount";
@@ -152,7 +153,7 @@ export function MessagesView() {
             variant="outline"
             size="lg"
             disabled={!hasUnreadMessages}
-            className="text-muted-foreground bg-transparent"
+            className={ACCOUNT_OUTLINE_ACTION_CLASS}
             onClick={markAllAsRead}
           >
             خواندن همه

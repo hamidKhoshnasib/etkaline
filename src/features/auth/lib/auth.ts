@@ -5,7 +5,7 @@ import type { JWT } from "@auth/core/jwt";
 import { refreshAuthTokens, verifyCode } from "@/features/auth/api/etkala-auth-server";
 import { DEFAULT_SITE_TYPE, isSiteType } from "@/lib/api-site-type";
 
-interface SessionAddressUpdate {
+interface SessionUpdate {
   accessToken?: unknown;
   user?: unknown;
 }
@@ -18,20 +18,29 @@ function getNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function applyAddressUpdate(token: JWT, session: unknown) {
+function applySessionUpdate(token: JWT, session: unknown) {
   if (!session || typeof session !== "object") {
     return token;
   }
 
-  const update = session as SessionAddressUpdate;
+  const update = session as SessionUpdate;
   const user = update.user;
   const accessToken = update.accessToken;
 
-  if (!user || typeof user !== "object" || !accessToken || typeof accessToken !== "object") {
+  if (!user || typeof user !== "object") {
     return token;
   }
 
   const nextUser = user as Record<string, unknown>;
+
+  if (typeof nextUser.name === "string") {
+    token.name = nextUser.name.trim();
+  }
+
+  if (!accessToken || typeof accessToken !== "object") {
+    return token;
+  }
+
   const nextAccessToken = accessToken as Record<string, unknown>;
   const accessTokenValue = getString(nextAccessToken.token);
   const expireDate = getString(nextAccessToken.expireDate);
@@ -123,7 +132,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       if (trigger === "update") {
-        return applyAddressUpdate(token, session);
+        return applySessionUpdate(token, session);
       }
 
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires - 30_000) {
@@ -166,11 +175,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           error: undefined,
         };
       } catch {
-        return { ...token, error: "RefreshTokenError" as const };
+        return {
+          ...token,
+          accessToken: undefined,
+          refreshToken: undefined,
+          accessTokenExpires: undefined,
+          error: "RefreshTokenError" as const,
+        };
       }
     },
     session({ session, token }) {
       session.user.id = String(token.sub ?? token.backendId);
+      session.user.name = token.name ?? session.user.name;
       session.user.backendId = token.backendId ?? 0;
       session.user.username = token.username ?? "";
       session.user.type = token.type ?? 0;

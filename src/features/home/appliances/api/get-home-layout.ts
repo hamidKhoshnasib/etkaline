@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 export type HomeLayoutType = 1 | 2;
 export type HomePlatformType = 1 | 2;
@@ -44,10 +45,9 @@ export async function getHomeLayout(
   url.searchParams.set("LayoutType", String(layoutType));
   url.searchParams.set("PlatformType", String(platformType));
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
     next: { revalidate: 300, tags: [`home-layout-${siteType}-${layoutType}-${platformType}`] },
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

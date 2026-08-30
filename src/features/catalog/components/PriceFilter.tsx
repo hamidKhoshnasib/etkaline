@@ -12,6 +12,8 @@ interface PriceFilterProps {
   onApply: (range: { minPrice: number; maxPrice: number }) => void;
   onRangeChange?: (range: { minPrice: number; maxPrice: number }) => void;
   maxPriceLimit?: number;
+  minPriceLimit?: number;
+  initialRange?: { minPrice: number; maxPrice: number } | null;
   variant?: "sidebar" | "sheet";
   showApplyButton?: boolean;
   open?: boolean;
@@ -39,14 +41,31 @@ export function PriceFilter({
   onApply,
   onRangeChange,
   maxPriceLimit,
+  minPriceLimit,
+  initialRange,
   variant = "sidebar",
   showApplyButton = true,
   open: controlledOpen,
   onOpenChange,
 }: PriceFilterProps) {
-  const priceCeiling = Math.max(PRICE_STEP, maxPriceLimit ?? PRICE_CEILING);
-  const initialMinPrice = PRICE_FLOOR;
-  const initialMaxPrice = priceCeiling;
+  const responsePriceFloor = Math.max(PRICE_FLOOR, minPriceLimit ?? PRICE_FLOOR);
+  const priceFloor = Math.min(responsePriceFloor, initialRange?.minPrice ?? responsePriceFloor);
+  const responsePriceCeiling = maxPriceLimit ?? PRICE_CEILING;
+  const priceCeiling = Math.max(
+    priceFloor + PRICE_STEP,
+    responsePriceCeiling,
+    initialRange?.maxPrice ?? responsePriceCeiling,
+  );
+  const initialMinPrice = clamp(
+    initialRange?.minPrice ?? priceFloor,
+    priceFloor,
+    priceCeiling - PRICE_STEP,
+  );
+  const initialMaxPrice = clamp(
+    initialRange?.maxPrice ?? priceCeiling,
+    initialMinPrice + PRICE_STEP,
+    priceCeiling,
+  );
   const [uncontrolledOpen, setUncontrolledOpen] = useState(variant === "sheet");
   const [minPrice, setMinPrice] = useState(initialMinPrice);
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
@@ -63,11 +82,11 @@ export function PriceFilter({
     }
   };
 
-  const minPercent = ((minPrice - PRICE_FLOOR) / (priceCeiling - PRICE_FLOOR)) * 100;
-  const maxPercent = ((maxPrice - PRICE_FLOOR) / (priceCeiling - PRICE_FLOOR)) * 100;
+  const minPercent = ((minPrice - priceFloor) / (priceCeiling - priceFloor)) * 100;
+  const maxPercent = ((maxPrice - priceFloor) / (priceCeiling - priceFloor)) * 100;
 
   const updateMinPrice = (value: number) => {
-    const nextMinPrice = clamp(value, PRICE_FLOOR, maxPrice - PRICE_STEP);
+    const nextMinPrice = clamp(value, priceFloor, maxPrice - PRICE_STEP);
     setMinPrice(nextMinPrice);
     setMinInput(formatPrice(nextMinPrice));
     onRangeChange?.({ minPrice: nextMinPrice, maxPrice });
@@ -118,22 +137,22 @@ export function PriceFilter({
                 <input
                   aria-label="حداقل قیمت"
                   type="range"
-                  min={PRICE_FLOOR}
+                  min={priceFloor}
                   max={priceCeiling}
-                  step={PRICE_STEP}
+                  step={1}
                   value={minPrice}
                   onChange={(event) => updateMinPrice(Number(event.target.value))}
-                  className="accent-primary [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:bg-primary pointer-events-none absolute inset-0 z-20 h-5 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:mt-[-5px] [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full"
+                  className="accent-primary [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:bg-primary pointer-events-none absolute inset-0 z-20 h-5 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full"
                 />
                 <input
                   aria-label="حداکثر قیمت"
                   type="range"
-                  min={PRICE_FLOOR}
+                  min={priceFloor}
                   max={priceCeiling}
-                  step={PRICE_STEP}
+                  step={1}
                   value={maxPrice}
                   onChange={(event) => updateMaxPrice(Number(event.target.value))}
-                  className="accent-primary [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:bg-primary pointer-events-none absolute inset-0 z-10 h-5 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:mt-[-5px] [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full"
+                  className="accent-primary [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:bg-primary pointer-events-none absolute inset-0 z-10 h-5 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full"
                 />
               </div>
             </div>

@@ -129,5 +129,19 @@ export async function reverseGeocodeLocation(
   }
 
   const { display_name: displayName } = result as ReverseGeocodeResponse;
-  return typeof displayName === "string" && displayName.trim() ? displayName.trim() : null;
+  if (typeof displayName !== "string" || !displayName.trim()) {
+    return null;
+  }
+
+  return displayName
+    .split(",")
+    .map((part) =>
+      part
+        .replace(/[\d۰-۹٠-٩]+/g, "")
+        .replace(/^[\s،,؛;:\-–—]+|[\s،,؛;:\-–—]+$/g, "")
+        .trim(),
+    )
+    .filter((part) => part && part !== "ایران")
+    .reverse()
+    .join("، ");
 }

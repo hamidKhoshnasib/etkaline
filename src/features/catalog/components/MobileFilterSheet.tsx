@@ -2,6 +2,7 @@
 
 import { useRef, useState, type PointerEvent } from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
+import { Trash2Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
@@ -19,7 +20,11 @@ interface MobileFilterSheetProps {
   onlyAvailable: boolean;
   selectedValueIds: number[];
   maxPriceLimit?: number;
+  minPriceLimit?: number;
+  priceRange?: { minPrice: number; maxPrice: number } | null;
+  hasActiveFilters: boolean;
   properties: SearchableProperty[];
+  onClearFilters: () => void;
   onApply: (filters: {
     onlyAvailable: boolean;
     minPrice?: number;
@@ -34,7 +39,11 @@ export function MobileFilterSheet({
   onlyAvailable,
   selectedValueIds,
   maxPriceLimit,
+  minPriceLimit,
+  priceRange,
+  hasActiveFilters,
   properties,
+  onClearFilters,
   onApply,
 }: MobileFilterSheetProps) {
   const [draftAvailable, setDraftAvailable] = useState(onlyAvailable);
@@ -47,6 +56,7 @@ export function MobileFilterSheet({
     if (nextOpen) {
       setDraftAvailable(onlyAvailable);
       setDraftValueIds(selectedValueIds);
+      setDraftPrice(priceRange ?? null);
     }
     setDragOffset(0);
     onOpenChange(nextOpen);
@@ -87,7 +97,6 @@ export function MobileFilterSheet({
           className="bg-popover text-popover-foreground data-closed:animate-out data-closed:slide-out-to-bottom-full data-open:animate-in data-open:slide-in-from-bottom-full fixed inset-x-0 bottom-0 z-[81] w-full rounded-t-[32px] p-4 shadow-2xl duration-300 outline-none motion-reduce:animate-none"
           style={dragOffset ? { transform: `translateY(${dragOffset}px)` } : undefined}
         >
-          <DialogTitle className="sr-only">فیلتر محصولات</DialogTitle>
           <button
             type="button"
             aria-label="بستن فیلتر با کشیدن به پایین"
@@ -100,6 +109,26 @@ export function MobileFilterSheet({
             <span className="h-1.5 w-10 rounded-full bg-slate-300" aria-hidden="true" />
           </button>
 
+          <div className="mb-4 flex items-center justify-between">
+            <DialogTitle>فیلترها</DialogTitle>
+            {hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  setDraftAvailable(false);
+                  setDraftPrice(null);
+                  setDraftValueIds([]);
+                  onClearFilters();
+                }}
+              >
+                <Trash2Icon data-icon="inline-start" />
+                حذف همه
+              </Button>
+            ) : null}
+          </div>
+
           <div className="max-h-[calc(100dvh-9rem)] overflow-y-auto pb-3">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-5">
@@ -108,8 +137,10 @@ export function MobileFilterSheet({
               </div>
 
               <PriceFilter
-                key={maxPriceLimit ?? 0}
+                key={`${minPriceLimit ?? 0}-${maxPriceLimit ?? 0}-${priceRange?.minPrice ?? 0}-${priceRange?.maxPrice ?? 0}`}
                 maxPriceLimit={maxPriceLimit}
+                minPriceLimit={minPriceLimit}
+                initialRange={priceRange}
                 variant="sheet"
                 showApplyButton={false}
                 onApply={() => undefined}

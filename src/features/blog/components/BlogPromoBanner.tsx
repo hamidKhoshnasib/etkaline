@@ -13,19 +13,25 @@ interface BlogPromoBannerProps {
 }
 
 export default function BlogPromoBanner({
-  title = "آشپزخونه ، قلب خونه",
-  subtitle = "چیدمان به سبک اتکالاین",
+  title,
+  subtitle,
   image = Image35.src,
   href = "#",
-  width = 600,
-  height = 420,
 }: BlogPromoBannerProps) {
   return (
-    <section className="relative overflow-hidden rounded-[24px] bg-gradient-to-b from-[#5C6466] to-[#2B2F30]">
+    <section className="relative min-h-56 overflow-hidden rounded-[24px] bg-gradient-to-b from-[#5C6466] to-[#2B2F30]">
+      <AppImage
+        src={image}
+        alt=""
+        fill
+        sizes="(max-width: 1023px) 100vw, 1200px"
+        className="object-cover object-center"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-black/75 via-black/35 to-transparent" />
       {/* Decorative glow */}
       <span className="pointer-events-none absolute -top-16 right-1/4 size-52 rounded-full bg-white/5 blur-2xl" />
 
-      <div className="flex items-center justify-between gap-6 px-10 py-8">
+      <div className="relative z-10 flex min-h-56 items-center px-10 py-8">
         {/* Copy */}
         <div className="flex flex-col items-end gap-3 text-right">
           <div className="space-y-1">
@@ -39,18 +45,6 @@ export default function BlogPromoBanner({
             <span>مشاهده همه</span>
             <ChevronLeft className="size-4" />
           </Link>
-        </div>
-
-        {/* Visual */}
-        <div className="relative h-40 w-full max-w-[460px] shrink-0">
-          <AppImage
-            src={image}
-            alt={title}
-            width={width}
-            height={height}
-            sizes="(max-width: 1023px) 100vw, 460px"
-            className="h-full w-full object-contain object-bottom"
-          />
         </div>
       </div>
     </section>

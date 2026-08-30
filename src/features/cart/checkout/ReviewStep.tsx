@@ -1,20 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowRight,
-  Box,
-  ChevronDown,
-  CreditCard,
-  Info,
-  MapPin,
-  Package,
-  Truck,
-} from "lucide-react";
+import { ArrowRight, Box, ChevronDown, CreditCard, Info, MapPin } from "lucide-react";
 
+import ForkliftIcon from "@/assets/icons/forklift.svg";
+import TruckLoadingIcon from "@/assets/icons/truck-loading.svg";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppImage } from "@/components/ui/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,11 +47,11 @@ function ShipmentTime({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-secondary flex items-center gap-2 font-bold">
+      <div className="text-secondary flex items-center gap-3 text-sm font-bold">
         {kind === "heavy" ? (
-          <Truck className="text-primary-hover size-5" />
+          <ForkliftIcon className="size-6" aria-hidden="true" />
         ) : (
-          <Package className="text-primary-hover size-5" />
+          <TruckLoadingIcon className="size-6" aria-hidden="true" />
         )}
         {label}
       </div>
@@ -178,23 +171,37 @@ export default function ReviewStep({
   const [paygateId, setPaygateId] = useState<number | null>(null);
   const [isShipmentOpen, setIsShipmentOpen] = useState(false);
   const payTypesQuery = usePayTypes(checkoutDetails.id);
-  const paygatesQuery = usePaygates(payTypeId === 1);
+  const availablePayTypes = payTypesQuery.data ?? [];
+  const selectedPayTypeId =
+    payTypeId !== null && availablePayTypes.some((payType) => payType.id === payTypeId)
+      ? payTypeId
+      : availablePayTypes.length === 1
+        ? availablePayTypes[0].id
+        : null;
+  const paygatesQuery = usePaygates(selectedPayTypeId === 1);
   const heavyItems = items.filter((item) => item.isHeavyWeight);
   const lightItems = items.filter((item) => !item.isHeavyWeight);
   const heavyCount = heavyItems.reduce((sum, item) => sum + item.productCount, 0);
   const lightCount = lightItems.reduce((sum, item) => sum + item.productCount, 0);
+  const availablePaygates = paygatesQuery.data ?? [];
+  const selectedPaygateId =
+    paygateId !== null && availablePaygates.some((paygate) => paygate.id === paygateId)
+      ? paygateId
+      : availablePaygates.length === 1
+        ? availablePaygates[0].id
+        : null;
 
   const paymentSelection = useMemo<PayBasketInput | null>(
     () =>
-      payTypeId !== null && (payTypeId !== 1 || paygateId !== null)
+      selectedPayTypeId !== null && (selectedPayTypeId !== 1 || selectedPaygateId !== null)
         ? {
             basketId: checkoutDetails.id,
-            payType: payTypeId,
-            paygateId: payTypeId === 1 ? (paygateId ?? 0) : 0,
+            payType: selectedPayTypeId,
+            paygateId: selectedPayTypeId === 1 ? (selectedPaygateId ?? 0) : 0,
             installmentCount: 0,
           }
         : null,
-    [checkoutDetails.id, payTypeId, paygateId],
+    [checkoutDetails.id, selectedPayTypeId, selectedPaygateId],
   );
 
   useEffect(() => {
@@ -238,14 +245,16 @@ export default function ReviewStep({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl py-5 shadow-none">
+      <Card className="gap-3 rounded-2xl py-5 shadow-none">
         <CardHeader className="px-5">
-          <CardTitle className="text-secondary flex items-center gap-2 font-bold">
-            <MapPin className="text-primary-hover" aria-hidden="true" />
-            آدرس انتخاب‌شده
-          </CardTitle>
+          <div className="flex items-start gap-3">
+            <MapPin className="text-primary-hover size-6" aria-hidden="true" />
+            <div className="flex flex-col gap-3">
+              <CardTitle className="text-secondary text-sm font-bold">آدرس انتخاب‌شده</CardTitle>
+              <CardDescription>{address.address}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="text-muted-foreground px-5 text-sm">{address.address}</CardContent>
       </Card>
 
       <Card className="rounded-2xl py-5 shadow-none">
@@ -259,7 +268,7 @@ export default function ReviewStep({
         >
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-secondary flex items-center gap-2 font-bold">
-              <Box className="text-primary-hover" aria-hidden="true" />
+              <Box className="text-primary-hover size-6" aria-hidden="true" />
               مرسوله
             </span>
             {lightCount > 0 ? (
@@ -316,7 +325,7 @@ export default function ReviewStep({
           {payTypesQuery.data?.map((payType) => (
             <div key={payType.id} className="flex flex-col gap-3">
               <PaymentOption
-                selected={payTypeId === payType.id}
+                selected={selectedPayTypeId === payType.id}
                 title={payType.title}
                 description={
                   payType.id === 1
@@ -326,7 +335,7 @@ export default function ReviewStep({
                 icon={CreditCard}
                 onClick={() => setPayTypeId(payType.id)}
               />
-              {payType.id === 1 && payTypeId === 1 ? (
+              {payType.id === 1 && selectedPayTypeId === 1 ? (
                 <div className="ms-4 flex flex-col gap-3 border-s ps-4">
                   {paygatesQuery.isPending ? <Skeleton className="h-16 w-full rounded-xl" /> : null}
                   {paygatesQuery.isError ? (
@@ -338,7 +347,7 @@ export default function ReviewStep({
                     <p className="text-muted-foreground text-sm">درگاه پرداختی در دسترس نیست.</p>
                   ) : null}
                   {paygatesQuery.data?.map((paygate) => {
-                    const selected = paygateId === paygate.id;
+                    const selected = selectedPaygateId === paygate.id;
                     return (
                       <Button
                         key={paygate.id}

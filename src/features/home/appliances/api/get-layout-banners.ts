@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -49,10 +50,9 @@ export async function getBannersByLayoutId(
   const url = new URL(`/api/Banners/GetBannersByLayoutId/${layoutId}`, API_BASE_URL);
   url.searchParams.set("LayoutId", String(layoutId));
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: await getServerApiHeaders(siteType),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

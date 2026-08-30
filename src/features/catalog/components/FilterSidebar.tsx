@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FilterIcon, XSquareIcon } from "lucide-react";
+import { FilterIcon, Trash2Icon } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { FilterSection } from "./FilterSection";
 import { FilterOptions } from "./FilterOptions";
 import { PriceFilter } from "./PriceFilter";
@@ -16,7 +17,10 @@ interface FilterSidebarProps {
   onApplyPrice: (range: { minPrice: number; maxPrice: number }) => void;
   priceFilterResetKey: number;
   maxPriceLimit?: number;
+  minPriceLimit?: number;
+  priceRange?: { minPrice: number; maxPrice: number } | null;
   onClearFilters: () => void;
+  hasActiveFilters: boolean;
   properties: SearchableProperty[];
   selectedValueIds: number[];
   onToggleValue: (valueId: number) => void;
@@ -28,7 +32,10 @@ export function FilterSidebar({
   onApplyPrice,
   priceFilterResetKey,
   maxPriceLimit,
+  minPriceLimit,
+  priceRange,
   onClearFilters,
+  hasActiveFilters,
   properties,
   selectedValueIds,
   onToggleValue,
@@ -43,14 +50,12 @@ export function FilterSidebar({
           <span className="text-secondary font-bold">فیلترها</span>
         </div>
 
-        <button
-          type="button"
-          onClick={onClearFilters}
-          className="flex items-center gap-1 text-[11px] text-red-500 transition-colors hover:text-red-600"
-        >
-          <XSquareIcon className="size-3.5" />
-          <span>حذف فیلترها</span>
-        </button>
+        {hasActiveFilters ? (
+          <Button type="button" variant="destructive" size="xs" onClick={onClearFilters}>
+            <Trash2Icon data-icon="inline-start" />
+            <span>حذف همه</span>
+          </Button>
+        ) : null}
       </div>
 
       <div className="mb-1 flex items-center justify-between rounded-xl border border-slate-200 px-3 py-3.5">
@@ -59,8 +64,10 @@ export function FilterSidebar({
       </div>
 
       <PriceFilter
-        key={`${priceFilterResetKey}-${maxPriceLimit ?? 0}`}
+        key={`${priceFilterResetKey}-${minPriceLimit ?? 0}-${maxPriceLimit ?? 0}`}
         maxPriceLimit={maxPriceLimit}
+        minPriceLimit={minPriceLimit}
+        initialRange={priceRange}
         onApply={onApplyPrice}
         open={isPriceFilterOpen}
         onOpenChange={setIsPriceFilterOpen}

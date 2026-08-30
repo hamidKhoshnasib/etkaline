@@ -6,7 +6,7 @@ import { Providers } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME, SITE_URL } from "@/config/site";
 import { getStorefront } from "@/config/storefront";
-import { auth } from "@/features/auth/lib/auth";
+import { getServerSession } from "@/features/auth/lib/get-server-session";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import "./globals.css";
 
@@ -23,7 +23,7 @@ const iranYekan = localFont({
       style: "normal",
     },
   ],
-  variable: "--font-sans",
+  variable: "--font-iran-yekan",
   display: "swap",
 });
 
@@ -54,12 +54,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  const session = await getServerSession();
 
   return (
     <html lang="fa" dir="rtl" className={`${iranYekan.variable} h-full antialiased`}>
       <body
-        className={`${iranYekan.className} flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans! text-base! leading-normal! font-normal! lg:pb-0`}
+        className={`${iranYekan.className} flex min-h-full flex-col bg-[#F1F5F9] pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans! text-base! leading-normal! font-normal! lg:bg-white lg:pb-0`}
       >
         <DirectionProvider direction="rtl">
           <Providers session={session}>

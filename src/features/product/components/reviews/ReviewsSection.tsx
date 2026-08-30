@@ -86,7 +86,7 @@ export function ReviewsSection({ productId, averageRating, totalRatings }: Revie
   return (
     <section
       id="product-reviews"
-      className="flex scroll-mt-40 flex-col gap-8 lg:flex-row lg:items-start lg:gap-8"
+      className="flex min-h-[calc(100dvh-10rem)] scroll-mt-40 flex-col gap-8 lg:flex-row lg:items-start lg:gap-8"
     >
       {/* Rating summary panel */}
       <aside className="w-full shrink-0 lg:w-[222px]">

@@ -34,8 +34,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressPicker } from "@/components/layout/header/AddressPicker";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
+import { ACCOUNT_OUTLINE_ACTION_CLASS } from "@/features/account/components/account-action-styles";
 import { useDeleteAddress } from "@/features/address/api/use-address-mutations";
 import { type Address, type ApiResult, useAddresses } from "@/features/address/api/use-addresses";
+import { cn } from "@/lib/utils";
 
 function getResponseMessage(response: ApiResult<never>, fallback: string) {
   if (typeof response.message === "string" && response.message.trim()) {
@@ -86,27 +88,28 @@ function AddressActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
+        dir="rtl"
         side="inline-start"
         sideOffset={4}
         className="min-w-28 rounded-lg p-0"
       >
         <DropdownMenuGroup>
           <DropdownMenuItem
-            className="min-h-10 cursor-pointer justify-between rounded-none px-3"
+            className="min-h-10 cursor-pointer justify-start gap-2.5 rounded-none px-3"
             onClick={onEdit}
           >
+            <Pencil className="text-[#64748B]" aria-hidden="true" />
             <span>ویرایش</span>
-            <Pencil aria-hidden="true" />
           </DropdownMenuItem>
           <DropdownMenuSeparator className="my-0" />
           <DropdownMenuItem
             variant="destructive"
-            className="min-h-10 cursor-pointer justify-between rounded-none px-3"
+            className="min-h-10 cursor-pointer justify-start gap-2.5 rounded-none px-3"
             disabled={isDeleting}
             onClick={onDelete}
           >
-            <span>{isDeleting ? "در حال حذف..." : "حذف"}</span>
             <Trash2 aria-hidden="true" />
+            <span>{isDeleting ? "در حال حذف..." : "حذف"}</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
@@ -161,11 +164,33 @@ export function AddressesView() {
   }
 
   return (
-    <section className="bg-muted/60 min-h-full lg:bg-transparent lg:px-0 lg:py-0">
-      <MobilePageHeader fallbackHref="/account/profile" title="آدرس‌های من" />
-      <div className="px-4 py-6 lg:px-0 lg:py-0">
-        <div className="mb-5 flex items-center justify-end gap-4 lg:justify-between">
-          <h1 className="text-secondary hidden text-lg font-bold lg:block">آدرس‌های من</h1>
+    <section className="bg-muted/60 min-h-dvh lg:min-h-full lg:bg-transparent lg:px-0 lg:py-0">
+      <MobilePageHeader
+        fallbackHref="/account/profile"
+        fixed
+        title="آدرس‌های من"
+        endContent={
+          <AddressPicker
+            startInCreateMode
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(
+                  ACCOUNT_OUTLINE_ACTION_CLASS,
+                  "h-auto rounded-none px-0 py-2 text-[12px]",
+                )}
+              >
+                <Plus data-icon="inline-start" className="size-3" aria-hidden="true" />
+                افزودن آدرس
+              </Button>
+            }
+          />
+        }
+      />
+      <div className="px-4 pt-24 pb-6 lg:px-0 lg:py-0">
+        <div className="mb-5 hidden items-center justify-between gap-4 lg:flex">
+          <h1 className="text-secondary text-lg font-bold">آدرس‌های من</h1>
           <AddressPicker
             startInCreateMode
             trigger={
@@ -173,7 +198,7 @@ export function AddressesView() {
                 type="button"
                 variant="outline"
                 size="lg"
-                className="border-primary-hover text-primary-hover bg-transparent"
+                className={ACCOUNT_OUTLINE_ACTION_CLASS}
               >
                 <Plus data-icon="inline-start" />
                 افزودن آدرس جدید
