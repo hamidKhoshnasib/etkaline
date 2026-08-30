@@ -182,10 +182,22 @@ export default function CategoryCatalog({
   };
 
   const { data, error, isFetching, isPending } = useProductSearch(request);
+  const [appliedPriceLimits, setAppliedPriceLimits] = useState<{
+    categoryId: number;
+    minPrice?: number;
+    maxPrice?: number;
+  } | null>(null);
+  const products = Array.from(
+    new Map((data?.products ?? []).map((product) => [String(product.id), product])).values(),
+  );
   const { data: properties = [] } = useSearchableCategoryProperties(categoryId);
-  const maxPriceLimit = data?.maxPrice && data.maxPrice > 0 ? data.maxPrice : undefined;
-  const minPriceLimit = data?.minPrice && data.minPrice > 0 ? data.minPrice : undefined;
   const isLoadingProducts = isPending || isFetching;
+  const responseMaxPrice = data?.maxPrice && data.maxPrice > 0 ? data.maxPrice : undefined;
+  const responseMinPrice = data?.minPrice && data.minPrice > 0 ? data.minPrice : undefined;
+  const storedPriceLimits =
+    appliedPriceLimits?.categoryId === categoryId ? appliedPriceLimits : null;
+  const maxPriceLimit = storedPriceLimits?.maxPrice ?? responseMaxPrice;
+  const minPriceLimit = storedPriceLimits?.minPrice ?? responseMinPrice;
 
   const updateSort = (nextSort: string) => {
     replaceFilterParams((params) => {
@@ -210,6 +222,11 @@ export default function CategoryCatalog({
   };
 
   const applyPriceRange = (nextRange: { minPrice: number; maxPrice: number }) => {
+    setAppliedPriceLimits({
+      categoryId,
+      minPrice: minPriceLimit,
+      maxPrice: maxPriceLimit,
+    });
     replaceFilterParams((params) => {
       params.set("minPrice", String(nextRange.minPrice));
       params.set("maxPrice", String(nextRange.maxPrice));
@@ -221,6 +238,7 @@ export default function CategoryCatalog({
     replaceFilterParams((params) => {
       FILTER_QUERY_KEYS.forEach((key) => params.delete(key));
     });
+    setAppliedPriceLimits(null);
     setPriceFilterResetKey((value) => value + 1);
     setPage(1);
   };
@@ -245,6 +263,15 @@ export default function CategoryCatalog({
     maxPrice?: number;
     valueIds: number[];
   }) => {
+    setAppliedPriceLimits(
+      filters.minPrice === undefined || filters.maxPrice === undefined
+        ? null
+        : {
+            categoryId,
+            minPrice: minPriceLimit,
+            maxPrice: maxPriceLimit,
+          },
+    );
     replaceFilterParams((params) => {
       if (filters.onlyAvailable) {
         params.set("available", "1");
@@ -351,15 +378,15 @@ export default function CategoryCatalog({
             </p>
           ) : null}
 
-          {!isLoadingProducts && !error && data?.products.length === 0 ? (
+          {!isLoadingProducts && !error && products.length === 0 ? (
             <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
               محصولی با این فیلترها پیدا نشد.
             </p>
           ) : null}
 
-          {!isLoadingProducts && !error && data?.products.length ? (
+          {!isLoadingProducts && !error && products.length ? (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2 lg:grid-cols-4 lg:gap-2 lg:gap-y-3 xl:grid-cols-6">
-              {data.products.map((product) => (
+              {products.map((product) => (
                 <Fragment key={product.id}>
                   <div className="lg:hidden">
                     <ProductCard {...product} variant="catalog-mobile" />

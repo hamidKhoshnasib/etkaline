@@ -13,12 +13,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AuthDialog, WelcomeDialog } from "@/features/auth";
+import { useStorefront } from "@/providers/storefront-provider";
 import { HeaderCartSummary } from "./HeaderCartSummary";
 import { NotificationsMenu } from "./NotificationsMenu";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();
+  const { homeHref } = useStorefront();
   const displayName = session?.user.name?.trim() || session?.user.username;
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    window.location.assign(homeHref);
+  };
 
   return (
     <div className="flex shrink-0 items-center gap-3">
@@ -49,7 +56,7 @@ export function HeaderAuth() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => void signOut({ callbackUrl: "/" })}
+                  onClick={() => void handleSignOut()}
                   className="cursor-pointer gap-2 px-3 py-2 text-sm"
                 >
                   <LogOut aria-hidden="true" />

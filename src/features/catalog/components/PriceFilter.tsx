@@ -48,10 +48,24 @@ export function PriceFilter({
   open: controlledOpen,
   onOpenChange,
 }: PriceFilterProps) {
-  const priceFloor = Math.max(PRICE_FLOOR, minPriceLimit ?? PRICE_FLOOR);
-  const priceCeiling = Math.max(priceFloor + PRICE_STEP, maxPriceLimit ?? PRICE_CEILING);
-  const initialMinPrice = initialRange?.minPrice ?? priceFloor;
-  const initialMaxPrice = initialRange?.maxPrice ?? priceCeiling;
+  const responsePriceFloor = Math.max(PRICE_FLOOR, minPriceLimit ?? PRICE_FLOOR);
+  const priceFloor = Math.min(responsePriceFloor, initialRange?.minPrice ?? responsePriceFloor);
+  const responsePriceCeiling = maxPriceLimit ?? PRICE_CEILING;
+  const priceCeiling = Math.max(
+    priceFloor + PRICE_STEP,
+    responsePriceCeiling,
+    initialRange?.maxPrice ?? responsePriceCeiling,
+  );
+  const initialMinPrice = clamp(
+    initialRange?.minPrice ?? priceFloor,
+    priceFloor,
+    priceCeiling - PRICE_STEP,
+  );
+  const initialMaxPrice = clamp(
+    initialRange?.maxPrice ?? priceCeiling,
+    initialMinPrice + PRICE_STEP,
+    priceCeiling,
+  );
   const [uncontrolledOpen, setUncontrolledOpen] = useState(variant === "sheet");
   const [minPrice, setMinPrice] = useState(initialMinPrice);
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);

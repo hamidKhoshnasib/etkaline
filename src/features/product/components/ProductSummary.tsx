@@ -1,4 +1,5 @@
 import { StarIcon } from "lucide-react";
+import Link from "next/link";
 import {
   ProductColorPicker,
   type ProductColor,
@@ -16,6 +17,7 @@ interface ProductSummaryProps {
   rating?: number;
   reviewCount?: number;
   specs: Spec[];
+  brandHref?: string;
   colors: ProductColor[];
   shortDescription: string;
   selectedColorId?: string;
@@ -31,17 +33,42 @@ export function ProductSummary({
   rating,
   reviewCount,
   specs,
+  brandHref,
   colors,
   shortDescription,
   selectedColorId,
   onColorSelect,
 }: ProductSummaryProps) {
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <div className="min-w-0 flex-1">
       {/* Title */}
-      <h1 className="text-secondary lg:title-medium body-large-bold mb-3 lg:mb-4 lg:leading-relaxed">
-        {title}
-      </h1>
+      <h1 className="text-secondary lg:title-medium body-large-bold lg:leading-relaxed">{title}</h1>
+
+      <div className="mt-[51px] flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => scrollToSection("product-specifications")}
+          aria-controls="product-specifications"
+          className="border-border bg-background text-secondary hover:bg-muted h-8 rounded-md border px-3 text-sm font-medium transition-colors"
+        >
+          مشخصات تکمیلی
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollToSection("product-reviews")}
+          aria-controls="product-reviews"
+          className="border-border bg-background text-secondary hover:bg-muted h-8 rounded-md border px-3 text-sm font-medium transition-colors"
+        >
+          نظرات
+        </button>
+      </div>
 
       {rating !== undefined && reviewCount !== undefined ? (
         <div className="mb-5 flex flex-col flex-wrap gap-3 lg:mb-6">
@@ -65,7 +92,7 @@ export function ProductSummary({
         </div>
       ) : null}
 
-      <div className="mb-6 space-y-5 lg:hidden">
+      <div className="mt-[25px] mb-6 space-y-5 lg:hidden">
         <ProductGuarantees />
         <ProductColorPicker
           colors={colors}
@@ -76,7 +103,7 @@ export function ProductSummary({
       </div>
 
       {/* Specs */}
-      <div className="mb-6 lg:mb-7">
+      <div className="mt-[25px] mb-6 lg:mb-7">
         <p className="mb-3 text-sm font-semibold text-gray-700 lg:mb-2">مشخصات محصول</p>
         <div className="flex gap-2 lg:gap-2.5">
           {specs.map((s) => (
@@ -85,7 +112,13 @@ export function ProductSummary({
               className="flex flex-1 flex-col gap-1 rounded-lg bg-[#F8FAFC] px-2 py-3 lg:min-w-22 lg:flex-none lg:px-3 lg:py-2.5"
             >
               <span className="text-xs text-[#475569]">{s.label}</span>
-              <span className="text-secondary label-large">{s.value}</span>
+              {s.label === "برند" && brandHref ? (
+                <Link href={brandHref} className="text-secondary label-large hover:text-primary">
+                  {s.value}
+                </Link>
+              ) : (
+                <span className="text-secondary label-large">{s.value}</span>
+              )}
             </div>
           ))}
         </div>

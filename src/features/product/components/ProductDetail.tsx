@@ -60,6 +60,7 @@ interface ProductViewModel {
   images: string[];
   shortDescription: string;
   description: string;
+  brandHref?: string;
   breadcrumbs: ProductBreadcrumbEntry[];
 }
 
@@ -140,6 +141,10 @@ function createProductViewModel(
     images: images.length > 0 ? images : [NO_IMAGE_URL],
     shortDescription: toPlainText(product.shortReview),
     description: product.expertReview,
+    brandHref:
+      product.brand && product.brand.id > 0
+        ? `${storefront.searchHref}?brandIds=${product.brand.id}`
+        : undefined,
     breadcrumbs,
   };
 }
@@ -201,7 +206,7 @@ function MobilePurchaseFooter({
   price,
   originalPrice,
   storeProductId,
-  inventory,
+  inventory: _inventory,
   isAvailable,
 }: MobilePurchaseFooterProps) {
   return (
@@ -215,9 +220,12 @@ function MobilePurchaseFooter({
       />
 
       <div className="min-w-0">
+        {/* Inventory visibility is temporarily disabled. */}
+        {/*
         <p className={isAvailable ? "text-xs text-emerald-700" : "text-destructive text-xs"}>
           {isAvailable ? `${inventory.toLocaleString("fa-IR")} عدد موجود` : "ناموجود"}
         </p>
+        */}
         <p className="text-muted-foreground text-xs line-through">
           {formatProductPrice(originalPrice)}
         </p>
@@ -313,6 +321,7 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
             <ProductSummary
               title={product.title}
               specs={product.specs}
+              brandHref={product.brandHref}
               colors={product.colors}
               shortDescription={product.shortDescription}
               selectedColorId={selectedColorId}
@@ -320,11 +329,13 @@ function ProductDetailContent({ product }: { product: ProductViewModel }) {
             />
           </section>
 
-          <ProductDescription
-            productName={product.title}
-            description={product.description}
-            specifications={product.specifications}
-          />
+          <div id="product-specifications" className="scroll-mt-40">
+            <ProductDescription
+              productName={product.title}
+              description={product.description}
+              specifications={product.specifications}
+            />
+          </div>
 
           <ReviewsSection productId={product.id} />
         </div>

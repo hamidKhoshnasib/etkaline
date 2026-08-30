@@ -174,7 +174,8 @@ export default function OrderSummary({
             aria-busy={isSubmitting}
             className={cn(
               "w-full rounded-full font-bold",
-              step === "review" && "bg-[#00C853] hover:bg-[#00B84A]",
+              step === "review" &&
+                "bg-[#00C853] hover:bg-[#00B84A] disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] disabled:opacity-100",
             )}
           >
             {step === "cart"

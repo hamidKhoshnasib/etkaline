@@ -70,21 +70,22 @@ export function ProductDescription({
       .trim().length > 0;
 
   const handleNavItemClick = (id: string) => {
-    setActiveNav(id);
-
     if (id === "reviews") {
       document.getElementById("product-reviews")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
+      return;
     }
+
+    setActiveNav(id);
   };
 
   return (
     <section className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
       {/* Sidebar nav */}
       <nav
-        className="flex w-full shrink-0 overflow-x-auto rounded-xl bg-slate-100 p-1 lg:w-[200px] lg:flex-col lg:overflow-hidden"
+        className="flex w-full shrink-0 overflow-x-auto rounded-xl p-1 lg:w-[200px] lg:flex-col lg:overflow-hidden"
         aria-label="بخش‌های جزئیات محصول"
       >
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
