@@ -67,7 +67,7 @@ export function MobileBottomNav({ categories }: MobileBottomNavProps) {
     },
   ];
 
-  if (pathname.startsWith("/products/") || pathname.startsWith(`${storefront.basePath}/product/`)) {
+  if (pathname.startsWith(storefront.productPathPrefix)) {
     return null;
   }
 

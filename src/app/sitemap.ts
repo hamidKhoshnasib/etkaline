@@ -6,25 +6,26 @@ import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import { getProductSlug } from "@/features/product/lib/product-slug";
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
-import { SITE_TYPES } from "@/lib/api-site-type";
+import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
-const staticRoutes = ["/", "/blog", "/contact-us"] as const;
+const storefrontSiteTypes = [SITE_TYPES.appliance, SITE_TYPES.supermarket] as const;
+const sharedStaticRoutes = ["/blog", "/contact-us"] as const;
 
 function flattenCategories(categories: MenuCategory[]): MenuCategory[] {
   return categories.flatMap((category) => [category, ...flattenCategories(category.children)]);
 }
 
-async function getProductEntries(): Promise<MetadataRoute.Sitemap> {
-  const storefront = getStorefront(SITE_TYPES.supermarket);
+async function getProductEntries(siteType: SiteType): Promise<MetadataRoute.Sitemap> {
+  const storefront = getStorefront(siteType);
   try {
     const response = await fetch(new URL("/api/Products/Search", getServerApiBaseUrl()), {
       method: "POST",
       headers: {
-        ...(await getServerApiHeaders(SITE_TYPES.supermarket)),
+        ...(await getServerApiHeaders(siteType)),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ page: 1, pageLength: 1000, sortType: 1, categoryId: 0 }),
-      next: { revalidate: 3600, tags: ["supermarket-product-sitemap"] },
+      next: { revalidate: 3600, tags: [`${siteType}-product-sitemap`] },
       signal: AbortSignal.timeout(15_000),
     });
     if (!response.ok) {
@@ -64,23 +65,37 @@ async function getProductEntries(): Promise<MetadataRoute.Sitemap> {
   }
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const storefront = getStorefront(SITE_TYPES.supermarket);
-  const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((pathname, index) => ({
-    url: storefront.absoluteUrl(pathname),
-    changeFrequency: pathname === "/" ? "daily" : "weekly",
-    priority: index === 0 ? 1 : 0.7,
+async function getStorefrontEntries(siteType: SiteType): Promise<MetadataRoute.Sitemap> {
+  const storefront = getStorefront(siteType);
+  const [products, categories] = await Promise.all([
+    getProductEntries(siteType),
+    getMenuCategories(siteType).catch(() => []),
+  ]);
+  const categoryEntries: MetadataRoute.Sitemap = flattenCategories(categories).map((category) => ({
+    url: storefront.absoluteUrl(storefront.categoryHref(category.id)),
+    changeFrequency: "daily",
+    priority: 0.8,
   }));
 
-  try {
-    const categories = flattenCategories(await getMenuCategories(SITE_TYPES.supermarket));
-    const categoryEntries: MetadataRoute.Sitemap = categories.map((category) => ({
-      url: storefront.absoluteUrl(storefront.categoryHref(category.id)),
+  return [
+    {
+      url: storefront.absoluteUrl(storefront.homeHref),
       changeFrequency: "daily",
-      priority: 0.8,
-    }));
-    return [...staticEntries, ...categoryEntries, ...(await getProductEntries())];
-  } catch {
-    return [...staticEntries, ...(await getProductEntries())];
-  }
+      priority: siteType === SITE_TYPES.appliance ? 1 : 0.9,
+    },
+    ...categoryEntries,
+    ...products,
+  ];
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const defaultStorefront = getStorefront(SITE_TYPES.appliance);
+  const sharedEntries: MetadataRoute.Sitemap = sharedStaticRoutes.map((pathname) => ({
+    url: defaultStorefront.absoluteUrl(pathname),
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+  const storefrontEntries = await Promise.all(storefrontSiteTypes.map(getStorefrontEntries));
+
+  return [...storefrontEntries.flat(), ...sharedEntries];
 }

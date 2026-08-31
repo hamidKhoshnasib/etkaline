@@ -3,10 +3,12 @@ import { SITE_URL } from "@/config/site";
 
 export interface StorefrontConfig {
   siteType: SiteType;
-  basePath: "" | "/appliances";
+  basePath: "" | "/fresh";
   homeHref: string;
   cartHref: string;
   searchHref: string;
+  productPathPrefix: string;
+  categoryPathPrefix: string;
   productHref: (id: number | string, slug?: string | null) => string;
   categoryHref: (id: number | string) => string;
   absoluteUrl: (href: string) => string;
@@ -23,24 +25,28 @@ function absoluteUrl(href: string) {
 export const STOREFRONTS = {
   supermarket: {
     siteType: SITE_TYPES.supermarket,
-    basePath: "",
-    homeHref: "/",
-    cartHref: "/cart",
-    searchHref: "/search/category",
+    basePath: "/fresh",
+    homeHref: "/fresh",
+    cartHref: "/fresh/cart",
+    searchHref: "/fresh/search/category",
+    productPathPrefix: "/fresh/products/",
+    categoryPathPrefix: "/fresh/search/category/",
     productHref: (id, slug) =>
-      `/products/${encodeURIComponent(String(id))}/${encodeURIComponent(normalizeSlug(slug))}`,
-    categoryHref: (id) => `/search/category/${encodeURIComponent(String(id))}`,
+      `/fresh/products/${encodeURIComponent(String(id))}/${encodeURIComponent(normalizeSlug(slug))}`,
+    categoryHref: (id) => `/fresh/search/category/${encodeURIComponent(String(id))}`,
     absoluteUrl,
   },
   appliance: {
     siteType: SITE_TYPES.appliance,
-    basePath: "/appliances",
-    homeHref: "/appliances",
-    cartHref: "/appliances/cart",
-    searchHref: "/appliances/search",
+    basePath: "",
+    homeHref: "/",
+    cartHref: "/cart",
+    searchHref: "/search",
+    productPathPrefix: "/product/",
+    categoryPathPrefix: "/categories/",
     productHref: (id, slug) =>
-      `/appliances/product/${encodeURIComponent(String(id))}/${encodeURIComponent(normalizeSlug(slug))}`,
-    categoryHref: (id) => `/appliances/categories/${encodeURIComponent(String(id))}`,
+      `/product/${encodeURIComponent(String(id))}/${encodeURIComponent(normalizeSlug(slug))}`,
+    categoryHref: (id) => `/categories/${encodeURIComponent(String(id))}`,
     absoluteUrl,
   },
 } satisfies Record<SiteType, StorefrontConfig>;

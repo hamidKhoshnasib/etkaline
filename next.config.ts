@@ -16,6 +16,30 @@ const imageProtocol: "http" | "https" = imageUrl.protocol === "http:" ? "http" :
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  async redirects() {
+    return [
+      {
+        source: "/appliances",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/appliances/:path*",
+        destination: "/:path*",
+        permanent: true,
+      },
+      {
+        source: "/products/:path*",
+        destination: "/fresh/products/:path*",
+        permanent: true,
+      },
+      {
+        source: "/search/category/:path*",
+        destination: "/fresh/search/category/:path*",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     dangerouslyAllowLocalIP: true,
     remotePatterns: [

@@ -305,7 +305,7 @@ export default function CategoryCatalog({
 
       <MobilePageHeader
         fixed
-        fallbackHref="/"
+        fallbackHref={storefront.homeHref}
         title={title.replace("محصولات ", "")}
         endContent={
           <button
