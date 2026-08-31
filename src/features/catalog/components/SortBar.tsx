@@ -56,7 +56,7 @@ export function SortBar({ sort, onSort, total }: SortBarProps) {
         <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap">
           <button
             type="button"
-            className="flex shrink-0 items-center gap-1 rounded-lg py-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-800"
+            className="flex shrink-0 items-center gap-1 rounded-lg py-1 text-sm font-bold text-slate-600 transition-colors hover:text-slate-800"
           >
             <SortDescIcon className="size-4 text-slate-600" />
             <span>اولویت نمایش</span>
