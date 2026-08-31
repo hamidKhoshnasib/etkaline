@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: "فروش آنلاین لوازم خانگی با ارسال مطمئن و پشتیبانی اتکالاین",
-    url: getStorefront(SITE_TYPES.supermarket).absoluteUrl("/"),
+    url: getStorefront(SITE_TYPES.appliance).absoluteUrl("/"),
   },
   robots: {
     index: true,

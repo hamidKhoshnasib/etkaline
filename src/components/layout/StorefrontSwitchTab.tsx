@@ -5,13 +5,13 @@ import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
 const switchConfig = {
   [SITE_TYPES.appliance]: {
-    href: "/",
+    href: "/fresh",
     openInNewTab: true,
     label: "سوپر مارکت",
     className: "bg-linear-to-b from-[#42D778] via-[#34B171] via-[98.58%] to-[#34B171] text-white",
   },
   [SITE_TYPES.supermarket]: {
-    href: "/appliances",
+    href: "/",
     label: "لوازم خانگی",
     className: "bg-linear-to-b from-[#FFD54F] via-[#F57F17] to-[#E65100] text-white",
     openInNewTab: true,

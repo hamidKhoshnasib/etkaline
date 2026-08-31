@@ -33,7 +33,7 @@ import { getSiteTypeHeaders } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 
 const OTP_LENGTH = 6;
-const RESEND_SECONDS = 150;
+const RESEND_SECONDS = 120;
 const OTP_DIGITS_PATTERN = "[0-9۰-۹٠-٩]*";
 
 type AuthStep = "login" | "verify";
@@ -330,7 +330,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
 
       setSecondsLeft(RESEND_SECONDS);
       setCode("");
-      toast.success("کد تأیید دوباره ارسال شد.");
+      toast.success("کد تایید مجددا ارسال شد");
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "ارسال مجدد کد ناموفق بود.");
     } finally {
@@ -353,6 +353,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={trigger} />
       <DialogContent
+        data-site={siteType}
         showCloseButton={false}
         className="inset-x-0 start-0 top-auto bottom-0 h-[min(580px,calc(100dvh-1rem))] max-h-none max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-t-[28px] rounded-b-none p-0 sm:start-1/2 sm:top-1/2 sm:bottom-auto sm:h-[min(580px,calc(100dvh-2rem))] sm:max-h-none sm:max-w-[440px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] rtl:translate-x-0 rtl:sm:translate-x-1/2"
       >
@@ -390,7 +391,7 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
                     dir="ltr"
                     type="tel"
                     inputMode="numeric"
-                    autoComplete="tel"
+                    autoComplete="off"
                     placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                     value={toPersianDigits(mobile)}
                     onChange={(event) =>

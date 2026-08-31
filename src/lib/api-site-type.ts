@@ -5,7 +5,7 @@ export const SITE_TYPES = {
 
 export type SiteType = (typeof SITE_TYPES)[keyof typeof SITE_TYPES];
 
-export const DEFAULT_SITE_TYPE: SiteType = SITE_TYPES.supermarket;
+export const DEFAULT_SITE_TYPE: SiteType = SITE_TYPES.appliance;
 export const STOREFRONT_COOKIE_NAME = "etkaline-storefront";
 
 export function isSiteType(value: unknown): value is SiteType {

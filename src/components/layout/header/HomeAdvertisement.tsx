@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useHomeAdvertisement } from "@/features/home/appliances/api/use-home-advertisement";
 import { Container } from "@/components/ui/Container";
+import { useStorefront } from "@/providers/storefront-provider";
 
 function getSafeHref(link: string | null): string | null {
   if (!link) {
@@ -35,9 +36,11 @@ function getSafeColor(color: string): string | undefined {
 export function HomeAdvertisement() {
   const [isVisible, setIsVisible] = React.useState(true);
   const pathname = usePathname();
-  const { data: advertisement } = useHomeAdvertisement(pathname === "/");
+  const storefront = useStorefront();
+  const isStorefrontHome = pathname === storefront.homeHref;
+  const { data: advertisement } = useHomeAdvertisement(isStorefrontHome);
 
-  if (!isVisible || pathname !== "/" || !advertisement) {
+  if (!isVisible || !isStorefrontHome || !advertisement) {
     return null;
   }
 

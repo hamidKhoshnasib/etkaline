@@ -17,7 +17,7 @@ export interface NavLink {
 }
 
 export const navLinks: NavLink[] = [
-  { href: "/categories", label: "دسته‌بندی کالاها", icon: CategoryIcon },
+  { href: (storefront) => storefront.searchHref, label: "دسته‌بندی کالاها", icon: CategoryIcon },
   {
     href: (storefront) => `${storefront.searchHref}?sort=mostdiscount`,
     label: "تخفیف‌دارها",

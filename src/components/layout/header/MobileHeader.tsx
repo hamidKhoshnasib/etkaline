@@ -19,10 +19,8 @@ export function MobileHeader() {
   const selectedAddressTitle =
     addresses.find((address) => address.isDefault)?.title ?? "انتخاب آدرس";
   if (
-    pathname.startsWith("/products/") ||
-    pathname.startsWith("/search/category/") ||
-    pathname.startsWith(`${storefront.basePath}/product/`) ||
-    pathname.startsWith(`${storefront.basePath}/categories/`) ||
+    pathname.startsWith(storefront.productPathPrefix) ||
+    pathname.startsWith(storefront.categoryPathPrefix) ||
     pathname.startsWith("/account")
   ) {
     return null;

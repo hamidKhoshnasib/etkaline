@@ -8,8 +8,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/account/", "/cart/", "/appliances/cart/", "/checkout/", "/api/"],
+      disallow: ["/account/", "/cart/", "/fresh/cart/", "/checkout/", "/api/"],
     },
-    sitemap: getStorefront(SITE_TYPES.supermarket).absoluteUrl("/sitemap.xml"),
+    sitemap: getStorefront(SITE_TYPES.appliance).absoluteUrl("/sitemap.xml"),
   };
 }

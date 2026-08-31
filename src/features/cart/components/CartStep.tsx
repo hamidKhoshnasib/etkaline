@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { LayoutGrid, Rows3 } from "lucide-react";
 
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import CartItemRow from "@/features/cart/components/CartItemRow";
@@ -49,10 +48,10 @@ export default function CartStep({
           <h1 id="cart-items-heading" className="text-secondary text-xl font-bold">
             سبد خرید
           </h1>
-          <div className="text-muted-foreground flex items-center gap-3" aria-hidden="true">
-            <Rows3 className="text-primary size-6" />
-            <LayoutGrid className="size-5" />
-          </div>
+          {/*<div className="text-muted-foreground flex items-center gap-3" aria-hidden="true">*/}
+          {/*  <Rows3 className="text-primary size-6" />*/}
+          {/*  <LayoutGrid className="size-5" />*/}
+          {/*</div>*/}
         </header>
 
         <div className="flex flex-col gap-3">

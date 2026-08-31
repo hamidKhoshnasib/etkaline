@@ -1223,7 +1223,7 @@ function StoreStep({
   const activeStoreId = selectedStore || committedStoreId || stores[0]?.id || "";
   const orderedStores = [...stores].sort(
     (firstStore, secondStore) =>
-      Number(secondStore.id === activeStoreId) - Number(firstStore.id === activeStoreId),
+      Number(secondStore.id === committedStoreId) - Number(firstStore.id === committedStoreId),
   );
 
   async function handleComplete() {

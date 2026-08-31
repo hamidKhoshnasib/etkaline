@@ -294,8 +294,8 @@ features/cms-page/
 
 Priority: Critical
 
-- [ ] Approve or revise the appliance URL strategy.
-- [ ] Record future supermarket path reservations.
+- [x] Approve or revise the appliance URL strategy.
+- [x] Reserve `/fresh` for the supermarket storefront.
 - [ ] Inventory routes, imports, assets, Client Components, and mock data.
 - [ ] Run baseline lint, type-check, format-check, and build.
 - [ ] Confirm naming, ownership, and phase approval workflow.
@@ -462,18 +462,19 @@ Update this document
 
 <!-- تصمیم‌های پیشنهادی تا زمان تأیید صریح کاربر نهایی نیستند. -->
 
-| ID    | Decision                                           | Status     | Notes                                                                 |
-| ----- | -------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
-| D-001 | Feature-based architecture is primary              | Confirmed  | Common primitives live in components/ui; no separate UI wrapper layer |
-| D-002 | Widgets are the organism-equivalent layer          | Rejected   | Header and Footer remain under components/layout; no widgets layer    |
-| D-003 | Move appliance URLs under `/appliances`            | Confirmed  | Appliance routes keep their public prefix                             |
-| D-004 | Temporarily redirect `/` to `/appliances` with 307 | Rejected   | Root belongs to the supermarket storefront                            |
-| D-005 | Exclude supermarket implementation                 | Superseded | Supermarket implementation was later approved                         |
-| D-006 | Keep CKEditor in the separate Blazor admin         | Confirmed  | Frontend renders safe published HTML                                  |
-| D-007 | Require feature-specific Skeletons                 | Confirmed  | Match final RTL responsive geometry                                   |
-| D-008 | Migrate incrementally with a passing build         | Confirmed  | No big-bang rewrite                                                   |
-| D-009 | Organize routes into three route groups            | Confirmed  | Supermarket, appliances, and shared groups preserve public URLs       |
-| D-010 | Control canonical URLs in storefront config        | Confirmed  | Validated API fields provide metadata content, not route identity     |
+| ID    | Decision                                            | Status     | Notes                                                                 |
+| ----- | --------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| D-001 | Feature-based architecture is primary               | Confirmed  | Common primitives live in components/ui; no separate UI wrapper layer |
+| D-002 | Widgets are the organism-equivalent layer           | Rejected   | Header and Footer remain under components/layout; no widgets layer    |
+| D-003 | Move appliance URLs under `/appliances`             | Superseded | Replaced by D-011                                                     |
+| D-004 | Temporarily redirect `/` to `/appliances` with 307  | Superseded | Replaced by D-011                                                     |
+| D-005 | Exclude supermarket implementation                  | Superseded | Supermarket implementation was later approved                         |
+| D-006 | Keep CKEditor in the separate Blazor admin          | Confirmed  | Frontend renders safe published HTML                                  |
+| D-007 | Require feature-specific Skeletons                  | Confirmed  | Match final RTL responsive geometry                                   |
+| D-008 | Migrate incrementally with a passing build          | Confirmed  | No big-bang rewrite                                                   |
+| D-009 | Organize routes into three route groups             | Confirmed  | Supermarket, appliances, and shared groups preserve public URLs       |
+| D-010 | Control canonical URLs in storefront config         | Confirmed  | Validated API fields provide metadata content, not route identity     |
+| D-011 | Serve appliances at `/` and supermarket at `/fresh` | Confirmed  | Old unambiguous storefront URLs permanently redirect to the new paths |
 
 ## 16. Progress log
 
@@ -509,3 +510,4 @@ Update this document
 | 2026-07-21 | Architecture | Removed UI wrapper barrels                | Pending verification                                                              | Deleted obsolete UI wrapper barrels; components/ui is the sole common UI boundary                                                                                          |
 | 2026-07-21 | Architecture | Removed src/shared                        | Pending verification                                                              | Site configuration moved to config and its redundant utility barrel was removed                                                                                            |
 | 2026-08-03 | Architecture | Grouped storefront and shared routes      | lint PASS; type-check PASS; build PASS; format-check FAIL (pre-existing debt)     | Public routes stayed unchanged; canonical, Open Graph, sitemap, and robots URLs now use storefront URL builders, while validated API metadata supplies page content        |
+| 2026-08-31 | Architecture | Reassigned storefront route ownership     | lint PASS; type-check PASS; build PASS; format-check FAIL (pre-existing debt)     | Appliances now use root URLs, supermarket routes live under `/fresh`, and unambiguous legacy URLs permanently redirect to their new canonical paths                        |

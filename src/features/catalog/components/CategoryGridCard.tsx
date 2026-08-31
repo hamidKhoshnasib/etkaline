@@ -51,7 +51,7 @@ export default function CategoryGridCard({
             href={storefront.productHref(item.id, item.title)}
             aria-label={`مشاهده ${item.title}`}
             className={cn(
-              "flex h-34 flex-col items-center justify-center gap-1.5 p-2",
+              "flex h-34 min-w-0 flex-col items-center justify-center gap-1.5 p-2",
               i < 2 && "border-b border-[#CBD5E1]",
               i % 2 === 0 && "border-l border-[#CBD5E1]",
             )}
@@ -63,7 +63,7 @@ export default function CategoryGridCard({
               alt={item.title}
               className="line-clamp-1 h-13.5 w-10.75 object-contain"
             />
-            <p className="label-large flex w-full justify-center truncate">{item.title}</p>
+            <p className="label-large line-clamp-2 w-full text-center">{item.title}</p>
           </Link>
         ))}
       </div>

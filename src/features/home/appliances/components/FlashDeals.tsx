@@ -265,6 +265,7 @@ export default function FlashDeals({ items }: FlashDealsProps) {
                       : "h-[308px] w-full border-0"
                   }
                   imageClassName="lg:h-[190px] lg:w-full"
+                  imageContainerClassName="bg-transparent"
                   priceClassName="text-primary-hover"
                   priceIconClassName="[&_path]:fill-primary-hover"
                 />
