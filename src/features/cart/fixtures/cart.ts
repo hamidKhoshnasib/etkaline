@@ -48,7 +48,7 @@ export const CART_ITEMS: CartItem[] = [
       "یخچال فریزر سامسونگ ۳۶ اینچ ۲۸ فوت مکعبی درب فرانسوی با یخساز (RF28RV20ISR/AA) - استیل ضد زنگ",
     image: PLACEHOLDER,
     color: "سفید",
-    warranty: "گارانتی اتکلاین",
+    warranty: "گارانتی اتکا لاین",
     price: 17500000,
     quantity: 1,
   },

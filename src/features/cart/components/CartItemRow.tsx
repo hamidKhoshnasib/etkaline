@@ -133,7 +133,7 @@ export default function CartItemRow({
           ) : null}
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="size-4" aria-hidden="true" />
-            {item.hasInventory ? "گارانتی اتکلاین" : "موجود نیست"}
+            {item.hasInventory ? "گارانتی سلامت و اصالت کالا" : "موجود نیست"}
           </span>
         </div>
 
