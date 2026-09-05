@@ -94,7 +94,7 @@
 [data-site="supermarket"] {
   --primary: #43a047;
   --primary-hover: #388e3c;
-  --checkout-accent: #43a047;
+  --checkout-accent: #00b8d4;
   --storefront-brand-surface: linear-gradient(180deg, #42d778 0%, #34b171 100%);
   --primary-foreground: #ffffff;
   --auth-accent: #43a047;

@@ -1,12 +1,10 @@
 export const LINK_COLUMNS = [
   {
-    title: "به اتکالاین",
+    title: "با اتکالاین",
     items: [
-      { label: "درباره اتکالاین", href: "/about" },
-      { label: "فرصت‌های شغلی", href: "/careers" },
-      { label: "اتکالاین در رسانه‌ها", href: "/media" },
       { label: "تماس با اتکالاین", href: "/contact-us" },
-      { label: "افزودن کسب‌وکار", href: "/business" },
+      { label: "سوالات متداول", href: "/faq" },
+      { label: "قوانین و مقررات", href: "/terms-and-conditions" },
     ],
   },
   {

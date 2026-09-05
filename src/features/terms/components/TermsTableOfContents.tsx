@@ -17,21 +17,29 @@ export function TermsTableOfContents({
       .map(({ id }) => document.getElementById(id))
       .filter((section): section is HTMLElement => section !== null);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleSection = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((first, second) => first.boundingClientRect.top - second.boundingClientRect.top)[0];
+    function updateActiveSection() {
+      const sectionAtScrollPosition = observedSections.reduce<string | undefined>(
+        (currentSectionId, section) =>
+          section.getBoundingClientRect().top <= 160 ? section.id : currentSectionId,
+        undefined,
+      );
+      const nextActiveSection = sectionAtScrollPosition ?? observedSections[0]?.id;
 
-        if (visibleSection) {
-          setActiveSection(visibleSection.target.id);
-        }
-      },
-      { rootMargin: "-25% 0px -60%", threshold: 0 },
-    );
+      if (nextActiveSection) {
+        setActiveSection((currentSection) =>
+          currentSection === nextActiveSection ? currentSection : nextActiveSection,
+        );
+      }
+    }
 
-    observedSections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
   }, [sections]);
 
   return (

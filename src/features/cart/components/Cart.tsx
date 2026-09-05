@@ -98,13 +98,19 @@ export default function CartPage() {
   const [savedBasket, setSavedBasket] = useState<SavedBasket | null>(null);
   const [paymentSelection, setPaymentSelection] = useState<PayBasketInput | null>(null);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
+  const [removeDiscountOnCheckoutFetch, setRemoveDiscountOnCheckoutFetch] = useState(true);
   const [pendingRemovals, setPendingRemovals] = useState<PendingRemoval[]>([]);
   const [removalClock, setRemovalClock] = useState(() => Date.now());
   const [restoringStoreProductId, setRestoringStoreProductId] = useState<number | null>(null);
   const openBasketQuery = useOpenBasket();
   const addressesQuery = useAddresses();
   const checkoutQuery = useCheckoutDetails(
-    openBasketQuery.data ? { basketId: openBasketQuery.data.id } : null,
+    openBasketQuery.data
+      ? {
+          basketId: openBasketQuery.data.id,
+          removeDiscount: removeDiscountOnCheckoutFetch,
+        }
+      : null,
   );
   const updateQuantityMutation = useUpdateBasketQuantity();
   const addToBasketMutation = useAddToBasket();
@@ -133,6 +139,15 @@ export default function CartPage() {
     setIsPaymentComplete(false);
     setPaymentSelection(selection);
   }, []);
+  const handleDiscountApplied = useCallback(async () => {
+    setSavedBasket(null);
+    if (removeDiscountOnCheckoutFetch) {
+      setRemoveDiscountOnCheckoutFetch(false);
+      return;
+    }
+
+    await checkoutQuery.refetch();
+  }, [checkoutQuery, removeDiscountOnCheckoutFetch]);
 
   useEffect(() => {
     if (pendingRemovals.length === 0) {
@@ -544,12 +559,15 @@ export default function CartPage() {
           checkoutDetails={checkoutDetails}
           savedBasket={savedBasket}
           canProceed={canProceed}
+          onDiscountApplied={handleDiscountApplied}
           isSubmitting={
             (step === "cart" && saveBasketMutation.isPending) ||
             (step === "address" &&
               (setApplianceDeliveryTimeMutation.isPending ||
                 setSupermarketDeliveryTimeMutation.isPending)) ||
-            (step === "review" && payBasketMutation.isPending)
+            (step === "review" &&
+              (payBasketMutation.isPending ||
+                (!removeDiscountOnCheckoutFetch && checkoutQuery.isFetching)))
           }
           onPrimary={handlePrimary}
         />

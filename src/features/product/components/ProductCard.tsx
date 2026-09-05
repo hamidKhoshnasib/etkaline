@@ -191,7 +191,7 @@ function SupermarketProductCard({
           <div
             role="group"
             aria-label={`تعداد ${title} در سبد خرید`}
-            className="border-primary bg-background text-primary absolute top-[82px] right-0 z-10 flex h-[88px] w-10 flex-col items-center justify-between rounded-full border py-1"
+            className="border-primary bg-background text-primary absolute top-[58px] right-0 z-10 flex h-[88px] w-10 flex-col items-center justify-between rounded-full border py-1"
           >
             <button
               type="button"

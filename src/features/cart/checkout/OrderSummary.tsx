@@ -1,13 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { useCheckDiscount } from "@/features/cart/api/discount";
 import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
 import type { SavedBasket } from "@/features/cart/api/save-basket";
 import type { CartItem } from "@/features/cart/fixtures/cart";
@@ -22,6 +30,7 @@ interface OrderSummaryProps {
   savedBasket?: SavedBasket | null;
   canProceed?: boolean;
   isSubmitting?: boolean;
+  onDiscountApplied?: () => void | Promise<void>;
   onPrimary: () => void | Promise<void>;
 }
 
@@ -41,9 +50,11 @@ export default function OrderSummary({
   savedBasket = null,
   canProceed = true,
   isSubmitting = false,
+  onDiscountApplied,
   onPrimary,
 }: OrderSummaryProps) {
   const [discountCode, setDiscountCode] = useState("");
+  const checkDiscountMutation = useCheckDiscount();
   const fallbackTotals = calculateCartTotals(items, step);
   const savedInvoice = step === "cart" ? null : savedBasket;
   const isCartStep = step === "cart" && checkoutDetails !== undefined;
@@ -67,6 +78,24 @@ export default function OrderSummary({
       )
     : (checkoutDetails?.payableAmount ?? fallbackTotals.grandTotal);
   const title = "جزئیات فاکتور";
+
+  async function handleDiscountSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!checkoutDetails) {
+      return;
+    }
+
+    try {
+      const result = await checkDiscountMutation.mutateAsync({
+        basketId: checkoutDetails.id,
+        code: discountCode,
+      });
+      await onDiscountApplied?.();
+      toast.success(result.message);
+    } catch {
+      // The mutation error is rendered next to the field.
+    }
+  }
 
   return (
     <aside className="h-fit lg:sticky lg:top-36">
@@ -126,31 +155,50 @@ export default function OrderSummary({
           </div>
 
           {step === "review" ? (
-            <div className="mt-5">
-              <FieldLabel
-                htmlFor="discount-code"
-                className="text-secondary mb-2 block text-left text-xs font-bold"
-              >
-                کد تخفیف
-              </FieldLabel>
-              <div className="border-input flex h-11 items-center gap-2 rounded-full border p-1 ps-1">
-                <Input
-                  id="discount-code"
-                  value={discountCode}
-                  onChange={(event) => setDiscountCode(event.target.value)}
-                  placeholder="کد را وارد کنید"
-                  className="h-full flex-1 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:border-0"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 rounded-full bg-[#F1F5F9] px-4 text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#64748B]"
+            <form className="mt-5" onSubmit={handleDiscountSubmit}>
+              <Field data-invalid={checkDiscountMutation.isError}>
+                <FieldLabel
+                  htmlFor="discount-code"
+                  className="text-secondary text-left text-xs font-bold"
                 >
-                  ثبت
-                </Button>
-              </div>
-            </div>
+                  کد تخفیف
+                </FieldLabel>
+                <InputGroup className="h-11 rounded-full p-1 ps-1">
+                  <InputGroupInput
+                    id="discount-code"
+                    value={discountCode}
+                    onChange={(event) => {
+                      setDiscountCode(event.target.value);
+                      checkDiscountMutation.reset();
+                    }}
+                    placeholder="کد را وارد کنید"
+                    required
+                    disabled={checkDiscountMutation.isPending}
+                    aria-invalid={checkDiscountMutation.isError}
+                    className="px-3 text-sm"
+                  />
+                  <InputGroupAddon align="inline-end" className="p-0">
+                    <InputGroupButton
+                      type="submit"
+                      size="sm"
+                      disabled={checkDiscountMutation.isPending || !discountCode.trim()}
+                      className="bg-muted text-muted-foreground hover:bg-muted hover:text-muted-foreground h-8 rounded-full px-4"
+                    >
+                      {checkDiscountMutation.isPending ? (
+                        <Spinner
+                          size="sm"
+                          data-icon="inline-start"
+                          aria-label="در حال بررسی کد تخفیف"
+                          className="size-3.5"
+                        />
+                      ) : null}
+                      ثبت
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError>{checkDiscountMutation.error?.message}</FieldError>
+              </Field>
+            </form>
           ) : null}
 
           <div className="mt-5 flex items-start gap-2 text-xs leading-5 text-[#1E293B]">
@@ -168,10 +216,11 @@ export default function OrderSummary({
             size="md"
             disabled={
               isSubmitting ||
+              checkDiscountMutation.isPending ||
               !canProceed ||
               (isCartStep && checkoutDetails.basketItems.length === 0)
             }
-            aria-busy={isSubmitting}
+            aria-busy={isSubmitting || checkDiscountMutation.isPending}
             className={cn(
               "w-full rounded-full font-bold",
               step === "review" &&
