@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Info, PencilLine, RefreshCw } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { CLIENT_SESSION_SYNC_EVENT } from "@/lib/axios-client";
 import { useLoginBanner } from "@/features/auth/api/use-login-banner";
@@ -293,7 +293,10 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
       }
 
       await sessionSync.ready;
-      window.dispatchEvent(new Event("etkala:authenticated"));
+      const authenticatedSession = await getSession();
+      if (authenticatedSession?.user.needCompleteProfile !== true) {
+        window.dispatchEvent(new Event("etkala:authenticated"));
+      }
       void showWelcomeDialog(siteType);
       const search = new URLSearchParams(window.location.search);
       const callbackUrl = search.get("callbackUrl");

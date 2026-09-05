@@ -1,13 +1,10 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import CartItemRow from "@/features/cart/components/CartItemRow";
 import { ProductCard } from "@/features/product/components/ProductCard";
-import { getRecentlyViewedProducts } from "@/features/product/lib/recently-viewed-products";
-import type { Product } from "@/features/product/model/product";
 import ProductSwiper from "@/features/product/components/ProductSwiper";
+import { useRecentlyViewedProducts } from "@/features/product/hooks/use-recently-viewed-products";
 import { useStorefront } from "@/providers/storefront-provider";
 
 interface CartStepProps {
@@ -19,13 +16,6 @@ interface CartStepProps {
   onUndoRemoval: (storeProductId: number) => void;
 }
 
-const EMPTY_RECENT_PRODUCTS: Product[] = [];
-
-function subscribeToStorage(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  return () => window.removeEventListener("storage", onStoreChange);
-}
-
 export default function CartStep({
   items,
   deletingStoreProductId,
@@ -35,11 +25,7 @@ export default function CartStep({
   onUndoRemoval,
 }: CartStepProps) {
   const { siteType } = useStorefront();
-  const recentProducts = useSyncExternalStore(
-    subscribeToStorage,
-    () => getRecentlyViewedProducts(siteType),
-    () => EMPTY_RECENT_PRODUCTS,
-  );
+  const recentProducts = useRecentlyViewedProducts(siteType);
 
   return (
     <div className="flex min-w-0 flex-col gap-7">

@@ -20,6 +20,7 @@ export interface EtkalaUser {
   applianceStoreId: number;
   applianceStoreTitle: string;
   passwordIsChanged: boolean;
+  needCompleteProfile: boolean;
 }
 
 export interface AuthToken {

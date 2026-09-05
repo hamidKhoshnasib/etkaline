@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteBasketItem, useOpenBasket, useUpdateBasketQuantity } from "@/features/cart";
+import { SITE_TYPES } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 
 function formatPrice(value: number) {
@@ -20,7 +21,8 @@ function formatPrice(value: number) {
 }
 
 export function HeaderCartSummary() {
-  const { cartHref, productHref } = useStorefront();
+  const { cartHref, productHref, siteType } = useStorefront();
+  const isSupermarket = siteType === SITE_TYPES.supermarket;
   const [open, setOpen] = useState(false);
   const { data: basket, isError, isPending } = useOpenBasket();
   const { isPending: isUpdatingQuantity, mutateAsync: updateQuantity } = useUpdateBasketQuantity();
@@ -74,6 +76,7 @@ export function HeaderCartSummary() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
+        data-site={siteType}
         align="end"
         sideOffset={10}
         className="w-[400px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[28px] p-0"
@@ -148,7 +151,7 @@ export function HeaderCartSummary() {
                           onClick={() =>
                             void changeQuantity(item.storeProductId, item.productCount + 1)
                           }
-                          className="bg-primary text-secondary hover:bg-primary/85 size-8 rounded-full"
+                          className="size-8 rounded-full"
                         >
                           <Plus />
                         </Button>
@@ -158,7 +161,7 @@ export function HeaderCartSummary() {
                         <Button
                           type="button"
                           size="icon"
-                          variant="outline"
+                          variant={isSupermarket ? "default" : "outline"}
                           aria-label={
                             item.productCount === 1 ? "حذف کالا از سبد خرید" : "کاهش تعداد"
                           }
@@ -197,7 +200,7 @@ export function HeaderCartSummary() {
               render={<Link href={cartHref} />}
               onClick={() => setOpen(false)}
               disabled={isPending || isError}
-              className="bg-primary text-secondary hover:bg-primary/85 h-11 rounded-full px-5"
+              className="h-11 rounded-full px-5"
             >
               تکمیل خرید
             </Button>

@@ -331,12 +331,23 @@ export default function CartPage() {
       }
 
       try {
-        const result = await payBasketMutation.mutateAsync(paymentSelection);
+        const callbackUrl = new URL("/payment/callback", window.location.origin).toString();
+        const result = await payBasketMutation.mutateAsync({ ...paymentSelection, callbackUrl });
         const message = result.message || "پرداخت سفارش با موفقیت ثبت شد.";
 
+        if (result.isPaid || result.needPayGate) {
+          if (!result.factorNumber) {
+            throw new Error("شناسه سفارش برای پیگیری پرداخت معتبر نیست.");
+          }
+
+          window.sessionStorage.setItem(
+            "etkaline:payment-factor",
+            JSON.stringify({ factorNumber: result.factorNumber, siteType }),
+          );
+        }
+
         if (result.isPaid) {
-          setIsPaymentComplete(true);
-          toast.success(message);
+          window.location.assign(callbackUrl);
           return;
         }
 

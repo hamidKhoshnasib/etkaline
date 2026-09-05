@@ -145,6 +145,24 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
     router.push(href);
   };
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("focus") !== "search") {
+      return;
+    }
+
+    const isDesktop = window.matchMedia("(min-width: 64rem)").matches;
+    if (isMobile === isDesktop) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => inputRef.current?.focus());
+
+    searchParams.delete("focus");
+    const query = searchParams.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+  }, [isMobile]);
+
   const closeMobileSearch = () => {
     setQuery("");
     setIsOpen(false);

@@ -1,13 +1,15 @@
 "use client";
 
-import { FrownIcon } from "lucide-react";
+import { FrownIcon, Minus, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import EtkalineCartIcon from "@/assets/icons/etkaline-cart.svg";
-import ProductCardLeftActionIcon from "@/assets/icons/product-card-left-action.svg";
 import { AppImage } from "@/components/ui/image";
+import { useBasketItem } from "@/features/cart/api/use-basket-item";
 import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import type { ProductCardData } from "@/features/product/model/product";
 import { useQuickAdd } from "@/features/product/components/QuickAddDialogProvider";
@@ -18,7 +20,6 @@ interface ProductCardProps extends ProductCardData {
   id?: number | string;
   productUrl?: string;
   outOfStock?: boolean;
-  onCompare?: () => void;
   onAddToCart?: () => void;
   disableHover?: boolean;
   stickPriceToBottom?: boolean;
@@ -70,7 +71,6 @@ function ProductCardLink({
 
 function SupermarketProductCard({
   id,
-  productUrl,
   image,
   title,
   price,
@@ -83,12 +83,11 @@ function SupermarketProductCard({
   className,
 }: ProductCardProps) {
   const quickAdd = useQuickAdd();
-  const openQuickAdd = () => {
-    if (onAddToCart) {
-      onAddToCart();
-      return;
-    }
+  const { status } = useSession();
+  const basketItem = useBasketItem(storeProductId ?? null);
+  const isBasketActionPending = basketItem.isMutating;
 
+  const openQuickAdd = () => {
     if (id !== undefined) {
       quickAdd?.openQuickAdd({
         id,
@@ -104,6 +103,27 @@ function SupermarketProductCard({
     }
   };
 
+  const runBasketAction = async (action: () => Promise<void>) => {
+    if (status !== "authenticated") {
+      window.dispatchEvent(new Event("etkala:open-auth"));
+      return;
+    }
+
+    try {
+      await action();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تغییر سبد خرید ناموفق بود.");
+    }
+  };
+
+  const addToBasket = () => {
+    if (onAddToCart) {
+      onAddToCart();
+      return;
+    }
+    void runBasketAction(() => basketItem.increase());
+  };
+
   return (
     <article
       className={cn(
@@ -111,13 +131,7 @@ function SupermarketProductCard({
         className,
       )}
     >
-      <ProductCardLink
-        id={id}
-        productUrl={productUrl}
-        urlTitle={urlTitle}
-        title={title}
-        className="flex h-full flex-col justify-between"
-      >
+      <div className="flex h-full flex-col justify-between">
         <div className="relative h-[148px] shrink-0">
           <AppImage
             src={image}
@@ -163,17 +177,65 @@ function SupermarketProductCard({
             </div>
           </div>
         </div>
-      </ProductCardLink>
+      </div>
+
+      <button
+        type="button"
+        onClick={openQuickAdd}
+        aria-label={`مشاهده سریع ${title}`}
+        className="focus-visible:outline-primary absolute inset-0 rounded-[16px] focus-visible:outline-2 focus-visible:outline-offset-2"
+      />
 
       {!outOfStock ? (
-        <button
-          type="button"
-          onClick={openQuickAdd}
-          aria-label={`افزودن سریع ${title} به سبد خرید`}
-          className="focus-visible:outline-primary absolute top-[100px] right-0 z-10 flex size-12 items-center justify-center rounded-full border border-[#43A047] bg-white transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          <EtkalineCartIcon className="h-[17px] w-4" aria-hidden="true" />
-        </button>
+        basketItem.quantity > 0 ? (
+          <div
+            role="group"
+            aria-label={`تعداد ${title} در سبد خرید`}
+            className="border-primary bg-background text-primary absolute top-[82px] right-0 z-10 flex h-[88px] w-10 flex-col items-center justify-between rounded-full border py-1"
+          >
+            <button
+              type="button"
+              onClick={() => void runBasketAction(() => basketItem.increase())}
+              disabled={isBasketActionPending}
+              aria-label={`افزایش تعداد ${title}`}
+              className="hover:bg-primary/10 flex size-7 items-center justify-center rounded-full disabled:opacity-50"
+            >
+              <Plus className="size-4" aria-hidden="true" />
+            </button>
+            <span aria-live="polite" className="text-xs font-medium">
+              {basketItem.quantity.toLocaleString("fa-IR")}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                void runBasketAction(() =>
+                  basketItem.quantity === 1 ? basketItem.remove() : basketItem.decrease(),
+                )
+              }
+              disabled={isBasketActionPending}
+              aria-label={
+                basketItem.quantity === 1 ? `حذف ${title} از سبد خرید` : `کاهش تعداد ${title}`
+              }
+              className="hover:bg-primary/10 flex size-7 items-center justify-center rounded-full disabled:opacity-50"
+            >
+              {basketItem.quantity === 1 ? (
+                <Trash2 className="size-3.5" aria-hidden="true" />
+              ) : (
+                <Minus className="size-4" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={addToBasket}
+            disabled={isBasketActionPending}
+            aria-label={`افزودن ${title} به سبد خرید`}
+            className="focus-visible:outline-primary absolute top-[100px] right-0 z-10 flex size-12 items-center justify-center rounded-full border border-[#43A047] bg-white transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+          >
+            <EtkalineCartIcon className="h-[17px] w-4" aria-hidden="true" />
+          </button>
+        )
       ) : null}
     </article>
   );
@@ -212,7 +274,7 @@ function MobileProductCard({
           </div>
         </div>
 
-        <div className="h-full w-24 shrink-0 overflow-hidden rounded-xl bg-gray-50">
+        <div className="h-full w-24 shrink-0 overflow-hidden rounded-xl">
           <AppImage
             src={image}
             alt={title}
@@ -289,7 +351,6 @@ function ProductCard({
   outOfStock = false,
   storeProductId,
   urlTitle,
-  onCompare,
   onAddToCart,
   disableHover = false,
   stickPriceToBottom = false,
@@ -355,7 +416,7 @@ function ProductCard({
         title={title}
         className={stickPriceToBottom ? "flex flex-1 flex-col" : undefined}
       >
-        <div className={cn("relative overflow-hidden bg-gray-50", imageContainerClassName)}>
+        <div className={cn("relative overflow-hidden", imageContainerClassName)}>
           <AppImage
             src={image}
             alt={`عکس-${title}`}
@@ -405,19 +466,6 @@ function ProductCard({
           </div>
         </div>
       </ProductCardLink>
-
-      {!outOfStock && !disableHover && (
-        <>
-          <button
-            type="button"
-            onClick={onCompare}
-            aria-label="مقایسه محصول"
-            className="hover:text-primary absolute top-2 left-2 rounded-full bg-white p-1.5 text-gray-400 opacity-0 shadow-sm transition-all group-hover:opacity-100"
-          >
-            <ProductCardLeftActionIcon className="size-4" />
-          </button>
-        </>
-      )}
     </div>
   );
 }

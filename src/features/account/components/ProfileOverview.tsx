@@ -27,6 +27,7 @@ import {
   type Profile,
 } from "@/features/account/api/use-profile";
 import { ACCOUNT_OUTLINE_ACTION_CLASS } from "@/features/account/components/account-action-styles";
+import { normalizeNationalCode } from "@/features/account/lib/profile-validation";
 import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
@@ -39,18 +40,6 @@ type ProfileDetail = {
   icon: typeof UserRound;
   direction?: "ltr";
 };
-
-const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
-const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
-
-function normalizeNationalCode(value: string) {
-  return value
-    .replace(/[۰-۹٠-٩]/g, (digit) => {
-      const digitIndex = PERSIAN_DIGITS.indexOf(digit);
-      return String(digitIndex >= 0 ? digitIndex : ARABIC_DIGITS.indexOf(digit));
-    })
-    .replace(/\D/g, "");
-}
 
 function maskNationalCode(nationalCode: string) {
   if (nationalCode.length <= 4) {

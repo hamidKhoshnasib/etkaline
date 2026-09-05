@@ -18,6 +18,7 @@ import { Container } from "@/components/ui/Container";
 import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import { ProductCardSkeleton } from "@/features/product/components/ProductCardSkeleton";
+import { RecentlyViewedProductsSection } from "@/features/product/components/RecentlyViewedProductsSection";
 import {
   useProductSearch,
   useSearchableCategoryProperties,
@@ -25,6 +26,7 @@ import {
 
 import { FilterSidebar } from "./FilterSidebar";
 import { MobileFilterSheet } from "./MobileFilterSheet";
+import { SearchEmptyState } from "./SearchEmptyState";
 import { SortBar } from "./SortBar";
 import { useStorefront } from "@/providers/storefront-provider";
 
@@ -379,9 +381,7 @@ export default function CategoryCatalog({
           ) : null}
 
           {!isLoadingProducts && !error && products.length === 0 ? (
-            <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-              محصولی با این فیلترها پیدا نشد.
-            </p>
+            <SearchEmptyState searchText={searchText} />
           ) : null}
 
           {!isLoadingProducts && !error && products.length ? (
@@ -419,6 +419,10 @@ export default function CategoryCatalog({
           ) : null}
         </div>
       </div>
+
+      {!isLoadingProducts && !error && products.length === 0 ? (
+        <RecentlyViewedProductsSection />
+      ) : null}
     </Container>
   );
 }

@@ -29,6 +29,12 @@ export interface UpdateProfileInput {
   email: string;
 }
 
+export interface CompleteProfileInput {
+  firstName: string;
+  lastName: string;
+  nationalCode: string;
+}
+
 interface ProfileResponse {
   value?: unknown;
   isSuccess?: unknown;
@@ -52,14 +58,17 @@ function numberValue(value: unknown): number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
 }
 
-function responseMessage(response: ProfileResponse): string {
+function responseMessage(
+  response: ProfileResponse,
+  fallback = "دریافت اطلاعات پروفایل ناموفق بود.",
+): string {
   const errors = Array.isArray(response.errors)
     ? response.errors.filter(
         (error): error is string => typeof error === "string" && error.trim().length > 0,
       )
     : [];
 
-  return stringValue(response.message) || errors[0] || "دریافت اطلاعات پروفایل ناموفق بود.";
+  return stringValue(response.message) || errors[0] || fallback;
 }
 
 export function parseProfileResponse(response: ProfileResponse): Profile {
@@ -110,7 +119,23 @@ async function updateProfile(input: UpdateProfileInput, siteType: SiteType): Pro
   }
 
   if (data.isSuccess !== true) {
-    throw new Error(responseMessage(data));
+    throw new Error(responseMessage(data, "ویرایش اطلاعات پروفایل ناموفق بود."));
+  }
+}
+
+async function completeProfile(input: CompleteProfileInput, siteType: SiteType): Promise<void> {
+  let data: ProfileResponse;
+
+  try {
+    ({ data } = await axiosClient.post<ProfileResponse>("/api/Profile/CompeleteProfile", input, {
+      headers: getSiteTypeHeaders(siteType),
+    }));
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+
+  if (data.isSuccess !== true) {
+    throw new Error(responseMessage(data, "تکمیل اطلاعات پروفایل ناموفق بود."));
   }
 }
 
@@ -132,6 +157,14 @@ export function useUpdateProfile() {
   const { siteType } = useStorefront();
   return useMutation<void, Error, UpdateProfileInput>({
     mutationFn: (input) => updateProfile(input, siteType),
+    retry: false,
+  });
+}
+
+export function useCompleteProfile() {
+  const { siteType } = useStorefront();
+  return useMutation<void, Error, CompleteProfileInput>({
+    mutationFn: (input) => completeProfile(input, siteType),
     retry: false,
   });
 }
