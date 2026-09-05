@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { HomeIcon, SearchXIcon } from "lucide-react";
 
+import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
+import { StatusPage } from "@/components/status/StatusPage";
 import { Button } from "@/components/ui/button";
 import { getStorefront } from "@/config/storefront";
 import { getCurrentStorefrontSiteType } from "@/lib/get-current-storefront-site-type";
@@ -9,35 +10,26 @@ export default async function NotFound() {
   const storefront = getStorefront(await getCurrentStorefrontSiteType());
 
   return (
-    <main
-      data-site={storefront.siteType}
-      className="flex min-h-[calc(100dvh-16rem)] items-center justify-center px-4 py-12 sm:px-6"
-    >
-      <section className="w-full max-w-xl rounded-3xl px-6 py-10 text-center sm:px-12 sm:py-14">
-        <div className="bg-primary/15 text-primary relative mx-auto flex size-24 items-center justify-center rounded-3xl sm:size-28">
-          <SearchXIcon className="size-12 sm:size-14" strokeWidth={1.7} aria-hidden="true" />
-        </div>
-
-        <p className="text-secondary mt-9 text-6xl leading-none font-bold tracking-tight sm:text-7xl">
-          ۴۰۴
-        </p>
-        <h1 className="text-secondary mt-4 text-xl font-bold sm:text-2xl">این صفحه پیدا نشد</h1>
-        <p className="mt-3 text-sm leading-7 text-slate-500 sm:text-base">
-          احتمالاً آدرس صفحه تغییر کرده یا دیگر در دسترس نیست.
-        </p>
-
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <Button
-            render={<Link href={storefront.homeHref} />}
-            nativeButton={false}
-            size="md"
-            className="w-full sm:w-auto"
-          >
-            <HomeIcon data-icon="inline-start" aria-hidden="true" />
-            بازگشت به خانه
-          </Button>
-        </div>
-      </section>
-    </main>
+    <StorefrontLayout siteType={storefront.siteType}>
+      <StatusPage className="min-h-[calc(100dvh-16rem)] flex-1" variant="not-found">
+        <Button
+          className="font-bold"
+          render={<Link href={storefront.homeHref} />}
+          nativeButton={false}
+          size="md"
+        >
+          بازگشت به صفحه اصلی
+        </Button>
+        <Button
+          render={<Link href={`${storefront.homeHref}?focus=search`} />}
+          nativeButton={false}
+          size="md"
+          variant="outline-primary"
+          className="border-primary text-primary hover:text-primary"
+        >
+          جستجو در سایت
+        </Button>
+      </StatusPage>
+    </StorefrontLayout>
   );
 }

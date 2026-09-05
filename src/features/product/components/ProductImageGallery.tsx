@@ -8,10 +8,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  GitCompareIcon,
   HeartIcon,
   MoreHorizontalIcon,
-  PresentationIcon,
   ShareIcon,
   XIcon,
 } from "lucide-react";
@@ -39,8 +37,8 @@ interface ProductImageGalleryProps {
 const ACTIONS = [
   { id: "share", icon: ShareIcon, label: "اشتراک‌گذاری" },
   { id: "favorite", icon: HeartIcon, label: "علاقه‌مندی" },
-  { id: "compare", icon: GitCompareIcon, label: "مقایسه" },
-  { id: "presentation", icon: PresentationIcon, label: "معرفی" },
+  // { id: "compare", icon: GitCompareIcon, label: "مقایسه" },
+  // { id: "presentation", icon: PresentationIcon, label: "معرفی" },
 ] as const;
 
 const NO_IMAGE_URL = "/images/image-placeholder.svg";

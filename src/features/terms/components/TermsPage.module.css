@@ -1,0 +1,5 @@
+@media (min-width: 64rem) {
+  .layout {
+    grid-template-columns: 15rem minmax(0, 1fr);
+  }
+}

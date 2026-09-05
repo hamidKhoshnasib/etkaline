@@ -11,6 +11,7 @@ interface SessionUserFields {
   applianceStoreId: number;
   applianceStoreTitle: string;
   passwordIsChanged: boolean;
+  needCompleteProfile: boolean;
 }
 
 declare module "next-auth" {
@@ -37,6 +38,7 @@ declare module "@auth/core/jwt" {
     applianceStoreId?: number;
     applianceStoreTitle?: string;
     passwordIsChanged?: boolean;
+    needCompleteProfile?: boolean;
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpires?: number;

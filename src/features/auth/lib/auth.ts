@@ -37,6 +37,10 @@ function applySessionUpdate(token: JWT, session: unknown) {
     token.name = nextUser.name.trim();
   }
 
+  if (typeof nextUser.needCompleteProfile === "boolean") {
+    token.needCompleteProfile = nextUser.needCompleteProfile;
+  }
+
   if (!accessToken || typeof accessToken !== "object") {
     return token;
   }
@@ -59,6 +63,7 @@ function applySessionUpdate(token: JWT, session: unknown) {
   token.applianceStoreId = getNumber(nextUser.applianceStoreId);
   token.applianceStoreTitle = getString(nextUser.applianceStoreTitle);
   token.passwordIsChanged = nextUser.passwordIsChanged === true;
+  token.needCompleteProfile = nextUser.needCompleteProfile === true;
   token.accessToken = accessTokenValue;
   token.accessTokenExpires = expiresAt;
   token.error = undefined;
@@ -105,6 +110,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           applianceStoreId: user.applianceStoreId,
           applianceStoreTitle: user.applianceStoreTitle,
           passwordIsChanged: user.passwordIsChanged,
+          needCompleteProfile: user.needCompleteProfile,
           accessToken,
           refreshToken,
           siteType,
@@ -123,6 +129,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.applianceStoreId = user.applianceStoreId;
         token.applianceStoreTitle = user.applianceStoreTitle;
         token.passwordIsChanged = user.passwordIsChanged;
+        token.needCompleteProfile = user.needCompleteProfile;
         token.accessToken = user.accessToken.token;
         token.refreshToken = user.refreshToken.token;
         token.accessTokenExpires = new Date(user.accessToken.expireDate).getTime();
@@ -169,6 +176,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           applianceStoreId: refreshedUser.applianceStoreId,
           applianceStoreTitle: refreshedUser.applianceStoreTitle,
           passwordIsChanged: refreshedUser.passwordIsChanged,
+          needCompleteProfile: refreshedUser.needCompleteProfile,
           accessToken: accessToken.token,
           refreshToken: refreshToken.token,
           accessTokenExpires: new Date(accessToken.expireDate).getTime(),
@@ -195,6 +203,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.applianceStoreId = token.applianceStoreId ?? 0;
       session.user.applianceStoreTitle = token.applianceStoreTitle ?? "";
       session.user.passwordIsChanged = token.passwordIsChanged ?? false;
+      session.user.needCompleteProfile = token.needCompleteProfile ?? false;
       session.accessToken = token.accessToken;
       session.error = token.error;
       return session;

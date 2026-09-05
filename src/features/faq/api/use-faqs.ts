@@ -32,6 +32,21 @@ function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function plainTextValue(value: unknown) {
+  const html = stringValue(value);
+  if (!html) {
+    return "";
+  }
+
+  const document = new DOMParser().parseFromString(html, "text/html");
+  document.body.querySelectorAll("br").forEach((element) => element.replaceWith("\n"));
+  document.body
+    .querySelectorAll("p, li, div, h1, h2, h3, h4, h5, h6")
+    .forEach((element) => element.append("\n"));
+
+  return (document.body.textContent ?? "").replace(/\n\s*\n/g, "\n").trim();
+}
+
 function numberValue(value: unknown) {
   return typeof value === "number" && Number.isSafeInteger(value) ? value : 0;
 }
@@ -57,7 +72,7 @@ function parseFaqResponse(response: FaqResponse): Faq[] {
     .map((faq) => ({
       id: numberValue(faq.id),
       question: stringValue(faq.question),
-      answer: stringValue(faq.answer),
+      answer: plainTextValue(faq.answer),
       order: numberValue(faq.order),
     }))
     .filter((faq) => faq.id > 0 && faq.question)
@@ -66,6 +81,7 @@ function parseFaqResponse(response: FaqResponse): Faq[] {
 
 async function getFaqs(siteType: SiteType): Promise<Faq[]> {
   let response: FaqResponse;
+
   try {
     ({ data: response } = await axiosClient.get<FaqResponse>("/api/Faq", {
       headers: getSiteTypeHeaders(siteType),

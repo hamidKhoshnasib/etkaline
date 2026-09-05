@@ -1,4 +1,5 @@
 import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
+import { getProductSlug } from "@/lib/product-slug";
 import { SITE_URL } from "@/config/site";
 
 export interface StorefrontConfig {
@@ -15,7 +16,7 @@ export interface StorefrontConfig {
 }
 
 function normalizeSlug(slug: string | null | undefined) {
-  return slug?.trim().replace(/^\/+|\/+$/g, "") || "product";
+  return getProductSlug(slug);
 }
 
 function absoluteUrl(href: string) {

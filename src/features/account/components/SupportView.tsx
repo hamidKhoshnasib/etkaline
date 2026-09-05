@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { useFaqs } from "@/features/account/api/use-faqs";
+import { useFaqs } from "@/features/faq/api/use-faqs";
 import { useCreateTicket, useTicketCaptcha } from "@/features/account/api/use-tickets";
 import { toEnglishDigits, toPersianDigits } from "@/features/auth/model/auth";
 

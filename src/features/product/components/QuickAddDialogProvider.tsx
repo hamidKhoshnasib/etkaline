@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart, Minus, Plus, X } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import * as React from "react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import { useQuickProductDetail } from "@/features/product/api/use-quick-product-
 import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import type { Product } from "@/features/product/model/product";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface QuickAddContextValue {
   openQuickAdd: (product: Product) => void;
@@ -34,6 +36,7 @@ export function useQuickAdd() {
 
 export function QuickAddDialogProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
+  const storefront = useStorefront();
   const [product, setProduct] = React.useState<Product | null>(null);
   const [isFavorite, setIsFavorite] = React.useState(false);
   const detailQuery = useQuickProductDetail(product?.id);
@@ -101,7 +104,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
           data-site="supermarket"
           dir="rtl"
           showCloseButton={false}
-          className="h-[509px] gap-0 overflow-hidden rounded-[28px] border-0 bg-white p-0 ring-0 sm:max-w-[430px]"
+          className="flex h-[min(565px,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden rounded-[28px] border-0 bg-white p-0 ring-0 sm:max-w-[430px]"
           overlayClassName="bg-slate-950/35 backdrop-blur-[2px]"
         >
           {resolvedProduct ? (
@@ -111,7 +114,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                 افزودن سریع محصول به سبد خرید
               </DialogDescription>
 
-              <div className="relative flex h-[368px] shrink-0 items-center justify-center bg-white">
+              <div className="relative flex min-h-0 flex-1 items-center justify-center bg-white">
                 <DialogClose
                   aria-label="بستن"
                   className="bg-muted text-muted-foreground hover:text-foreground absolute top-4 left-4 flex size-11 items-center justify-center rounded-full transition-colors"
@@ -137,7 +140,7 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                 />
               </div>
 
-              <div className="h-[141px] shrink-0 bg-slate-50 px-5 py-3">
+              <div className="shrink-0 bg-slate-50 px-5 py-3">
                 <h2 className="line-clamp-2 min-h-14 text-base leading-7 font-bold text-slate-900">
                   {resolvedProduct.title}
                 </h2>
@@ -202,6 +205,20 @@ export function QuickAddDialogProvider({ children }: { children: React.ReactNode
                     دریافت اطلاعات به‌روز محصول ممکن نشد.
                   </p>
                 ) : null}
+                <Button
+                  render={
+                    <Link
+                      href={storefront.productHref(resolvedProduct.id, resolvedProduct.urlTitle)}
+                      onClick={() => setProduct(null)}
+                    />
+                  }
+                  nativeButton={false}
+                  size="lg"
+                  variant="outline-primary"
+                  className="mt-3 w-full"
+                >
+                  مشاهده جزئیات محصول
+                </Button>
               </div>
             </>
           ) : null}

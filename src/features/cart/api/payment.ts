@@ -33,6 +33,7 @@ export interface PayBasketInput {
   payType: number;
   paygateId: number;
   installmentCount: number;
+  callbackUrl?: string;
 }
 
 export interface PayBasketResult {

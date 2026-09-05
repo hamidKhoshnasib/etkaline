@@ -102,12 +102,13 @@ This file is generated from the server contract. When behavior and this document
 
 ### - پروفایل کاربر
 
-| Method  | Path                                                                    | Summary |
-| ------- | ----------------------------------------------------------------------- | ------- |
-| **GET** | [`/api/Profile`](#operation-get--api-profile)                           | —       |
-| **PUT** | [`/api/Profile`](#operation-put--api-profile)                           | —       |
-| **GET** | [`/api/Profile/GetLastLogin`](#operation-get--api-profile-getlastlogin) | —       |
-| **GET** | [`/api/Profile/GetLoginLogs`](#operation-get--api-profile-getloginlogs) | —       |
+| Method   | Path                                                                             | Summary |
+| -------- | -------------------------------------------------------------------------------- | ------- |
+| **GET**  | [`/api/Profile`](#operation-get--api-profile)                                    | —       |
+| **PUT**  | [`/api/Profile`](#operation-put--api-profile)                                    | —       |
+| **POST** | [`/api/Profile/CompeleteProfile`](#operation-post--api-profile-compeleteprofile) | —       |
+| **GET**  | [`/api/Profile/GetLastLogin`](#operation-get--api-profile-getlastlogin)          | —       |
+| **GET**  | [`/api/Profile/GetLoginLogs`](#operation-get--api-profile-getloginlogs)          | —       |
 
 ### - پست ها
 
@@ -763,6 +764,29 @@ This file is generated from the server contract. When behavior and this document
 | `application/json`   | [AuthModule.Application.CustomerCQRS.CustomerUpdateCommand](#schema-authmodule-application-customercqrs-customerupdatecommand) | —       |
 | `text/json`          | [AuthModule.Application.CustomerCQRS.CustomerUpdateCommand](#schema-authmodule-application-customercqrs-customerupdatecommand) | —       |
 | `application/*+json` | [AuthModule.Application.CustomerCQRS.CustomerUpdateCommand](#schema-authmodule-application-customercqrs-customerupdatecommand) | —       |
+
+#### Responses
+
+| Status | Description | Content                                                                                                          | Headers |
+| ------ | ----------- | ---------------------------------------------------------------------------------------------------------------- | ------- |
+| `200`  | OK          | `application/json`: [Abstractions.Application.DTOs.BaseResult](#schema-abstractions-application-dtos-baseresult) | —       |
+
+<a id="operation-post--api-profile-compeleteprofile"></a>
+
+### POST /api/Profile/CompeleteProfile
+
+- **Tags:** - پروفایل کاربر
+- **Security:** Inherited from the API-level security declaration
+
+#### Request body
+
+- **Required:** No
+
+| Content type         | Schema                                                                                                                                       | Example |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `application/json`   | [AuthModule.Application.CustomerCQRS.CustomerUpdateProfileCommand](#schema-authmodule-application-customercqrs-customerupdateprofilecommand) | —       |
+| `text/json`          | [AuthModule.Application.CustomerCQRS.CustomerUpdateProfileCommand](#schema-authmodule-application-customercqrs-customerupdateprofilecommand) | —       |
+| `application/*+json` | [AuthModule.Application.CustomerCQRS.CustomerUpdateProfileCommand](#schema-authmodule-application-customercqrs-customerupdateprofilecommand) | —       |
 
 #### Responses
 
@@ -3231,6 +3255,7 @@ This file is generated from the server contract. When behavior and this document
 | `applianceStoreId`      | No       | integer (int64) or null                                                          | —                     | فروشگاه لوازم خانگی کاربر.<br>برای ادمین هر دو فروشگاه یکی هستن.<br>برای مشتری با توجه به آدرسش فروشگاه ها متفاوت هستن |
 | `applianceStoreTitle`   | No       | string or null                                                                   | —                     |                                                                                                                        |
 | `passwordIsChanged`     | No       | boolean                                                                          | —                     | عضو کلمه عبور خود را تغییر داده است؟                                                                                   |
+| `needCompleteProfile`   | No       | boolean                                                                          | —                     | اگر نام نام خانوادگی یا کد ملی نال بود true میشه                                                                       |
 
 <a id="schema-abstractions-domain-enums-deliverytype"></a>
 
@@ -3517,6 +3542,19 @@ This file is generated from the server contract. When behavior and this document
 | `nationalCode` | No       | string or null  | —                     |             |
 | `email`        | No       | string or null  | —                     |             |
 | `id`           | No       | integer (int64) | —                     | شناسه       |
+
+<a id="schema-authmodule-application-customercqrs-customerupdateprofilecommand"></a>
+
+### AuthModule.Application.CustomerCQRS.CustomerUpdateProfileCommand
+
+- **Definition:** object
+- **Additional properties:** False
+
+| Property       | Required | Schema         | Constraints / default | Description |
+| -------------- | -------- | -------------- | --------------------- | ----------- |
+| `firstName`    | No       | string or null | —                     |             |
+| `lastName`     | No       | string or null | —                     |             |
+| `nationalCode` | No       | string or null | —                     |             |
 
 <a id="schema-authmodule-application-storecqrs-storegetbyiddto"></a>
 

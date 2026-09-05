@@ -128,6 +128,8 @@ export function AddressPicker({
     (siteType === "supermarket"
       ? !session.user.superMarketStoreId
       : !session.user.applianceStoreId);
+  const needsProfileCompletion =
+    status === "authenticated" && session.user.needCompleteProfile === true;
   const committedStoreId =
     siteType === "supermarket"
       ? String(session?.user.superMarketStoreId || "")
@@ -147,7 +149,7 @@ export function AddressPicker({
       }
     : coordinates;
   const activeStep: AddressStep = isExternalInitialDetails ? "details" : step;
-  const isOpen = controlledOpen ?? open;
+  const isOpen = !needsProfileCompletion && (controlledOpen ?? open);
 
   useEffect(() => {
     const handleAuthenticated = () => {
@@ -168,7 +170,12 @@ export function AddressPicker({
   }, [onOpenChange]);
 
   useEffect(() => {
-    if (!showMissingAddressPrompt || !shouldPromptForAddress || hasAutoPromptedRef.current) {
+    if (
+      !showMissingAddressPrompt ||
+      needsProfileCompletion ||
+      !shouldPromptForAddress ||
+      hasAutoPromptedRef.current
+    ) {
       if (!shouldPromptForAddress) {
         hasAutoPromptedRef.current = false;
       }
@@ -201,9 +208,16 @@ export function AddressPicker({
     shouldPromptForAddress,
     shouldStartAddressCreation,
     showMissingAddressPrompt,
+    needsProfileCompletion,
   ]);
 
   function handleOpenChange(nextOpen: boolean) {
+    if (needsProfileCompletion) {
+      setOpen(false);
+      onOpenChange?.(false);
+      return;
+    }
+
     if (nextOpen && startInStoreMode) {
       setSelectedStore("");
       setHideStoreBackButton(true);
@@ -279,6 +293,11 @@ export function AddressPicker({
       return;
     }
 
+    if (needsProfileCompletion) {
+      event.preventDefault();
+      return;
+    }
+
     if (startInCreateMode) {
       startCreatingAddress();
     } else if (startInStoreMode) {
@@ -319,7 +338,11 @@ export function AddressPicker({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <span className="contents" onClick={handleTriggerClick}>
-        {status === "unauthenticated" ? trigger : <DialogTrigger render={trigger} />}
+        {status === "unauthenticated" || needsProfileCompletion ? (
+          trigger
+        ) : (
+          <DialogTrigger render={trigger} />
+        )}
       </span>
       <DialogContent
         data-site={siteType}
@@ -862,6 +885,7 @@ function DetailsStep({
     "کاربر جدید";
   const addressFirstName = hasAddressPlaceholderName ? "" : (address?.receiverFirstName ?? "");
   const addressLastName = hasAddressPlaceholderName ? "" : (address?.receiverLastName ?? "");
+  const receiverPhone = address?.phone ?? profile?.mobile ?? "";
   const [addressTitle, setAddressTitle] = useState(address?.title ?? "");
   const [isAlternateReceiver, setIsAlternateReceiver] = useState(
     address?.hasOtherReceiver ?? false,
@@ -877,25 +901,6 @@ function DetailsStep({
 
   const requiredLabelClass =
     "after:ml-2 after:inline-block after:size-1 after:rounded-full after:bg-orange-500 after:content-['']";
-
-  useEffect(() => {
-    if (!profile || !formRef.current) {
-      return;
-    }
-
-    const values = {
-      receiverFirstName: profileFirstName,
-      receiverLastName: profileLastName,
-      receiverPhone: profile.mobile,
-    };
-
-    for (const [name, value] of Object.entries(values)) {
-      const input = formRef.current.elements.namedItem(name);
-      if (input instanceof HTMLInputElement && !input.value.trim() && value) {
-        input.value = value;
-      }
-    }
-  }, [profile, profileFirstName, profileLastName]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -915,21 +920,18 @@ function DetailsStep({
       receiverPhoneInput instanceof HTMLInputElement ? receiverPhoneInput.value.trim() : "";
     const receiverFirstName = isAlternateReceiver
       ? value("alternateReceiverFirstName")
-      : value("receiverFirstName") || profileFirstName || addressFirstName;
+      : profileFirstName || addressFirstName;
     const receiverLastName = isAlternateReceiver
       ? value("alternateReceiverLastName")
-      : value("receiverLastName") || profileLastName || addressLastName;
-    const receiverPhone = isAlternateReceiver
+      : profileLastName || addressLastName;
+    const submittedReceiverPhone = isAlternateReceiver
       ? value("alternateReceiverPhone")
       : displayedReceiverPhone || profile?.mobile || address?.phone || "";
-    const headerName = [
-      value("receiverFirstName") || profileFirstName || addressFirstName,
-      value("receiverLastName") || profileLastName || addressLastName,
-    ]
+    const headerName = [profileFirstName || addressFirstName, profileLastName || addressLastName]
       .filter(Boolean)
       .join(" ");
 
-    if (!receiverFirstName || !receiverLastName || !receiverPhone || !headerName) {
+    if (!receiverFirstName || !receiverLastName || !submittedReceiverPhone || !headerName) {
       toast.error("اطلاعات گیرنده را کامل کنید.");
       return;
     }
@@ -946,7 +948,7 @@ function DetailsStep({
         hasOtherReceiver: isAlternateReceiver,
         receiverFirstName,
         receiverLastName,
-        receiverPhone,
+        receiverPhone: submittedReceiverPhone,
         isDefault: address?.isDefault ?? true,
         cityId,
       },
@@ -978,61 +980,20 @@ function DetailsStep({
         </div>
       </div>
       <FieldGroup className="gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field>
-            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-first-name`}>
-              نام
-            </FieldLabel>
-            <Input
-              className="h-12"
-              defaultValue={addressFirstName || profileFirstName}
-              id={`${formId}-receiver-first-name`}
-              name="receiverFirstName"
-              required
-            />
-          </Field>
-          <Field>
-            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-last-name`}>
-              نام خانوادگی
-            </FieldLabel>
-            <Input
-              className="h-12"
-              defaultValue={addressLastName || profileLastName}
-              id={`${formId}-receiver-last-name`}
-              name="receiverLastName"
-              required
-            />
-          </Field>
-          <Field>
-            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-mobile`}>
-              موبایل
-            </FieldLabel>
-            <Input
-              className="h-12"
-              defaultValue={address?.phone ?? profile?.mobile ?? ""}
-              id={`${formId}-receiver-mobile`}
-              inputMode="numeric"
-              name="receiverPhone"
-              disabled
-              required
-            />
-          </Field>
-          <Field>
-            <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-national-code`}>
-              کد ملی
-            </FieldLabel>
-            <Input
-              className="h-12"
-              dir="ltr"
-              id={`${formId}-national-code`}
-              inputMode="numeric"
-              maxLength={10}
-              name="nationalCode"
-              onInput={numericInput}
-              required
-            />
-          </Field>
-        </div>
+        <Field data-disabled>
+          <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-receiver-mobile`}>
+            موبایل
+          </FieldLabel>
+          <Input
+            className="h-12"
+            value={receiverPhone}
+            id={`${formId}-receiver-mobile`}
+            inputMode="numeric"
+            name="receiverPhone"
+            disabled
+            required
+          />
+        </Field>
         <Field>
           <FieldLabel className={requiredLabelClass} htmlFor={`${formId}-title`}>
             عنوان آدرس
