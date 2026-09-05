@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { axiosClient, getErrorMessage } from "@/lib/axios-client";
-import { SITE_TYPES } from "@/lib/api-site-type";
+import { getSiteTypeHeaders, SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 
 interface ApiResponse {
@@ -104,7 +104,10 @@ function parseSupermarketDeliveryTimes(response: ApiResponse): SupermarketDelive
   });
 }
 
-async function getSupermarketDeliveryTimes(basketId: number): Promise<SupermarketDeliveryDate[]> {
+async function getSupermarketDeliveryTimes(
+  basketId: number,
+  siteType: SiteType,
+): Promise<SupermarketDeliveryDate[]> {
   let data: ApiResponse;
 
   try {
@@ -112,6 +115,7 @@ async function getSupermarketDeliveryTimes(basketId: number): Promise<Supermarke
       "/api/DeliveryTimes/GetSuperMarketDeliveryTimes",
       {
         params: { BasketId: basketId, JustFreeTimes: false },
+        headers: getSiteTypeHeaders(siteType),
       },
     ));
   } catch (error) {
@@ -121,13 +125,17 @@ async function getSupermarketDeliveryTimes(basketId: number): Promise<Supermarke
   return parseSupermarketDeliveryTimes(data);
 }
 
-async function setSupermarketDeliveryTime(input: SetSupermarketDeliveryTimeInput) {
+async function setSupermarketDeliveryTime(
+  input: SetSupermarketDeliveryTimeInput,
+  siteType: SiteType,
+) {
   let data: ApiResponse;
 
   try {
     ({ data } = await axiosClient.post<ApiResponse>(
       "/api/DeliveryTimes/SetSuperMarketDeliveryTime",
       input,
+      { headers: getSiteTypeHeaders(siteType) },
     ));
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -144,7 +152,7 @@ export function useSupermarketDeliveryTimes(basketId: number) {
 
   return useQuery<SupermarketDeliveryDate[], Error>({
     queryKey: [siteType, "delivery-times", "supermarket", basketId, { justFreeTimes: false }],
-    queryFn: () => getSupermarketDeliveryTimes(basketId),
+    queryFn: () => getSupermarketDeliveryTimes(basketId, siteType),
     enabled:
       siteType === SITE_TYPES.supermarket &&
       status === "authenticated" &&
@@ -160,6 +168,6 @@ export function useSetSupermarketDeliveryTime() {
 
   return useMutation<void, Error, SetSupermarketDeliveryTimeInput>({
     mutationKey: [siteType, "delivery-times", "supermarket", "set"],
-    mutationFn: setSupermarketDeliveryTime,
+    mutationFn: (input) => setSupermarketDeliveryTime(input, siteType),
   });
 }

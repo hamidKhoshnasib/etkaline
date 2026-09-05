@@ -13,7 +13,10 @@ export default function Price({ value, className, iconClassName }: PriceProps) {
   return (
     <span className="inline-flex items-center gap-1">
       <span className={className}>{formatPrice(value)}</span>
-      <TomanIcon className={cn("size-4 shrink-0", iconClassName)} />
+      <TomanIcon
+        aria-hidden="true"
+        className={cn("size-4 shrink-0 overflow-visible", iconClassName)}
+      />
     </span>
   );
 }

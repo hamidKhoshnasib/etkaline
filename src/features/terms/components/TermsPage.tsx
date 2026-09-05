@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -25,25 +25,26 @@ export function TermsPage({ siteType }: { siteType: SiteType }) {
   return (
     <main className="bg-muted/30 flex-1">
       <Container className="py-5 lg:py-8">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink render={<Link href={storefront.homeHref} />}>
-                <Home aria-hidden="true" />
-                <span className="sr-only">صفحه اصلی</span>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>قوانین و مقررات</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <div className="-mx-4 mb-8 bg-[#F8FAFC] px-4 py-3 lg:mx-0 lg:bg-transparent lg:px-0 lg:py-0">
+          <Breadcrumb className="mb-0">
+            <BreadcrumbList className="flex-nowrap overflow-x-auto text-nowrap">
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href={storefront.homeHref} />}>خانه</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="[&>svg]:size-3.5!">
+                <ArrowLeftIcon className="text-auth-accent size-3.5 stroke-[2.5]" />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage>قوانین و مقررات</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
         <div
-          className={`${styles.layout} grid grid-cols-1 gap-6 pt-14 pb-16 lg:items-start lg:gap-8 lg:pt-20 lg:pb-24`}
+          className={`${styles.layout} grid grid-cols-1 gap-6 pb-16 lg:items-start lg:gap-8 lg:pb-24`}
         >
-          <Card className="w-full gap-0 rounded-2xl py-3 shadow-none lg:sticky lg:top-32">
+          <Card className="w-full gap-0 rounded-2xl py-3 shadow-none lg:sticky lg:top-36">
             <CardContent className="px-0">
               <TermsTableOfContents sections={TERMS_SECTIONS} />
             </CardContent>

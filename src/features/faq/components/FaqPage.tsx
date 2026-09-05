@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Home, RefreshCw, SearchX, TriangleAlert } from "lucide-react";
+import { ArrowLeftIcon, RefreshCw, SearchX, TriangleAlert } from "lucide-react";
 
 import {
   Accordion,
@@ -128,20 +128,21 @@ export function FaqPage() {
 
   return (
     <Container as="main" className="py-6 lg:py-10">
-      <Breadcrumb className="mb-8 lg:mb-10">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href={homeHref} />}>
-              <Home aria-hidden="true" />
-              <span className="sr-only">صفحه اصلی</span>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>سوالات متداول</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <div className="-mx-4 mb-8 bg-[#F8FAFC] px-4 py-3 lg:mx-0 lg:bg-transparent lg:px-0 lg:py-0">
+        <Breadcrumb className="mb-0">
+          <BreadcrumbList className="flex-nowrap overflow-x-auto text-nowrap">
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link href={homeHref} />}>خانه</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="[&>svg]:size-3.5!">
+              <ArrowLeftIcon className="text-auth-accent size-3.5 stroke-[2.5]" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>سوالات متداول</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       <header className="mb-7 flex flex-col gap-2 lg:mb-8">
         <h1 className="text-2xl font-bold lg:text-3xl">سوالات متداول</h1>
@@ -154,7 +155,7 @@ export function FaqPage() {
 
       {!!faqs?.length && !query && (
         <nav aria-label="موضوعات سوالات متداول" className="mb-10 overflow-x-auto lg:mb-12">
-          <div className="flex min-w-max justify-center gap-3 px-1">
+          <div className="flex min-w-max gap-3 px-1">
             {availableCategories.map((category) => (
               <Button
                 key={category.id}
@@ -227,7 +228,7 @@ function FaqSearchForm({ initialQuery }: { initialQuery: string }) {
       <label htmlFor="faq-search" className="sr-only">
         جستجو در سوالات متداول
       </label>
-      <InputGroup className="bg-card h-14 rounded-xl ps-2">
+      <InputGroup className="bg-card has-[[data-slot=input-group-control]:focus-visible]:border-auth-accent h-14 rounded-xl ps-2 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
         <InputGroupInput
           id="faq-search"
           type="search"

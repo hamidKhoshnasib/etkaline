@@ -150,7 +150,9 @@ export function CompleteProfileDialog() {
             size="lg"
             type="submit"
           >
-            {completeProfile.isPending ? <Spinner data-icon="inline-start" /> : null}
+            {completeProfile.isPending ? (
+              <Spinner data-icon="inline-start" className="size-4" />
+            ) : null}
             {completeProfile.isPending ? "در حال ثبت" : "ثبت و ادامه"}
           </Button>
         </form>

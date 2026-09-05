@@ -170,22 +170,34 @@ function AddressSection({ address }: { address: Address | null }) {
   );
 }
 
-function ProductThumbnails({ items }: { items: OpenBasketItem[] }) {
+function ProductThumbnails({
+  items,
+  prominent = false,
+}: {
+  items: OpenBasketItem[];
+  prominent?: boolean;
+}) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={cn("flex flex-wrap gap-2", prominent && "gap-3")}>
       {items.slice(0, 5).map((item) => (
         <div
           key={item.storeProductId}
-          className="bg-muted relative size-16 overflow-hidden rounded-xl border"
+          className={cn(
+            "bg-muted relative size-16 overflow-hidden rounded-xl border",
+            prominent && "border-input bg-background size-20 p-1",
+          )}
         >
           <AppImage
             src={item.picUrl || item.pic || "/images/image-placeholder.svg"}
             alt={item.productTitle}
-            width={64}
-            height={64}
-            className="size-full object-cover"
+            width={prominent ? 80 : 64}
+            height={prominent ? 80 : 64}
+            className={cn("size-full object-cover", prominent && "object-contain")}
           />
-          <Badge className="absolute bottom-0.5 left-0.5 grid size-5 place-items-center rounded-[8px] bg-[#F1F5F9] p-0 text-[10px] text-[#64748B] shadow-none">
+          <Badge
+            variant="secondary"
+            className="bg-muted text-secondary absolute end-0.5 bottom-0.5 grid size-5 place-items-center rounded-[8px] p-0 text-[10px] shadow-none"
+          >
             {item.productCount.toLocaleString("fa-IR")}
           </Badge>
         </div>
@@ -194,6 +206,18 @@ function ProductThumbnails({ items }: { items: OpenBasketItem[] }) {
   );
 }
 
+function getSupermarketDateParts(date: SupermarketDeliveryDate) {
+  const parsedDate = parseDate(date.deliveryDate);
+  if (parsedDate) {
+    return {
+      weekday: persianWeekday.format(parsedDate),
+      label: persianDate.format(parsedDate),
+    };
+  }
+
+  const [weekday = "تاریخ ارسال", ...dateParts] = date.deliveryDateFa.split(/\s+/);
+  return { weekday, label: dateParts.join(" ") };
+}
 function ApplianceDeliveryChoices({
   group,
   dates,
@@ -304,6 +328,7 @@ function ApplianceDeliveryChoices({
 function SupermarketDeliveryChoices({
   group,
   dates,
+  deliveryPrice,
   selection,
   addressSelected,
   isLoading,
@@ -312,6 +337,7 @@ function SupermarketDeliveryChoices({
 }: {
   group: ParcelGroup;
   dates: SupermarketDeliveryDate[];
+  deliveryPrice: number;
   selection?: DeliverySelection;
   addressSelected: boolean;
   isLoading: boolean;
@@ -320,10 +346,16 @@ function SupermarketDeliveryChoices({
 }) {
   if (isLoading) {
     return (
-      <div className="flex gap-3 overflow-hidden" aria-busy="true">
-        {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-24 w-28 shrink-0 rounded-xl" />
-        ))}
+      <div className="flex flex-col gap-4" aria-busy="true">
+        <div className="text-checkout-accent flex items-center gap-2 self-start text-lg font-bold">
+          <CalendarClock className="size-7" aria-hidden="true" />
+          انتخاب زمان
+        </div>
+        <div className="border-border flex gap-3 overflow-hidden border-s ps-3">
+          {Array.from({ length: 5 }, (_, index) => (
+            <Skeleton key={index} className="h-[100px] w-24 shrink-0 rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -341,104 +373,126 @@ function SupermarketDeliveryChoices({
   }
 
   const selectedDate = dates.find((date) => date.deliveryDate === selection?.dateIso);
+  const selectedDateParts = selectedDate ? getSupermarketDateParts(selectedDate) : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="text-checkout-accent flex items-center gap-2 self-start text-base font-bold">
-        <CalendarClock className="size-6" aria-hidden="true" />
+    <div className="flex flex-col gap-5">
+      <div className="text-checkout-accent flex items-center gap-2 self-start text-lg font-bold">
+        <CalendarClock className="size-7" aria-hidden="true" />
         انتخاب زمان
       </div>
-      <div
-        className="flex gap-3 overflow-x-auto pb-2"
-        role="radiogroup"
-        aria-label={`تاریخ ارسال ${group.title}`}
-      >
-        {dates.map((date) => {
-          const active = date.deliveryDate === selection?.dateIso;
-          const isFull =
-            date.deliveryTimes.length === 0 || date.deliveryTimes.every((time) => time.isFull);
-          return (
-            <Button
-              key={date.deliveryDate}
-              type="button"
-              variant={active ? "default" : "outline"}
-              disabled={!addressSelected || isFull}
-              role="radio"
-              aria-checked={active}
-              className={cn(
-                "h-auto min-w-28 flex-col gap-1 rounded-xl px-3 py-3",
-                active && "ring-checkout-accent ring-2",
-              )}
-              onClick={() =>
-                onChange({
-                  dateIso: date.deliveryDate,
-                  dateLabel: date.deliveryDateFa,
-                  time: "",
-                  pickup: false,
-                })
-              }
-            >
-              <span className="font-bold">{date.deliveryDateFa || "تاریخ ارسال"}</span>
-              {isFull ? <span className="text-destructive text-xs">تکمیل ظرفیت</span> : null}
-            </Button>
-          );
-        })}
-      </div>
+      <div className="border-border flex flex-col gap-5 border-s ps-4">
+        <div
+          className="flex gap-3 overflow-x-auto pb-2"
+          role="radiogroup"
+          aria-label={"تاریخ ارسال " + group.title}
+        >
+          {dates.map((date) => {
+            const active = date.deliveryDate === selection?.dateIso;
+            const isFull =
+              date.deliveryTimes.length === 0 || date.deliveryTimes.every((time) => time.isFull);
+            const dateParts = getSupermarketDateParts(date);
 
-      {selectedDate ? (
-        <div className="flex flex-col gap-4 border-e pe-4">
-          <p className="text-sm">
-            زمان ارسال در تاریخ{" "}
-            <strong className="text-checkout-accent">{selectedDate.deliveryDateFa}</strong> را
-            انتخاب نمایید:
-          </p>
-          <div
-            className="flex flex-wrap gap-3"
-            role="radiogroup"
-            aria-label={`ساعت ارسال ${group.title}`}
-          >
-            {selectedDate.deliveryTimes.map((time) => {
-              const active = selection?.deliveryTimeId === time.id;
-              const timeLabel =
-                time.title ||
-                [time.startTime, time.endTime].filter(Boolean).join(" تا ") ||
-                "بازه ارسال";
-              return (
-                <Button
-                  key={time.id}
-                  type="button"
-                  variant={active ? "default" : "outline"}
-                  size="sm"
-                  disabled={!addressSelected || time.isFull}
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() =>
-                    onChange({
-                      dateIso: selectedDate.deliveryDate,
-                      dateLabel: selectedDate.deliveryDateFa,
-                      time: timeLabel,
-                      pickup: false,
-                      deliveryTimeId: time.id,
-                    })
-                  }
-                  className="rounded-full px-5"
-                >
-                  <Clock3 data-icon="inline-start" />
-                  <bdi dir="ltr">{timeLabel}</bdi>
-                </Button>
-              );
-            })}
-          </div>
+            return (
+              <Button
+                key={date.deliveryDate}
+                type="button"
+                variant="outline"
+                disabled={!addressSelected || isFull}
+                role="radio"
+                aria-checked={active}
+                className={cn(
+                  "text-foreground hover:bg-muted/40 focus-visible:border-checkout-accent focus-visible:ring-checkout-accent/20 disabled:bg-muted/30 disabled:text-muted-foreground h-[100px] min-w-24 flex-col justify-between gap-1 rounded-xl px-3 py-3 shadow-none disabled:opacity-60",
+                  active && "border-checkout-accent bg-background hover:bg-background border-2",
+                )}
+                onClick={() =>
+                  onChange({
+                    dateIso: date.deliveryDate,
+                    dateLabel: date.deliveryDateFa,
+                    time: "",
+                    pickup: false,
+                  })
+                }
+              >
+                <span className="font-bold">{dateParts.weekday}</span>
+                <span className={cn("text-xs", !active && "text-muted-foreground")}>
+                  {dateParts.label || date.deliveryDateFa || "تاریخ ارسال"}
+                </span>
+                {isFull ? (
+                  <span className="text-destructive text-xs">تکمیل ظرفیت</span>
+                ) : (
+                  <Price
+                    value={deliveryPrice}
+                    className={cn("text-xs", active ? "text-secondary" : "text-muted-foreground")}
+                    iconClassName={active ? "text-secondary" : "text-muted-foreground"}
+                  />
+                )}
+              </Button>
+            );
+          })}
         </div>
-      ) : null}
+
+        {selectedDate && selectedDateParts ? (
+          <div className="flex flex-col gap-5">
+            <p className="text-sm font-medium">
+              زمان برای ارسال در تاریخ{" "}
+              <strong className="text-checkout-accent">
+                {selectedDateParts.weekday} {selectedDateParts.label}
+              </strong>{" "}
+              را انتخاب نمایید:
+            </p>
+            <div
+              className="flex flex-wrap gap-3"
+              role="radiogroup"
+              aria-label={"ساعت ارسال " + group.title}
+            >
+              {selectedDate.deliveryTimes.map((time) => {
+                const active = selection?.deliveryTimeId === time.id;
+                const timeLabel =
+                  time.title ||
+                  [time.startTime, time.endTime].filter(Boolean).join(" تا ") ||
+                  "بازه ارسال";
+
+                return (
+                  <Button
+                    key={time.id}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!addressSelected || time.isFull}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() =>
+                      onChange({
+                        dateIso: selectedDate.deliveryDate,
+                        dateLabel: selectedDate.deliveryDateFa,
+                        time: timeLabel,
+                        pickup: false,
+                        deliveryTimeId: time.id,
+                      })
+                    }
+                    className={cn(
+                      "text-secondary hover:bg-muted/40 focus-visible:border-checkout-accent focus-visible:ring-checkout-accent/20 disabled:bg-muted/30 disabled:text-muted-foreground h-10 min-w-16 rounded-full px-5 shadow-none",
+                      active &&
+                        "border-checkout-accent bg-checkout-accent hover:bg-checkout-accent text-white hover:text-white",
+                    )}
+                  >
+                    <bdi dir="ltr">{timeLabel}</bdi>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
-
 function DeliveryGroup({
   group,
   dates,
   times,
+  deliveryPrice,
   selection,
   addressSelected,
   applianceDates,
@@ -452,6 +506,7 @@ function DeliveryGroup({
   group: ParcelGroup;
   dates: DeliveryDateOption[];
   times: string[];
+  deliveryPrice: number;
   selection?: DeliverySelection;
   addressSelected: boolean;
   applianceDates?: ApplianceDeliveryDate[];
@@ -500,16 +555,12 @@ function DeliveryGroup({
 
   if (supermarketDates) {
     return (
-      <section aria-labelledby={`parcel-${group.id}`} className="flex flex-col gap-5">
-        <div className="rounded-lg bg-[#F8FAFC] px-4 py-3">
-          <h3 id={`parcel-${group.id}`} className="text-sm font-medium">
-            {group.title}
-          </h3>
-        </div>
-        <ProductThumbnails items={group.items} />
+      <section aria-label="مرسوله" className="flex flex-col gap-5">
+        <ProductThumbnails items={group.items} prominent />
         <SupermarketDeliveryChoices
           group={group}
           dates={supermarketDates}
+          deliveryPrice={deliveryPrice}
           selection={selection}
           addressSelected={addressSelected}
           isLoading={isSupermarketDeliveryLoading}
@@ -746,6 +797,7 @@ export default function AddressStep({
                 group={group}
                 dates={dates}
                 times={times}
+                deliveryPrice={checkoutDetails.deliveryAmount}
                 selection={selections[group.id]}
                 addressSelected={address !== null}
                 applianceDates={

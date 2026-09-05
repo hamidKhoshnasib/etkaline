@@ -43,9 +43,10 @@ export interface CheckoutDetails {
 
 export interface GetCheckoutDetailsInput {
   basketId: number;
+  removeDiscount?: boolean;
 }
 
-const REMOVE_DISCOUNT = true;
+const DEFAULT_REMOVE_DISCOUNT = true;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -124,7 +125,7 @@ async function getCheckoutDetails(
     ({ data } = await axiosClient.get<CheckoutDetailsResponse>("/api/Baskets/GetCheckoutDetails", {
       params: {
         BasketId: input.basketId,
-        RemoveDiscount: REMOVE_DISCOUNT,
+        RemoveDiscount: input.removeDiscount ?? DEFAULT_REMOVE_DISCOUNT,
       },
       headers: getSiteTypeHeaders(siteType),
     }));
@@ -140,10 +141,11 @@ export function useCheckoutDetails(input: GetCheckoutDetailsInput | null) {
   const { data: session, status } = useSession();
   const customerId = session?.user.backendId;
   const basketId = input?.basketId ?? 0;
+  const removeDiscount = input?.removeDiscount ?? DEFAULT_REMOVE_DISCOUNT;
 
   return useQuery<CheckoutDetails, Error>({
-    queryKey: basketQueryKeys.checkoutDetails(siteType, customerId, basketId, REMOVE_DISCOUNT),
-    queryFn: () => getCheckoutDetails({ basketId }, siteType),
+    queryKey: basketQueryKeys.checkoutDetails(siteType, customerId, basketId, removeDiscount),
+    queryFn: () => getCheckoutDetails({ basketId, removeDiscount }, siteType),
     enabled:
       input !== null &&
       status === "authenticated" &&
@@ -152,6 +154,7 @@ export function useCheckoutDetails(input: GetCheckoutDetailsInput | null) {
       Number.isSafeInteger(basketId) &&
       basketId > 0,
     staleTime: 0,
+    placeholderData: (previousData) => previousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Box, ChevronDown, CreditCard, Info, MapPin } from "lucide-react";
 
 import ForkliftIcon from "@/assets/icons/forklift.svg";
+import DeliveryScooterIcon from "@/assets/icons/delivery-scooter.svg";
 import TruckLoadingIcon from "@/assets/icons/truck-loading.svg";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,9 @@ import type { PayBasketInput } from "@/features/cart/api/payment";
 import { usePayTypes, usePaygates } from "@/features/cart/api/payment";
 import type { Address } from "@/features/address/api/use-addresses";
 import type { DeliverySelections, ParcelKind } from "@/features/cart/model/checkout";
+import { SITE_TYPES } from "@/lib/api-site-type";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "@/providers/storefront-provider";
 
 interface ReviewStepProps {
   address: Address;
@@ -33,10 +36,12 @@ function ShipmentTime({
   kind,
   label,
   selections,
+  isSupermarket,
 }: {
   kind: ParcelKind;
   label: string;
   selections: DeliverySelections;
+  isSupermarket: boolean;
 }) {
   const selection = selections[kind];
   if (!selection) {
@@ -50,6 +55,8 @@ function ShipmentTime({
       <div className="text-secondary flex items-center gap-3 text-sm font-bold">
         {kind === "heavy" ? (
           <ForkliftIcon className="size-6" aria-hidden="true" />
+        ) : isSupermarket ? (
+          <DeliveryScooterIcon className="text-primary size-6" aria-hidden="true" />
         ) : (
           <TruckLoadingIcon className="size-6" aria-hidden="true" />
         )}
@@ -167,6 +174,8 @@ export default function ReviewStep({
   onPaymentReadyChange,
   onPaymentSelectionChange,
 }: ReviewStepProps) {
+  const { siteType } = useStorefront();
+  const isSupermarket = siteType === SITE_TYPES.supermarket;
   const [payTypeId, setPayTypeId] = useState<number | null>(null);
   const [paygateId, setPaygateId] = useState<number | null>(null);
   const [isShipmentOpen, setIsShipmentOpen] = useState(false);
@@ -239,9 +248,19 @@ export default function ReviewStep({
 
       <Card className="rounded-2xl py-5 shadow-none">
         <CardContent className="flex flex-col gap-5 px-5">
-          <ShipmentTime kind="heavy" label="زمان ارسال کالای سنگین" selections={selections} />
+          <ShipmentTime
+            kind="heavy"
+            label="زمان ارسال کالای سنگین"
+            selections={selections}
+            isSupermarket={isSupermarket}
+          />
           {selections.heavy && selections.light ? <Separator /> : null}
-          <ShipmentTime kind="light" label="زمان ارسال کالای سبک" selections={selections} />
+          <ShipmentTime
+            kind="light"
+            label={isSupermarket ? "زمان ارسال" : "زمان ارسال کالای سبک"}
+            selections={selections}
+            isSupermarket={isSupermarket}
+          />
         </CardContent>
       </Card>
 
