@@ -136,6 +136,7 @@ export function AddressPicker({
       : String(session?.user.applianceStoreId || "");
   const shouldPromptForAddress = hasNoStore && hasLoadedAddresses;
   const shouldStartAddressCreation = shouldPromptForAddress && addresses.length === 0;
+  const hasDefaultAddress = addresses.some((address) => address.isDefault);
   const isExternallyEditing = Boolean(externalEditingAddress);
   const activeEditingAddress = externalEditingAddress ?? editingAddress;
   const isExternalInitialDetails = isExternallyEditing && step === "addresses";
@@ -159,15 +160,27 @@ export function AddressPicker({
 
       openStoreAfterAuthenticationRef.current = false;
       setSelectedStore("");
-      setHideStoreBackButton(true);
-      setStep("store");
+      if (hasLoadedAddresses && addresses.length === 0) {
+        setEditingAddress(null);
+        setCityId(0);
+        setCoordinates({ latitude: "", longitude: "" });
+        setSelectedFullAddress("");
+        setHideStoreBackButton(false);
+        setStep("location");
+      } else if (hasDefaultAddress) {
+        setHideStoreBackButton(true);
+        setStep("store");
+      } else {
+        setHideStoreBackButton(false);
+        setStep("addresses");
+      }
       setOpen(true);
       onOpenChange?.(true);
     };
 
     window.addEventListener("etkala:authenticated", handleAuthenticated);
     return () => window.removeEventListener("etkala:authenticated", handleAuthenticated);
-  }, [onOpenChange]);
+  }, [addresses.length, hasDefaultAddress, hasLoadedAddresses, onOpenChange]);
 
   useEffect(() => {
     if (
@@ -197,7 +210,12 @@ export function AddressPicker({
         setCoordinates({ latitude: "", longitude: "" });
         setSelectedFullAddress("");
         setStep("location");
+      } else if (startInStoreMode && hasDefaultAddress) {
+        setSelectedStore("");
+        setHideStoreBackButton(true);
+        setStep("store");
       } else {
+        setHideStoreBackButton(false);
         setStep("addresses");
       }
       setOpen(true);
@@ -208,7 +226,45 @@ export function AddressPicker({
     shouldPromptForAddress,
     shouldStartAddressCreation,
     showMissingAddressPrompt,
+    hasDefaultAddress,
     needsProfileCompletion,
+    startInStoreMode,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isOpen ||
+      !startInStoreMode ||
+      !hasLoadedAddresses ||
+      (addresses.length > 0 && !hasDefaultAddress) ||
+      activeStep !== "addresses"
+    ) {
+      return;
+    }
+
+    const addressCreationTimer = window.setTimeout(() => {
+      if (hasDefaultAddress) {
+        setSelectedStore("");
+        setHideStoreBackButton(true);
+        setStep("store");
+      } else {
+        setEditingAddress(null);
+        setCityId(0);
+        setCoordinates({ latitude: "", longitude: "" });
+        setSelectedFullAddress("");
+        setHideStoreBackButton(false);
+        setStep("location");
+      }
+    }, 0);
+
+    return () => window.clearTimeout(addressCreationTimer);
+  }, [
+    activeStep,
+    addresses.length,
+    hasDefaultAddress,
+    hasLoadedAddresses,
+    isOpen,
+    startInStoreMode,
   ]);
 
   function handleOpenChange(nextOpen: boolean) {
@@ -220,8 +276,15 @@ export function AddressPicker({
 
     if (nextOpen && startInStoreMode) {
       setSelectedStore("");
-      setHideStoreBackButton(true);
-      setStep("store");
+      if (hasLoadedAddresses && addresses.length === 0) {
+        startCreatingAddress();
+      } else if (hasDefaultAddress) {
+        setHideStoreBackButton(true);
+        setStep("store");
+      } else {
+        setHideStoreBackButton(false);
+        setStep("addresses");
+      }
     }
     setOpen(nextOpen);
     onOpenChange?.(nextOpen);
@@ -302,8 +365,15 @@ export function AddressPicker({
       startCreatingAddress();
     } else if (startInStoreMode) {
       setSelectedStore("");
-      setHideStoreBackButton(true);
-      setStep("store");
+      if (hasLoadedAddresses && addresses.length === 0) {
+        startCreatingAddress();
+      } else if (hasDefaultAddress) {
+        setHideStoreBackButton(true);
+        setStep("store");
+      } else {
+        setHideStoreBackButton(false);
+        setStep("addresses");
+      }
     }
 
     if (status !== "unauthenticated") {

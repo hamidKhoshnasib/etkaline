@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useState } from "react";
 import { ProductInfoCard } from "./ProductInfoCard";
 import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductSummary } from "./ProductSummary";
@@ -263,6 +263,12 @@ export default function ProductDetail({ product: productDetail }: ProductDetailP
 }
 
 function ProductDetailContent({ product }: { product: ProductViewModel }) {
+  useLayoutEffect(() => {
+    // Product navigation must start at the top unless a section was explicitly linked.
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [product.id]);
   const storefront = useStorefront();
   const { siteType } = storefront;
   const firstColorIdWithStore = product.colors.find((color) =>

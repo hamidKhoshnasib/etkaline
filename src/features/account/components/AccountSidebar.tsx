@@ -29,7 +29,7 @@ import { useStorefront } from "@/providers/storefront-provider";
 
 interface AccountLink {
   label: string;
-  href: string;
+  href?: string;
   icon: typeof ShoppingCart;
   badge?: string;
 }
@@ -37,7 +37,7 @@ interface AccountLink {
 const ACCOUNT_LINKS: ReadonlyArray<AccountLink> = [
   { label: "سفارش‌های من", href: "/account/orders", icon: ShoppingCart },
   { label: "آدرس‌ها", href: "/account/addresses", icon: MapPin },
-  { label: "پیام‌ها", href: "/account/reviews", icon: Bell, badge: "۲" },
+  { label: "پیام‌ها", icon: Bell },
   { label: "لیست‌های من", href: "/account/wishlist", icon: Heart },
 ];
 
@@ -124,6 +124,14 @@ export function AccountSidebar() {
     setSelectedSecondaryItem({ label, pathname });
   };
 
+  const handleAccountItemSelect = (label: string) => {
+    if (label === "پیام‌ها") {
+      toast.info("قابلیت پیام‌ها به‌زودی اضافه می‌شود.");
+      return;
+    }
+
+    setSelectedSecondaryItem(null);
+  };
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     window.location.assign(homeHref);
@@ -203,20 +211,16 @@ export function AccountSidebar() {
             {ACCOUNT_LINKS.map(({ label, href, icon: Icon, badge }) => {
               const isActive =
                 selectedItem === null &&
+                href !== undefined &&
                 (pathname.startsWith(href) || (isProfileHome && href === "/account/orders"));
-
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setSelectedSecondaryItem(null)}
-                  className={cn(
-                    "flex min-h-16 items-center gap-3 px-5 text-sm transition-colors lg:min-h-12 lg:rounded-xl lg:px-3 lg:text-base",
-                    isActive
-                      ? "text-muted-foreground hover:bg-muted lg:from-primary/15 lg:text-primary-hover lg:border-primary lg:min-h-12 lg:border-s-4 lg:bg-linear-to-l lg:to-transparent lg:font-medium"
-                      : "text-muted-foreground hover:bg-muted",
-                  )}
-                >
+              const itemClassName = cn(
+                "flex min-h-16 w-full items-center gap-3 px-5 text-start text-sm transition-colors lg:min-h-12 lg:rounded-xl lg:px-3 lg:text-base",
+                isActive
+                  ? "text-muted-foreground hover:bg-muted lg:from-primary/15 lg:text-primary-hover lg:border-primary lg:min-h-12 lg:border-s-4 lg:bg-linear-to-l lg:to-transparent lg:font-medium"
+                  : "text-muted-foreground hover:bg-muted",
+              );
+              const itemContent = (
+                <>
                   <Icon aria-hidden="true" />
                   <span className="min-w-0 flex-1 truncate">{label}</span>
                   {badge && (
@@ -225,10 +229,29 @@ export function AccountSidebar() {
                     </span>
                   )}
                   <ChevronLeft aria-hidden="true" />
+                </>
+              );
+
+              return href ? (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => handleAccountItemSelect(label)}
+                  className={itemClassName}
+                >
+                  {itemContent}
                 </Link>
+              ) : (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => handleAccountItemSelect(label)}
+                  className={itemClassName}
+                >
+                  {itemContent}
+                </button>
               );
             })}
-
             <div>
               {SECONDARY_ITEMS.map((item) => {
                 const itemHref = "href" in item ? item.href : undefined;

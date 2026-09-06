@@ -21,6 +21,7 @@ interface MapSearchResult {
 
 interface ReverseGeocodeResponse {
   display_name?: unknown;
+  address?: unknown;
 }
 
 export interface LocationCoordinates {
@@ -28,8 +29,75 @@ export interface LocationCoordinates {
   longitude: number;
 }
 
+type ReverseGeocodeAddress = Record<string, unknown>;
+
 const MAP_SEARCH_URL = "https://map.etkala.ir/search";
 const MAP_REVERSE_URL = `${MAP_SEARCH_URL}/reverse`;
+
+function getAddressPart(address: ReverseGeocodeAddress, ...keys: string[]) {
+  for (const key of keys) {
+    const value = address[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return undefined;
+}
+
+function addAddressPrefix(value: string | undefined, prefix: string, pattern: RegExp) {
+  if (!value) {
+    return undefined;
+  }
+
+  return pattern.test(value) ? value : `${prefix} ${value}`;
+}
+
+function formatReverseGeocodeAddress(address: ReverseGeocodeAddress) {
+  const administrativeArea = getAddressPart(address, "suburb", "city_district");
+  const locality = administrativeArea ?? getAddressPart(address, "city", "town", "village");
+  const neighbourhood = addAddressPrefix(
+    getAddressPart(address, "neighbourhood", "quarter"),
+    "محله",
+    /^(?:محله|کوی)\s/,
+  );
+  const road = addAddressPrefix(
+    getAddressPart(address, "road", "pedestrian"),
+    "خ",
+    /^(?:خ|خیابان)\s/,
+  );
+  const building = getAddressPart(
+    address,
+    "building",
+    "tourism",
+    "amenity",
+    "shop",
+    "office",
+    "historic",
+    "leisure",
+    "man_made",
+  );
+  const parts = [
+    getAddressPart(address, "province", "state"),
+    getAddressPart(address, "county"),
+    getAddressPart(address, "district"),
+    locality,
+    neighbourhood,
+    road,
+    building,
+  ].filter((part): part is string => Boolean(part));
+
+  return [...new Set(parts)].join("، ");
+}
+
+function formatDisplayName(displayName: string) {
+  return displayName
+    .split(",")
+    .map((part) => part.replace(/^[\s،,؛;:\-–—]+|[\s،,؛;:\-–—]+$/g, "").trim())
+    .filter((part) => part && part !== "ایران" && !/^[\d۰-۹٠-٩\s-]+$/.test(part))
+    .reverse()
+    .join("، ");
+}
 
 function parseProvinces(response: ProvincesResponse): Province[] {
   if (response.isSuccess !== true || !Array.isArray(response.value)) {
@@ -117,6 +185,7 @@ export async function reverseGeocodeLocation(
   url.searchParams.set("lon", String(coordinates.longitude));
   url.searchParams.set("format", "json");
   url.searchParams.set("accept-language", "fa");
+  url.searchParams.set("addressdetails", "1");
 
   const response = await fetch(url, { signal });
   if (!response.ok) {
@@ -128,20 +197,17 @@ export async function reverseGeocodeLocation(
     return null;
   }
 
-  const { display_name: displayName } = result as ReverseGeocodeResponse;
+  const { display_name: displayName, address } = result as ReverseGeocodeResponse;
   if (typeof displayName !== "string" || !displayName.trim()) {
     return null;
   }
 
-  return displayName
-    .split(",")
-    .map((part) =>
-      part
-        .replace(/[\d۰-۹٠-٩]+/g, "")
-        .replace(/^[\s،,؛;:\-–—]+|[\s،,؛;:\-–—]+$/g, "")
-        .trim(),
-    )
-    .filter((part) => part && part !== "ایران")
-    .reverse()
-    .join("، ");
+  if (address && typeof address === "object" && !Array.isArray(address)) {
+    const formattedAddress = formatReverseGeocodeAddress(address as ReverseGeocodeAddress);
+    if (formattedAddress) {
+      return formattedAddress;
+    }
+  }
+
+  return formatDisplayName(displayName);
 }
