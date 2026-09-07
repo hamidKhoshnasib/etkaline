@@ -54,9 +54,7 @@ export function SortBar({ sort, onSort, total }: SortBarProps) {
 
       <div className="hidden min-h-8 items-center justify-between gap-4 lg:flex">
         <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap">
-          <span
-            className="flex shrink-0 items-center gap-1 rounded-lg py-1 text-sm font-bold text-slate-600"
-          >
+          <span className="flex shrink-0 items-center gap-1 rounded-lg py-1 text-sm font-bold text-slate-600">
             <SortDescIcon className="size-4 text-slate-600" />
             <span>اولویت نمایش</span>
           </span>
