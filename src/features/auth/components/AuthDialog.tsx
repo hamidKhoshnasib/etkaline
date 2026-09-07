@@ -89,8 +89,8 @@ function responseMessage(response: ApiResponse<unknown>, fallback: string) {
 }
 
 function waitForAuthenticatedSessionSync() {
-  let resolveReady!: () => void;
-  const ready = new Promise<void>((resolve) => {
+  let resolveReady!: (needCompleteProfile: boolean | null) => void;
+  const ready = new Promise<boolean | null>((resolve) => {
     resolveReady = resolve;
   });
   const cleanup = () => {
@@ -100,18 +100,18 @@ function waitForAuthenticatedSessionSync() {
     window.removeEventListener(CLIENT_SESSION_SYNC_EVENT, handleSessionSync);
   };
   const handleSessionSync = (event: Event) => {
-    if (!(event instanceof CustomEvent) || typeof event.detail !== "string" || !event.detail) {
+    if (!(event instanceof CustomEvent) || typeof event.detail !== "boolean") {
       return;
     }
 
     cleanup();
-    resolveReady();
+    resolveReady(event.detail);
   };
 
   window.addEventListener(CLIENT_SESSION_SYNC_EVENT, handleSessionSync);
   const timeoutId = window.setTimeout(() => {
     cleanup();
-    resolveReady();
+    resolveReady(null);
   }, 5_000);
 
   return { ready, cancel: cleanup };
@@ -292,9 +292,12 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
         throw new Error("کد تأیید واردشده صحیح نیست یا منقضی شده است.");
       }
 
-      await sessionSync.ready;
-      const authenticatedSession = await getSession();
-      if (authenticatedSession?.user.needCompleteProfile !== true) {
+      const syncedNeedCompleteProfile = await sessionSync.ready;
+      const needCompleteProfile =
+        syncedNeedCompleteProfile ??
+        (await getSession({ broadcast: false }))?.user.needCompleteProfile === true;
+
+      if (!needCompleteProfile) {
         window.dispatchEvent(new Event("etkala:authenticated"));
       }
       void showWelcomeDialog(siteType);

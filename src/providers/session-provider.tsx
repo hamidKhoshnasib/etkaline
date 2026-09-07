@@ -20,7 +20,9 @@ function SessionTokenSync() {
 
     if (session?.accessToken) {
       window.dispatchEvent(
-        new CustomEvent(CLIENT_SESSION_SYNC_EVENT, { detail: session.accessToken }),
+        new CustomEvent<boolean>(CLIENT_SESSION_SYNC_EVENT, {
+          detail: session.user.needCompleteProfile === true,
+        }),
       );
     }
   }, [session, status]);
@@ -36,7 +38,7 @@ export function AuthSessionProvider({
   session: Session | null;
 }) {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
       <SessionTokenSync />
       {children}
     </SessionProvider>

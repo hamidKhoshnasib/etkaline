@@ -22,6 +22,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUnseenMessageCount } from "@/features/account/api/use-tickets";
 import { OrderStats } from "@/features/account/components/OrderStats";
 import { useProfile } from "@/features/account/api/use-profile";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,7 @@ const ACCOUNT_LINKS: ReadonlyArray<AccountLink> = [
 ];
 
 const SECONDARY_ITEMS = [
-  { label: "پشتیبانی", href: "/account/support", icon: Headphones, badge: "۲" },
+  { label: "پشتیبانی", href: "/account/support", icon: Headphones },
   { label: "دعوت از دوستان", icon: UserPlus },
   { label: "آخرین ورود و خروج", href: "/account/login-logs", icon: Clock3 },
 ] as const;
@@ -78,7 +79,7 @@ function SidebarItem({
         <Icon aria-hidden="true" />
         <span className="flex-1">{label}</span>
         {badge && (
-          <span className="bg-primary-hover flex size-5 items-center justify-center rounded-full text-xs text-white">
+          <span className="bg-primary-hover flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs text-white">
             {badge}
           </span>
         )}
@@ -92,7 +93,7 @@ function SidebarItem({
       <Icon aria-hidden="true" />
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="bg-primary-hover flex size-5 items-center justify-center rounded-full text-xs text-white">
+        <span className="bg-primary-hover flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs text-white">
           {badge}
         </span>
       )}
@@ -109,11 +110,14 @@ export function AccountSidebar() {
     pathname: string;
   } | null>(null);
   const { data: profile, isLoading, sessionStatus } = useProfile();
+  const { data: unseenMessageCount = 0 } = useUnseenMessageCount(sessionStatus === "authenticated");
   const isProfileHome = pathname === "/account/profile" || pathname === "/account";
   const isProfileLoading = sessionStatus === "loading" || isLoading;
   const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
   const selectedItem =
     selectedSecondaryItem?.pathname === pathname ? selectedSecondaryItem.label : null;
+  const unseenMessageBadge =
+    unseenMessageCount > 0 ? unseenMessageCount.toLocaleString("fa-IR") : undefined;
 
   const handleSecondaryItemSelect = (label: string) => {
     if (label === "دعوت از دوستان") {
@@ -260,6 +264,7 @@ export function AccountSidebar() {
                   <SidebarItem
                     key={item.label}
                     {...item}
+                    badge={item.label === "پشتیبانی" ? unseenMessageBadge : undefined}
                     active={
                       selectedItem !== null
                         ? selectedItem === item.label

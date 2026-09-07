@@ -54,13 +54,12 @@ export function SortBar({ sort, onSort, total }: SortBarProps) {
 
       <div className="hidden min-h-8 items-center justify-between gap-4 lg:flex">
         <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap">
-          <button
-            type="button"
-            className="flex shrink-0 items-center gap-1 rounded-lg py-1 text-sm font-bold text-slate-600 transition-colors hover:text-slate-800"
+          <span
+            className="flex shrink-0 items-center gap-1 rounded-lg py-1 text-sm font-bold text-slate-600"
           >
             <SortDescIcon className="size-4 text-slate-600" />
             <span>اولویت نمایش</span>
-          </button>
+          </span>
           <span className="mx-1 h-4 w-px shrink-0 bg-slate-300" />
           <div className="flex shrink-0 items-center gap-5">
             {SORT_OPTIONS.map((option) => (

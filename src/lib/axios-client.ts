@@ -29,7 +29,7 @@ async function getClientSessionSnapshot() {
   }
 
   if (!sessionRequest) {
-    sessionRequest = getSession()
+    sessionRequest = getSession({ broadcast: false })
       .then((session) => {
         const snapshot = session
           ? { accessToken: session.accessToken, error: session.error }

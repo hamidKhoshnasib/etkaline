@@ -1,6 +1,7 @@
 "use client";
 
 import { useApiQuery } from "@/hooks/use-api-query";
+import { FAVORITE_PRODUCTS_QUERY_ROOT } from "@/features/product/api/favorite-query-keys";
 
 export interface FavoriteProduct {
   id: number;
@@ -94,7 +95,7 @@ function parseFavoriteProducts(
 export function useFavoriteProducts(page: number) {
   return useApiQuery<FavoriteProductsResponse, FavoriteProductsPage>({
     url: "/api/Favorites",
-    queryKey: ["favorites", "products", { page, pageLength: 10 }],
+    queryKey: [...FAVORITE_PRODUCTS_QUERY_ROOT, { page, pageLength: 10 }],
     axiosConfig: { params: { Page: page, PageLength: 10 } },
     select: (response) => parseFavoriteProducts(response, page),
     staleTime: 60_000,

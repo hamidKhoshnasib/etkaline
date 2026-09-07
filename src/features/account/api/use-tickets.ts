@@ -202,6 +202,8 @@ function parseTicketDetails(response: TicketsResponse): TicketDetails {
 export const ticketQueryKeys = {
   all: (siteType: SiteType) => [siteType, "support", "tickets"] as const,
   list: (siteType: SiteType) => [...ticketQueryKeys.all(siteType), "list"] as const,
+  unseenMessageCount: (siteType: SiteType) =>
+    [...ticketQueryKeys.all(siteType), "unseen-message-count"] as const,
   details: (siteType: SiteType, ticketId: number) =>
     [...ticketQueryKeys.all(siteType), "details", ticketId] as const,
 };
@@ -278,6 +280,39 @@ export function useTickets() {
         throw new Error(getErrorMessage(error));
       }
     },
+    staleTime: 60_000,
+    retry: false,
+  });
+}
+
+export function useUnseenMessageCount(enabled: boolean) {
+  const { siteType } = useStorefront();
+
+  return useQuery<number, Error>({
+    queryKey: ticketQueryKeys.unseenMessageCount(siteType),
+    queryFn: async ({ signal }) => {
+      try {
+        const { data } = await axiosClient.get<TicketsResponse>(
+          "/api/Tickets/GetUnseenMessageCount",
+          {
+            headers: getSiteTypeHeaders(siteType),
+            signal,
+          },
+        );
+        const count = nonNegativeInteger(data.value);
+
+        if (data.isSuccess !== true || count === null) {
+          throw new Error(
+            responseErrorMessage(data, "دریافت تعداد پیام‌های خوانده‌نشده ممکن نشد."),
+          );
+        }
+
+        return count;
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
+    },
+    enabled,
     staleTime: 60_000,
     retry: false,
   });
