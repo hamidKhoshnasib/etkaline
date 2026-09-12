@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ScaleIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
-import { formatDiscountPercent } from "@/features/product/lib/format-price";
+import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import { cn } from "@/lib/utils";
 
 export interface ProductColor {
@@ -23,10 +23,6 @@ interface ProductInfoCardProps {
   isAvailable: boolean;
   selectedColorId?: string;
   onColorSelect?: (colorId: string) => void;
-}
-
-function formatPrice(n: number): string {
-  return n.toLocaleString("fa-IR");
 }
 
 const GUARANTEES = [
@@ -124,10 +120,12 @@ export function ProductInfoCard({
         )}
         <div className="ms-auto flex flex-col items-end">
           <div className="flex items-center gap-1">
-            <span className="text-xl font-bold text-gray-800">{formatPrice(price)}</span>
+            <span className="text-xl font-bold text-gray-800">{formatProductPrice(price)}</span>
             <TomanIcon className="size-4.5 text-gray-500" />
           </div>
-          {originalPrice && <s className="text-sm text-gray-400">{formatPrice(originalPrice)}</s>}
+          {originalPrice && (
+            <s className="text-sm text-gray-400">{formatProductPrice(originalPrice)}</s>
+          )}
         </div>
       </div>
 

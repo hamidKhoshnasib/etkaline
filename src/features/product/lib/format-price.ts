@@ -1,5 +1,7 @@
+import { formatToman } from "@/lib/currency";
+
 export function formatProductPrice(value: number) {
-  return value.toLocaleString("fa-IR");
+  return formatToman(value);
 }
 
 export function formatDiscountPercent(value: number) {

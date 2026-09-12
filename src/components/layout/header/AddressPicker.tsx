@@ -60,7 +60,11 @@ import {
 import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
 import { useSetDefaultStore } from "@/features/store/api/use-store-mutations";
 import { cn } from "@/lib/utils";
-import { getErrorMessage, setClientSessionSnapshot } from "@/lib/axios-client";
+import {
+  ADDRESS_REQUIRED_EVENT,
+  getErrorMessage,
+  setClientSessionSnapshot,
+} from "@/lib/axios-client";
 import { useStorefront } from "@/providers/storefront-provider";
 
 type AddressStep = "addresses" | "location" | "details" | "store";
@@ -81,6 +85,7 @@ interface AddressPickerProps {
   onStoreSelected?: (storeTitle: string) => void;
   editingAddress?: Address | null;
   showMissingAddressPrompt?: boolean;
+  listenForAddressRequired?: boolean;
 }
 
 function getResponseMessage(response: ApiResult<unknown>, fallback: string) {
@@ -102,6 +107,7 @@ export function AddressPicker({
   onStoreSelected,
   editingAddress: externalEditingAddress,
   showMissingAddressPrompt = false,
+  listenForAddressRequired = false,
 }: AddressPickerProps) {
   const { siteType } = useStorefront();
   const { data: session, status, update } = useSession();
@@ -111,6 +117,7 @@ export function AddressPicker({
   const [open, setOpen] = useState(false);
   const hasAutoPromptedRef = useRef(false);
   const openStoreAfterAuthenticationRef = useRef(false);
+  const pendingAddressRequiredRef = useRef(false);
   const [step, setStep] = useState<AddressStep>("addresses");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedStore, setSelectedStore] = useState("");
@@ -123,18 +130,11 @@ export function AddressPicker({
   const formId = useId();
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
-  const hasNoStore =
-    status === "authenticated" &&
-    (siteType === "supermarket"
-      ? !session.user.superMarketStoreId
-      : !session.user.applianceStoreId);
-  const needsProfileCompletion =
-    status === "authenticated" && session.user.needCompleteProfile === true;
   const committedStoreId =
     siteType === "supermarket"
       ? String(session?.user.superMarketStoreId || "")
       : String(session?.user.applianceStoreId || "");
-  const shouldPromptForAddress = hasNoStore && hasLoadedAddresses;
+  const shouldPromptForAddress = status === "authenticated" && hasLoadedAddresses;
   const shouldStartAddressCreation = shouldPromptForAddress && addresses.length === 0;
   const hasDefaultAddress = addresses.some((address) => address.isDefault);
   const isExternallyEditing = Boolean(externalEditingAddress);
@@ -150,7 +150,7 @@ export function AddressPicker({
       }
     : coordinates;
   const activeStep: AddressStep = isExternalInitialDetails ? "details" : step;
-  const isOpen = !needsProfileCompletion && (controlledOpen ?? open);
+  const isOpen = controlledOpen ?? open;
 
   useEffect(() => {
     const handleAuthenticated = () => {
@@ -183,12 +183,52 @@ export function AddressPicker({
   }, [addresses.length, hasDefaultAddress, hasLoadedAddresses, onOpenChange]);
 
   useEffect(() => {
-    if (
-      !showMissingAddressPrompt ||
-      needsProfileCompletion ||
-      !shouldPromptForAddress ||
-      hasAutoPromptedRef.current
-    ) {
+    if (!listenForAddressRequired) {
+      return;
+    }
+
+    const handleAddressRequired = () => {
+      if (!hasLoadedAddresses) {
+        pendingAddressRequiredRef.current = true;
+        return;
+      }
+
+      setSelectedStore("");
+      if (addresses.length === 0) {
+        startCreatingAddress();
+      } else {
+        setHideStoreBackButton(false);
+        setStep("addresses");
+      }
+      setOpen(true);
+      onOpenChange?.(true);
+    };
+    window.addEventListener(ADDRESS_REQUIRED_EVENT, handleAddressRequired);
+    return () => window.removeEventListener(ADDRESS_REQUIRED_EVENT, handleAddressRequired);
+  }, [addresses.length, hasLoadedAddresses, listenForAddressRequired, onOpenChange]);
+
+  useEffect(() => {
+    if (!hasLoadedAddresses || !pendingAddressRequiredRef.current) {
+      return;
+    }
+
+    pendingAddressRequiredRef.current = false;
+    const openTimer = window.setTimeout(() => {
+      setSelectedStore("");
+      if (addresses.length === 0) {
+        startCreatingAddress();
+      } else {
+        setHideStoreBackButton(false);
+        setStep("addresses");
+      }
+      setOpen(true);
+      onOpenChange?.(true);
+    }, 0);
+    return () => window.clearTimeout(openTimer);
+  }, [addresses.length, hasLoadedAddresses, onOpenChange]);
+
+  useEffect(() => {
+    if (!showMissingAddressPrompt || !shouldPromptForAddress || hasAutoPromptedRef.current) {
       if (!shouldPromptForAddress) {
         hasAutoPromptedRef.current = false;
       }
@@ -210,7 +250,7 @@ export function AddressPicker({
         setCoordinates({ latitude: "", longitude: "" });
         setSelectedFullAddress("");
         setStep("location");
-      } else if (startInStoreMode && hasDefaultAddress) {
+      } else if (hasDefaultAddress) {
         setSelectedStore("");
         setHideStoreBackButton(true);
         setStep("store");
@@ -227,7 +267,6 @@ export function AddressPicker({
     shouldStartAddressCreation,
     showMissingAddressPrompt,
     hasDefaultAddress,
-    needsProfileCompletion,
     startInStoreMode,
   ]);
 
@@ -268,12 +307,6 @@ export function AddressPicker({
   ]);
 
   function handleOpenChange(nextOpen: boolean) {
-    if (needsProfileCompletion) {
-      setOpen(false);
-      onOpenChange?.(false);
-      return;
-    }
-
     if (nextOpen && startInStoreMode) {
       setSelectedStore("");
       if (hasLoadedAddresses && addresses.length === 0) {
@@ -356,11 +389,6 @@ export function AddressPicker({
       return;
     }
 
-    if (needsProfileCompletion) {
-      event.preventDefault();
-      return;
-    }
-
     if (startInCreateMode) {
       startCreatingAddress();
     } else if (startInStoreMode) {
@@ -408,11 +436,7 @@ export function AddressPicker({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <span className="contents" onClick={handleTriggerClick}>
-        {status === "unauthenticated" || needsProfileCompletion ? (
-          trigger
-        ) : (
-          <DialogTrigger render={trigger} />
-        )}
+        {status === "unauthenticated" ? trigger : <DialogTrigger render={trigger} />}
       </span>
       <DialogContent
         data-site={siteType}
@@ -491,7 +515,11 @@ export function AddressPicker({
                 setHideStoreBackButton(true);
                 setStep("store");
               }}
-              onConfirm={() => handleOpenChange(false)}
+              onConfirm={() => {
+                setSelectedStore("");
+                setHideStoreBackButton(true);
+                setStep("store");
+              }}
             />
           )}
           {activeStep === "location" && (
@@ -1335,7 +1363,7 @@ function StoreStep({
       )}
       <Button
         aria-busy={setDefaultStore.isPending}
-        className="mt-10 h-14 w-full rounded-full text-base font-bold"
+        className="mt-10 h-14 w-full rounded-full text-sm font-bold"
         disabled={!activeStoreId || isPending || isError || setDefaultStore.isPending}
         onClick={() => void handleComplete()}
         size="xl"

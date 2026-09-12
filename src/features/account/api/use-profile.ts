@@ -32,7 +32,6 @@ export interface UpdateProfileInput {
 export interface CompleteProfileInput {
   firstName: string;
   lastName: string;
-  nationalCode: string;
 }
 
 interface ProfileResponse {

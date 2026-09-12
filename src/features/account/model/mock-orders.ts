@@ -3,6 +3,7 @@ import type { StaticImageData } from "next/image";
 import mixerImage from "@/assets/images/Group 16.png";
 import airFryerImage from "@/assets/images/image 41.png";
 import ovenImage from "@/assets/images/gaz.png";
+import { formatToman } from "@/lib/currency";
 
 export type MockOrderStatus =
   | "open"
@@ -103,5 +104,5 @@ export function getMockOrder(orderId: string) {
 }
 
 export function formatMockPrice(value: number) {
-  return new Intl.NumberFormat("fa-IR").format(value);
+  return formatToman(value);
 }

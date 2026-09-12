@@ -202,17 +202,17 @@ export function WishlistView() {
           {/*</Button>*/}
         </div>
 
-        <Tabs defaultValue="favorites" className="gap-0">
-          <Card className="gap-0 rounded-xl py-0 shadow-none">
+        <Tabs defaultValue="favorites" className="gap-0!">
+          <Card className="gap-0! rounded-xl py-0 shadow-none">
             <CardHeader className="grid-cols-[minmax(0,1fr)_auto] border-b px-0 py-0 pb-0!">
               <TabsList
                 variant="line"
                 aria-label="دسته‌بندی لیست‌های من"
-                className="min-w-0 justify-start gap-0 rounded-none p-0 group-data-horizontal/tabs:h-13"
+                className="min-w-0 justify-start gap-0! rounded-none p-0 group-data-horizontal/tabs:h-13"
               >
                 <TabsTrigger
                   value="favorites"
-                  className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-2 after:bottom-[-2px] data-active:font-bold sm:px-4"
+                  className="after:bg-primary data-active:text-secondary h-full max-w-24 rounded-none px-2 after:-bottom-0.5 data-active:font-bold sm:px-4"
                 >
                   علاقه‌مندی‌ها
                 </TabsTrigger>

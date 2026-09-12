@@ -1,32 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { AppImage } from "@/components/ui/image";
 import { Package } from "lucide-react";
+import { DynamicIcon, iconNames, type IconName } from "lucide-react/dynamic";
 
 interface CategoryMenuIconProps {
   iconName: string;
   className?: string;
 }
 
-export function CategoryMenuIcon({ iconName, className }: CategoryMenuIconProps) {
-  const [hasFailed, setHasFailed] = useState(false);
-  const normalizedIconName = iconName.trim();
+const availableIconNames = new Set<string>(iconNames);
 
-  if (!normalizedIconName || hasFailed) {
+function normalizeLucideIconName(value: string) {
+  return value
+    .trim()
+    .replace(/([a-z\d])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .toLowerCase();
+}
+
+function LoadingCategoryIcon() {
+  return <Package aria-hidden="true" />;
+}
+
+export function CategoryMenuIcon({ iconName, className }: CategoryMenuIconProps) {
+  const normalizedIconName = normalizeLucideIconName(iconName);
+
+  if (!normalizedIconName || !availableIconNames.has(normalizedIconName)) {
     return <Package className={className} aria-hidden="true" />;
   }
 
   return (
-    <AppImage
-      src={`/api/category-icons/${encodeURIComponent(normalizedIconName)}`}
-      alt=""
-      aria-hidden="true"
-      width={28}
-      height={28}
-      unoptimized
+    <DynamicIcon
+      name={normalizedIconName as IconName}
       className={className}
-      onError={() => setHasFailed(true)}
+      fallback={LoadingCategoryIcon}
+      aria-hidden="true"
     />
   );
 }

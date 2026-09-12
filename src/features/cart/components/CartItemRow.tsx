@@ -9,6 +9,7 @@ import { AppImage } from "@/components/ui/image";
 import Price from "@/features/cart/checkout/Price";
 import type { OpenBasketItem } from "@/features/cart";
 import { formatDiscountPercent } from "@/features/product/lib/format-price";
+import { formatToman } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
@@ -141,9 +142,7 @@ export default function CartItemRow({
           {hasDiscount ? (
             <div className="flex items-center gap-2">
               <Badge variant="offer">{formatDiscountPercent(item.offPercent)}٪</Badge>
-              <s className="text-muted-foreground text-xs">
-                {item.mainPrice.toLocaleString("fa-IR")}
-              </s>
+              <s className="text-muted-foreground text-xs">{formatToman(item.mainPrice)}</s>
             </div>
           ) : null}
           <Price value={finalPrice} className="text-secondary text-sm font-bold sm:text-base" />

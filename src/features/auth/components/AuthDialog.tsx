@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Info, PencilLine, RefreshCw } from "lucide-react";
-import { getSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { CLIENT_SESSION_SYNC_EVENT } from "@/lib/axios-client";
 import { useLoginBanner } from "@/features/auth/api/use-login-banner";
@@ -292,14 +292,8 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
         throw new Error("کد تأیید واردشده صحیح نیست یا منقضی شده است.");
       }
 
-      const syncedNeedCompleteProfile = await sessionSync.ready;
-      const needCompleteProfile =
-        syncedNeedCompleteProfile ??
-        (await getSession({ broadcast: false }))?.user.needCompleteProfile === true;
-
-      if (!needCompleteProfile) {
-        window.dispatchEvent(new Event("etkala:authenticated"));
-      }
+      await sessionSync.ready;
+      window.dispatchEvent(new Event("etkala:authenticated"));
       void showWelcomeDialog(siteType);
       const search = new URLSearchParams(window.location.search);
       const callbackUrl = search.get("callbackUrl");

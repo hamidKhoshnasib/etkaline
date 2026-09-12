@@ -1,3 +1,5 @@
+import { formatToman } from "@/lib/currency";
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface CartItem {
@@ -131,8 +133,8 @@ export const PAYMENT_GATEWAYS = ["پاسارگاد", "آینده", "ملی", "س
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-export function formatPrice(n: number): string {
-  return n.toLocaleString("fa-IR");
+export function formatPrice(value: number): string {
+  return formatToman(value);
 }
 
 export function toPersian(n: number | string): string {

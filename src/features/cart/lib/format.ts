@@ -1,6 +1,7 @@
-// فرمت اعداد مالی و تعداد برای رابط کاربری RTL
+import { formatToman } from "@/lib/currency";
+
 export function formatPrice(value: number): string {
-  return value.toLocaleString("fa-IR");
+  return formatToman(value);
 }
 export function toPersianDigits(value: number | string): string {
   return String(value).replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
