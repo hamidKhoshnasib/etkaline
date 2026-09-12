@@ -25,6 +25,8 @@ export interface SupermarketDeliveryTime {
 export interface SupermarketDeliveryDate {
   deliveryDate: string;
   deliveryDateFa: string;
+  deliveryDayOfWeek: string;
+  deliveryDayOfMonth: string;
   deliveryTimes: SupermarketDeliveryTime[];
 }
 
@@ -98,6 +100,8 @@ function parseSupermarketDeliveryTimes(response: ApiResponse): SupermarketDelive
       {
         deliveryDate,
         deliveryDateFa: stringValue(item.deliveryDateFa),
+        deliveryDayOfWeek: stringValue(item.deliveryDayOfWeek),
+        deliveryDayOfMonth: stringValue(item.deliveryDayOfMonth),
         deliveryTimes: parseDeliveryTimes(item.deliveryTimes),
       },
     ];

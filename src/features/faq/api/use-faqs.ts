@@ -11,6 +11,9 @@ export interface Faq {
   question: string;
   answer: string;
   order: number;
+  groupId: number;
+  groupTitle: string;
+  groupOrder: number;
 }
 
 interface FaqResponse {
@@ -68,15 +71,33 @@ function parseFaqResponse(response: FaqResponse): Faq[] {
 
   return response.value
     .filter(isRecord)
-    .filter((faq) => faq.isEnabled === true)
-    .map((faq) => ({
-      id: numberValue(faq.id),
-      question: stringValue(faq.question),
-      answer: plainTextValue(faq.answer),
-      order: numberValue(faq.order),
-    }))
-    .filter((faq) => faq.id > 0 && faq.question)
-    .sort((first, second) => first.order - second.order || first.id - second.id);
+    .filter((group) => group.isEnabled === true)
+    .flatMap((group) => {
+      const groupId = numberValue(group.id);
+      const groupTitle = stringValue(group.title) || "سوالات متداول";
+      const groupOrder = numberValue(group.order);
+      const faqs = Array.isArray(group.faqs) ? group.faqs : [];
+
+      return faqs
+        .filter(isRecord)
+        .filter((faq) => faq.isEnabled === true)
+        .map((faq) => ({
+          id: numberValue(faq.id),
+          question: stringValue(faq.question),
+          answer: plainTextValue(faq.answer),
+          order: numberValue(faq.order),
+          groupId,
+          groupTitle,
+          groupOrder,
+        }))
+        .filter((faq) => faq.id > 0 && faq.question);
+    })
+    .sort(
+      (first, second) =>
+        first.groupOrder - second.groupOrder ||
+        first.order - second.order ||
+        first.id - second.id,
+    );
 }
 
 async function getFaqs(siteType: SiteType): Promise<Faq[]> {

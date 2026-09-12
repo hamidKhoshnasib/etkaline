@@ -729,11 +729,17 @@ This file is generated from the server contract. When behavior and this document
 - **Tags:** - پرسش های متداول
 - **Security:** Inherited from the API-level security declaration
 
+#### Parameters
+
+| Name         | In    | Required | Schema          |
+| ------------ | ----- | -------- | --------------- |
+| `FAQGroupId` | query | No       | integer (int64) |
+
 #### Responses
 
-| Status | Description | Content                                                                                                                                                                                                                                                                              | Headers |
-| ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| `200`  | OK          | `application/json`: [Abstractions.Application.DTOs.BaseResult`1[System.Collections.Generic.List`1[CmsModule.Application.FaqCQRS.FaqGetListDTO]]](#schema-abstractions-application-dtos-baseresult-1-system-collections-generic-list-1-cmsmodule-application-faqcqrs-faqgetlistdto--) | —       |
+| Status | Description | Content                                                        | Headers |
+| ------ | ----------- | -------------------------------------------------------------- | ------- |
+| `200`  | OK          | `application/json`: `BaseResult<List<FAQGroupGetHomeListDTO>>` | —       |
 
 <a id="operation-get--api-profile"></a>
 
@@ -4652,6 +4658,7 @@ This file is generated from the server contract. When behavior and this document
 | `title`         | No       | string or null                                                                                                                                                      | —                     |             |
 | `year`          | No       | integer (int32)                                                                                                                                                     | —                     |             |
 | `month`         | No       | integer (int32)                                                                                                                                                     | —                     |             |
+| `monthName`     | No       | string or null                                                                                                                                                      | read-only             |             |
 | `deliveryTimes` | No       | array<[LogisticModule.Application.DeliveryDateCQRS.ApplianceDeliveryTimeDTO](#schema-logisticmodule-application-deliverydatecqrs-appliancedeliverytimedto)> or null | —                     |             |
 
 <a id="schema-logisticmodule-application-deliverydatecqrs-appliancedeliverytimedto"></a>
@@ -4661,13 +4668,15 @@ This file is generated from the server contract. When behavior and this document
 - **Definition:** object
 - **Additional properties:** False
 
-| Property          | Required | Schema          | Constraints / default | Description      |
-| ----------------- | -------- | --------------- | --------------------- | ---------------- |
-| `title`           | No       | string or null  | —                     |                  |
-| `startDayOfMonth` | No       | integer (int32) | —                     |                  |
-| `endDayOfMonth`   | No       | integer (int32) | —                     |                  |
-| `isFull`          | No       | boolean         | —                     | ظرفیت تکمیل است؟ |
-| `id`              | No       | integer (int64) | —                     | شناسه            |
+| Property          | Required | Schema          | Constraints / default | Description            |
+| ----------------- | -------- | --------------- | --------------------- | ---------------------- |
+| `title`           | No       | string or null  | —                     |                        |
+| `startDayOfMonth` | No       | integer (int32) | —                     |                        |
+| `endDayOfMonth`   | No       | integer (int32) | —                     |                        |
+| `dayOfWeekRange`  | No       | string or null  | —                     | مثلا از شنبه تا دوشنبه |
+| `dayOfMonthRange` | No       | string or null  | —                     | مثلا از 20 تا 23       |
+| `isFull`          | No       | boolean         | —                     | ظرفیت تکمیل است؟       |
+| `id`              | No       | integer (int64) | —                     | شناسه                  |
 
 <a id="schema-logisticmodule-application-deliverydatecqrs-supermarketdeliverydatedto"></a>
 
@@ -4676,11 +4685,13 @@ This file is generated from the server contract. When behavior and this document
 - **Definition:** object
 - **Additional properties:** False
 
-| Property         | Required | Schema                                                                                                                                                                  | Constraints / default | Description |
-| ---------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ----------- |
-| `deliveryDate`   | No       | string (date-time)                                                                                                                                                      | —                     |             |
-| `deliveryDateFa` | No       | string or null                                                                                                                                                          | read-only             |             |
-| `deliveryTimes`  | No       | array<[LogisticModule.Application.DeliveryDateCQRS.SuperMarketDeliveryTimeDTO](#schema-logisticmodule-application-deliverydatecqrs-supermarketdeliverytimedto)> or null | —                     |             |
+| Property             | Required | Schema                                                                                                                                                                  | Constraints / default | Description |
+| -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ----------- |
+| `deliveryDate`       | No       | string (date-time)                                                                                                                                                      | —                     |             |
+| `deliveryDateFa`     | No       | string or null                                                                                                                                                          | read-only             |             |
+| `deliveryDayOfWeek`  | No       | string or null                                                                                                                                                          | read-only             |             |
+| `deliveryDayOfMonth` | No       | string or null                                                                                                                                                          | read-only             |             |
+| `deliveryTimes`      | No       | array<[LogisticModule.Application.DeliveryDateCQRS.SuperMarketDeliveryTimeDTO](#schema-logisticmodule-application-deliverydatecqrs-supermarketdeliverytimedto)> or null | —                     |             |
 
 <a id="schema-logisticmodule-application-deliverydatecqrs-supermarketdeliverytimedto"></a>
 

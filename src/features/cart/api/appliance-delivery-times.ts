@@ -19,6 +19,8 @@ export interface ApplianceDeliveryTime {
   title: string;
   startDayOfMonth: number;
   endDayOfMonth: number;
+  dayOfWeekRange: string;
+  dayOfMonthRange: string;
   isFull: boolean;
 }
 
@@ -26,6 +28,7 @@ export interface ApplianceDeliveryDate {
   title: string;
   year: number;
   month: number;
+  monthName: string;
   deliveryTimes: ApplianceDeliveryTime[];
 }
 
@@ -89,6 +92,8 @@ function parseDeliveryTimes(value: unknown): ApplianceDeliveryTime[] {
         title: stringValue(item.title),
         startDayOfMonth: numberValue(item.startDayOfMonth),
         endDayOfMonth: numberValue(item.endDayOfMonth),
+        dayOfWeekRange: stringValue(item.dayOfWeekRange),
+        dayOfMonthRange: stringValue(item.dayOfMonthRange),
         isFull: item.isFull === true,
       },
     ];
@@ -121,6 +126,7 @@ function parseDeliveryDates(value: unknown): ApplianceDeliveryDate[] {
         title: stringValue(item.title),
         year,
         month,
+        monthName: stringValue(item.monthName),
         deliveryTimes: parseDeliveryTimes(item.deliveryTimes),
       },
     ];

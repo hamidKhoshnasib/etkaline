@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   ArrowRight,
@@ -17,6 +17,14 @@ import { AddressPicker } from "@/components/layout/header/AddressPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { AppImage } from "@/components/ui/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,6 +37,7 @@ import {
   useSupermarketDeliveryTimes,
 } from "@/features/cart/api/supermarket-delivery-times";
 import type { CheckoutDetails } from "@/features/cart/api/get-checkout-details";
+import { useShippingCost } from "@/features/cart/api/shipping-cost";
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import type { Address } from "@/features/address/api/use-addresses";
 import type {
@@ -40,9 +49,12 @@ import { cn } from "@/lib/utils";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 import Price from "./Price";
+import { MobileAddressDrawer } from "./MobileAddressDrawer";
 
 interface AddressStepProps {
   address: Address | null;
+  addresses: Address[];
+  onAddressSelected: (address: Address) => void;
   checkoutDetails: CheckoutDetails;
   selections: DeliverySelections;
   onSelectionsChange: (selections: DeliverySelections) => void;
@@ -144,7 +156,15 @@ function SelectedAddress({ address }: { address: Address }) {
   );
 }
 
-function AddressSection({ address }: { address: Address | null }) {
+function AddressSection({
+  address,
+  addresses,
+  onAddressSelected,
+}: {
+  address: Address | null;
+  addresses: Address[];
+  onAddressSelected: (address: Address) => void;
+}) {
   return (
     <Card className="gap-3 rounded-2xl py-5 shadow-none">
       <CardHeader className="flex w-full flex-row items-center justify-between px-5">
@@ -152,14 +172,23 @@ function AddressSection({ address }: { address: Address | null }) {
           <MapPin aria-hidden="true" />
           انتخاب آدرس
         </CardTitle>
-        <AddressPicker
-          trigger={
-            <Button type="button" variant="ghost" size="sm">
-              {address ? "تغییر آدرس" : "انتخاب آدرس"}
-              <ChevronLeft data-icon="inline-end" />
-            </Button>
-          }
-        />
+        <div className="lg:hidden">
+          <MobileAddressDrawer
+            addresses={addresses}
+            selectedAddress={address}
+            onAddressSelected={onAddressSelected}
+          />
+        </div>
+        <div className="max-lg:hidden">
+          <AddressPicker
+            trigger={
+              <Button type="button" variant="ghost" size="sm">
+                {address ? "تغییر آدرس" : "انتخاب آدرس"}
+                <ChevronLeft data-icon="inline-end" />
+              </Button>
+            }
+          />
+        </div>
       </CardHeader>
       {address ? (
         <CardContent className="px-5">
@@ -207,6 +236,13 @@ function ProductThumbnails({
 }
 
 function getSupermarketDateParts(date: SupermarketDeliveryDate) {
+  if (date.deliveryDayOfWeek || date.deliveryDayOfMonth) {
+    return {
+      weekday: date.deliveryDayOfWeek || "تاریخ ارسال",
+      label: date.deliveryDayOfMonth || date.deliveryDateFa,
+    };
+  }
+
   const parsedDate = parseDate(date.deliveryDate);
   if (parsedDate) {
     return {
@@ -221,6 +257,7 @@ function getSupermarketDateParts(date: SupermarketDeliveryDate) {
 function ApplianceDeliveryChoices({
   group,
   dates,
+  deliveryPrice,
   selection,
   addressSelected,
   isLoading,
@@ -229,6 +266,7 @@ function ApplianceDeliveryChoices({
 }: {
   group: ParcelGroup;
   dates: ApplianceDeliveryDate[];
+  deliveryPrice?: number;
   selection?: DeliverySelection;
   addressSelected: boolean;
   isLoading: boolean;
@@ -259,6 +297,14 @@ function ApplianceDeliveryChoices({
     return <p className="text-muted-foreground text-sm">زمان قابل انتخابی در دسترس نیست.</p>;
   }
 
+  const selectedDate = datesWithTimes.find(
+    (date) => date.year === selection?.year && date.month === selection?.month,
+  );
+  const selectedTime = selectedDate?.deliveryTimes.find(
+    (time) => time.id === selection?.deliveryTimeId,
+  );
+  const mockTimeLabel = "از ۹ تا ۲۰";
+
   return (
     <div className="flex flex-col gap-4">
       <div className="text-checkout-accent flex items-center gap-2 self-start text-base font-bold">
@@ -281,11 +327,12 @@ function ApplianceDeliveryChoices({
                 selection?.year === date.year &&
                 selection.month === date.month &&
                 selection.deliveryTimeId === time.id;
-              const dayRangeLabel =
+              const fallbackDayRange =
                 time.startDayOfMonth === time.endDayOfMonth
                   ? time.startDayOfMonth.toLocaleString("fa-IR")
                   : `${time.startDayOfMonth.toLocaleString("fa-IR")} تا ${time.endDayOfMonth.toLocaleString("fa-IR")}`;
-              const buttonLabel = time.title || dayRangeLabel;
+              const title = time.dayOfWeekRange || time.title || "بازه ارسال";
+              const dayRange = time.dayOfMonthRange || fallbackDayRange;
 
               return (
                 <Button
@@ -296,14 +343,14 @@ function ApplianceDeliveryChoices({
                   role="radio"
                   aria-checked={active}
                   className={cn(
-                    "h-auto min-w-28 flex-col gap-1 rounded-xl border-2 px-3 py-3",
+                    "h-auto min-w-32 flex-col gap-1 rounded-xl border-2 px-4 py-3 shadow-none",
                     active && "border-checkout-accent bg-transparent hover:bg-transparent",
                   )}
                   onClick={() =>
                     onChange({
                       dateIso: `${date.year}-${date.month}-${time.id}`,
-                      dateLabel: buttonLabel,
-                      time: time.title,
+                      dateLabel: `${title} ${dayRange}`,
+                      time: "",
                       pickup: false,
                       year: date.year,
                       month: date.month,
@@ -311,14 +358,67 @@ function ApplianceDeliveryChoices({
                     })
                   }
                 >
-                  <span className="font-bold">{buttonLabel}</span>
+                  <span className="font-bold">{title}</span>
+                  <span className={cn("text-xs", !active && "text-muted-foreground")}>
+                    {dayRange}
+                  </span>
                   {time.isFull ? (
                     <span className="text-destructive text-xs">تکمیل ظرفیت</span>
-                  ) : null}
+                  ) : deliveryPrice === undefined ? (
+                    <Skeleton className="h-4 w-14" />
+                  ) : (
+                    <Price
+                      value={deliveryPrice}
+                      className={cn("text-xs", active ? "text-secondary" : "text-muted-foreground")}
+                      iconClassName={active ? "text-secondary" : "text-muted-foreground"}
+                    />
+                  )}
                 </Button>
               );
             })}
           </div>
+
+          {selectedDate === date && selectedTime && selection ? (
+            <div className="flex flex-col gap-4 border-s ps-4">
+              <p className="text-sm font-medium">
+                زمان برای ارسال در تاریخ{" "}
+                <strong className="text-checkout-accent">
+                  {selectedTime.dayOfWeekRange || selectedTime.title}{" "}
+                  {selectedTime.dayOfMonthRange ||
+                    selectedTime.startDayOfMonth.toLocaleString("fa-IR")}{" "}
+                  {selectedDate.monthName || selectedDate.title}
+                </strong>{" "}
+                را انتخاب نمایید:
+              </p>
+              <div role="radiogroup" aria-label={`ساعت ارسال ${group.title}`}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  role="radio"
+                  aria-checked={selection.time === mockTimeLabel}
+                  onClick={() =>
+                    onChange({
+                      dateIso: selection.dateIso,
+                      dateLabel: selection.dateLabel,
+                      time: mockTimeLabel,
+                      pickup: false,
+                      year: selection.year,
+                      month: selection.month,
+                      deliveryTimeId: selection.deliveryTimeId,
+                    })
+                  }
+                  className={cn(
+                    "h-10 min-w-20 rounded-full px-5 shadow-none",
+                    selection.time === mockTimeLabel &&
+                      "border-checkout-accent bg-checkout-accent hover:bg-checkout-accent text-white hover:text-white",
+                  )}
+                >
+                  <bdi dir="ltr">{mockTimeLabel}</bdi>
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </section>
       ))}
     </div>
@@ -337,7 +437,7 @@ function SupermarketDeliveryChoices({
 }: {
   group: ParcelGroup;
   dates: SupermarketDeliveryDate[];
-  deliveryPrice: number;
+  deliveryPrice?: number;
   selection?: DeliverySelection;
   addressSelected: boolean;
   isLoading: boolean;
@@ -420,6 +520,8 @@ function SupermarketDeliveryChoices({
                 </span>
                 {isFull ? (
                   <span className="text-destructive text-xs">تکمیل ظرفیت</span>
+                ) : deliveryPrice === undefined ? (
+                  <Skeleton className="h-4 w-14" />
                 ) : (
                   <Price
                     value={deliveryPrice}
@@ -506,7 +608,7 @@ function DeliveryGroup({
   group: ParcelGroup;
   dates: DeliveryDateOption[];
   times: string[];
-  deliveryPrice: number;
+  deliveryPrice?: number;
   selection?: DeliverySelection;
   addressSelected: boolean;
   applianceDates?: ApplianceDeliveryDate[];
@@ -543,6 +645,7 @@ function DeliveryGroup({
         <ApplianceDeliveryChoices
           group={group}
           dates={applianceDates}
+          deliveryPrice={deliveryPrice}
           selection={selection}
           addressSelected={addressSelected}
           isLoading={isApplianceDeliveryLoading}
@@ -697,6 +800,8 @@ function DeliveryGroup({
 
 export default function AddressStep({
   address,
+  addresses,
+  onAddressSelected,
   checkoutDetails,
   selections,
   onSelectionsChange,
@@ -708,6 +813,8 @@ export default function AddressStep({
   const isSupermarketStorefront = siteType === SITE_TYPES.supermarket;
   const applianceDeliveryTimesQuery = useApplianceDeliveryTimes(checkoutDetails.id);
   const supermarketDeliveryTimesQuery = useSupermarketDeliveryTimes(checkoutDetails.id);
+  const shippingCostQuery = useShippingCost(checkoutDetails.id);
+  const [activeParcelId, setActiveParcelId] = useState<ParcelKind | null>(null);
   const groups = useMemo<ParcelGroup[]>(() => {
     if (isSupermarketStorefront) {
       return [
@@ -743,14 +850,16 @@ export default function AddressStep({
           Number.isSafeInteger(selection?.year) &&
           Number.isSafeInteger(selection?.month) &&
           Number.isSafeInteger(selection?.deliveryTimeId) &&
-          (selection?.deliveryTimeId ?? 0) > 0
+          (selection?.deliveryTimeId ?? 0) > 0 &&
+          Boolean(selection?.time)
         );
       }
       if (isSupermarketStorefront) {
         return (
           Boolean(selection?.dateIso) &&
           Number.isSafeInteger(selection?.deliveryTimeId) &&
-          (selection?.deliveryTimeId ?? 0) > 0
+          (selection?.deliveryTimeId ?? 0) > 0 &&
+          Boolean(selection?.time)
         );
       }
       return selection?.pickup === true || Boolean(selection?.dateIso && selection.time);
@@ -758,82 +867,206 @@ export default function AddressStep({
 
   useEffect(() => onReadyChange(ready), [onReadyChange, ready]);
 
+  const activeGroup = groups.find((group) => group.id === activeParcelId);
+
+  function updateGroupSelection(group: ParcelGroup, selection: DeliverySelection) {
+    onSelectionsChange({ ...selections, [group.id]: selection });
+  }
+
+  function renderDeliveryGroup(group: ParcelGroup) {
+    return (
+      <DeliveryGroup
+        group={group}
+        dates={dates}
+        times={times}
+        deliveryPrice={shippingCostQuery.data}
+        selection={selections[group.id]}
+        addressSelected={address !== null}
+        applianceDates={
+          isApplianceStorefront
+            ? group.id === "heavy"
+              ? (applianceDeliveryTimesQuery.data?.heavyWeightDeliveryDates ?? [])
+              : (applianceDeliveryTimesQuery.data?.lightWeightDeliveryDates ?? [])
+            : undefined
+        }
+        isApplianceDeliveryLoading={isApplianceStorefront && applianceDeliveryTimesQuery.isPending}
+        applianceDeliveryError={
+          isApplianceStorefront && applianceDeliveryTimesQuery.isError
+            ? applianceDeliveryTimesQuery.error
+            : null
+        }
+        supermarketDates={
+          isSupermarketStorefront ? (supermarketDeliveryTimesQuery.data ?? []) : undefined
+        }
+        isSupermarketDeliveryLoading={
+          isSupermarketStorefront && supermarketDeliveryTimesQuery.isPending
+        }
+        supermarketDeliveryError={
+          isSupermarketStorefront && supermarketDeliveryTimesQuery.isError
+            ? supermarketDeliveryTimesQuery.error
+            : null
+        }
+        onChange={(selection) => updateGroupSelection(group, selection)}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <Card className="rounded-2xl py-7 shadow-none">
-        <CardHeader className="relative px-5 text-center">
-          <CardTitle className="text-secondary text-xl font-bold">آدرس و زمان ارسال</CardTitle>
+      <div className="flex flex-col gap-5 lg:hidden">
+        <header className="bg-background text-secondary relative flex h-18 items-center justify-center border-b text-sm font-bold">
           <Button
             type="button"
+            aria-label="بازگشت به سبد خرید"
             variant="ghost"
-            size="sm"
+            size="icon-sm"
+            className="absolute start-4"
             onClick={onBack}
-            className="absolute start-5 top-1/2"
-            style={{ transform: "translateY(-50%)", transition: "none" }}
           >
-            <ArrowRight data-icon="inline-start" />
-            بازگشت به سبد خرید
+            <ArrowRight aria-hidden="true" />
           </Button>
-        </CardHeader>
-      </Card>
+          <h1 className="text-base font-bold">آدرس و زمان ارسال</h1>
+        </header>
 
-      <AddressSection address={address} />
+        <AddressSection
+          address={address}
+          addresses={addresses}
+          onAddressSelected={onAddressSelected}
+        />
 
-      <Card className="rounded-2xl py-5 shadow-none">
-        <CardHeader className="flex w-full flex-row items-center justify-between px-5">
-          <CardTitle className="text-secondary flex items-center gap-2 font-bold">
-            <Package aria-hidden="true" />
-            مرسوله
-          </CardTitle>
-          <Badge variant="secondary" className="bg-[#ECEFF1] text-[#334155]">
-            {checkoutDetails.count.toLocaleString("fa-IR")} کالا
-          </Badge>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6 px-5">
-          {groups.map((group, index) => (
-            <div key={group.id} className="flex flex-col gap-6">
-              {index > 0 ? <Separator /> : null}
-              <DeliveryGroup
-                group={group}
-                dates={dates}
-                times={times}
-                deliveryPrice={checkoutDetails.deliveryAmount}
-                selection={selections[group.id]}
-                addressSelected={address !== null}
-                applianceDates={
-                  isApplianceStorefront
-                    ? group.id === "heavy"
-                      ? (applianceDeliveryTimesQuery.data?.heavyWeightDeliveryDates ?? [])
-                      : (applianceDeliveryTimesQuery.data?.lightWeightDeliveryDates ?? [])
-                    : undefined
-                }
-                isApplianceDeliveryLoading={
-                  isApplianceStorefront && applianceDeliveryTimesQuery.isPending
-                }
-                applianceDeliveryError={
-                  isApplianceStorefront && applianceDeliveryTimesQuery.isError
-                    ? applianceDeliveryTimesQuery.error
-                    : null
-                }
-                supermarketDates={
-                  isSupermarketStorefront ? (supermarketDeliveryTimesQuery.data ?? []) : undefined
-                }
-                isSupermarketDeliveryLoading={
-                  isSupermarketStorefront && supermarketDeliveryTimesQuery.isPending
-                }
-                supermarketDeliveryError={
-                  isSupermarketStorefront && supermarketDeliveryTimesQuery.isError
-                    ? supermarketDeliveryTimesQuery.error
-                    : null
-                }
-                onChange={(selection) =>
-                  onSelectionsChange({ ...selections, [group.id]: selection })
-                }
-              />
+        <section aria-labelledby="mobile-parcels-title" className="flex flex-col gap-3 px-4">
+          <div className="flex items-center justify-between">
+            <h2
+              id="mobile-parcels-title"
+              className="text-secondary flex items-center gap-2 font-bold"
+            >
+              <Package aria-hidden="true" />
+              مرسوله
+            </h2>
+            <Badge variant="secondary">{checkoutDetails.count.toLocaleString("fa-IR")} کالا</Badge>
+          </div>
+          {groups.map((group) => {
+            const selection = selections[group.id];
+            const selectionLabel = selection?.time
+              ? `${selection.dateLabel}، ${selection.time}`
+              : "انتخاب زمان ارسال";
+            return (
+              <Card key={group.id} className="gap-3 rounded-2xl py-4 shadow-none">
+                <CardHeader className="px-4">
+                  <CardTitle className="text-secondary text-sm font-bold">{group.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4 px-4">
+                  <ProductThumbnails items={group.items} prominent />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    className="justify-between rounded-xl text-right"
+                    onClick={() => setActiveParcelId(group.id)}
+                  >
+                    <span>{selectionLabel}</span>
+                    <ChevronLeft data-icon="inline-end" />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </section>
+      </div>
+
+      <div className="hidden flex-col gap-6 lg:flex">
+        <Card className="rounded-2xl py-7 shadow-none">
+          <CardHeader className="relative px-5 text-center">
+            <CardTitle className="text-secondary text-xl font-bold">آدرس و زمان ارسال</CardTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="absolute start-5 top-1/2"
+              style={{ transform: "translateY(-50%)", transition: "none" }}
+            >
+              <ArrowRight data-icon="inline-start" />
+              بازگشت به سبد خرید
+            </Button>
+          </CardHeader>
+        </Card>
+
+        <AddressSection
+          address={address}
+          addresses={addresses}
+          onAddressSelected={onAddressSelected}
+        />
+
+        <Card className="rounded-2xl py-5 shadow-none">
+          <CardHeader className="flex w-full flex-row items-center justify-between px-5">
+            <CardTitle className="text-secondary flex items-center gap-2 font-bold">
+              <Package aria-hidden="true" />
+              مرسوله
+            </CardTitle>
+            <Badge variant="secondary" className="bg-[#ECEFF1] text-[#334155]">
+              {checkoutDetails.count.toLocaleString("fa-IR")} کالا
+            </Badge>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-6 px-5">
+            {groups.map((group, index) => (
+              <div key={group.id} className="flex flex-col gap-6">
+                {index > 0 ? <Separator /> : null}
+                {renderDeliveryGroup(group)}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Drawer
+        open={activeParcelId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveParcelId(null);
+          }
+        }}
+        showSwipeHandle
+      >
+        <DrawerContent className="max-h-[calc(100dvh-1.5rem)] rounded-t-[28px] lg:hidden">
+          <DrawerHeader className="flex-row items-center justify-between px-4 pt-5 text-right">
+            <DrawerTitle className="text-secondary font-bold">انتخاب زمان ارسال</DrawerTitle>
+            {activeGroup ? <Badge variant="secondary">{activeGroup.title}</Badge> : null}
+          </DrawerHeader>
+          {activeGroup ? (
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-4">
+              <label className="flex items-center gap-3 text-sm">
+                <Checkbox
+                  checked={selections[activeGroup.id]?.pickup ?? false}
+                  onCheckedChange={(checked) =>
+                    updateGroupSelection(activeGroup, {
+                      ...(selections[activeGroup.id] ?? {
+                        dateIso: "",
+                        dateLabel: "",
+                        time: "",
+                        pickup: false,
+                      }),
+                      pickup: checked === true,
+                    })
+                  }
+                />
+                مایل هستم حضوری دریافت کنم.
+              </label>
+              {renderDeliveryGroup(activeGroup)}
             </div>
-          ))}
-        </CardContent>
-      </Card>
+          ) : null}
+          <DrawerFooter className="border-t px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <Button
+              type="button"
+              size="md"
+              className="h-12 rounded-full"
+              onClick={() => setActiveParcelId(null)}
+            >
+              تأیید
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

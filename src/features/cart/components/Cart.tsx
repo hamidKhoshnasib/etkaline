@@ -95,9 +95,14 @@ export default function CartPage() {
   const [step, setStep] = useState<CheckoutStep>("cart");
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [addressReady, setAddressReady] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [paymentReady, setPaymentReady] = useState(false);
   const [deliverySelections, setDeliverySelections] = useState<DeliverySelections>({});
   const [savedBasket, setSavedBasket] = useState<SavedBasket | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
   const [paymentSelection, setPaymentSelection] = useState<PayBasketInput | null>(null);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
   const [removeDiscountOnCheckoutFetch, setRemoveDiscountOnCheckoutFetch] = useState(true);
@@ -134,7 +139,10 @@ export default function CartPage() {
   ];
   const checkoutItems = items.map(toCheckoutItem);
   const selectedAddress =
-    addressesQuery.data?.find((address) => address.isDefault) ?? addressesQuery.data?.[0] ?? null;
+    addressesQuery.data?.find((address) => address.id === selectedAddressId) ??
+    addressesQuery.data?.find((address) => address.isDefault) ??
+    addressesQuery.data?.[0] ??
+    null;
 
   const handleReadyChange = useCallback((ready: boolean) => setAddressReady(ready), []);
   const handlePaymentSelectionChange = useCallback((selection: PayBasketInput | null) => {
@@ -529,8 +537,16 @@ export default function CartPage() {
           await saveBasketAndContinue();
         }}
       />
-      <main className="bg-muted/60 lg:bg-background py-7 sm:py-10">
-        <Container className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <main
+        className={
+          step === "cart"
+            ? "bg-background pb-[calc(10rem+env(safe-area-inset-bottom))] lg:py-10"
+            : step === "address"
+              ? "bg-muted/60 lg:bg-background pb-[calc(10rem+env(safe-area-inset-bottom))] lg:py-10"
+              : "bg-muted/60 lg:bg-background pb-[calc(10rem+env(safe-area-inset-bottom))] lg:py-10"
+        }
+      >
+        <Container className="grid grid-cols-1 gap-7 px-0 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:px-4">
           <div className="min-w-0">
             {step === "cart" ? (
               <CartStep
@@ -549,6 +565,8 @@ export default function CartPage() {
             {step === "address" ? (
               <AddressStep
                 address={selectedAddress}
+                addresses={addressesQuery.data ?? []}
+                onAddressSelected={(address) => setSelectedAddressId(address.id)}
                 checkoutDetails={checkoutDetails}
                 selections={deliverySelections}
                 onSelectionsChange={setDeliverySelections}

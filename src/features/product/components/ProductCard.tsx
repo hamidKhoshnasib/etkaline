@@ -127,18 +127,18 @@ function SupermarketProductCard({
   return (
     <article
       className={cn(
-        "group relative flex h-[262px] flex-col justify-between overflow-hidden rounded-[16px] border border-[#E2E8F0]",
+        "group relative flex h-65.5 flex-col justify-between overflow-hidden rounded-[16px] border border-[#E2E8F0]",
         className,
       )}
     >
       <div className="flex h-full flex-col justify-between">
-        <div className="relative h-[148px] shrink-0">
+        <div className="relative h-37 shrink-0">
           <AppImage
             src={image}
             alt={title}
             width={153}
             height={148}
-            className={cn("h-[148px] w-full object-cover", outOfStock && "opacity-45")}
+            className={cn("h-37 w-full object-cover", outOfStock && "opacity-45")}
           />
           {outOfStock ? (
             <span className="text-muted-foreground absolute inset-x-3 bottom-2 rounded-lg bg-white/90 py-1 text-center text-xs">
@@ -147,12 +147,12 @@ function SupermarketProductCard({
           ) : null}
         </div>
 
-        <div className="flex h-24 shrink-0 flex-col gap-1 px-[9px]">
+        <div className="flex h-24 shrink-0 flex-col gap-1 px-2.25">
           <h3 className="line-clamp-2 h-12 shrink-0 text-sm leading-6 font-bold text-[#000814]">
             {title}
           </h3>
           <div className="flex h-11 shrink-0 flex-col">
-            <div className="flex h-5 items-center justify-between px-[3px]" dir="ltr">
+            <div className="flex h-5 items-center justify-between px-0.75" dir="ltr">
               {originalPrice ? (
                 <s className="truncate text-xs leading-[19.6px] text-[#64748B]" dir="rtl">
                   {formatProductPrice(originalPrice)}
@@ -162,7 +162,7 @@ function SupermarketProductCard({
               )}
               {discount ? (
                 <span
-                  className="flex h-4 min-w-[26px] items-center justify-center rounded bg-[#43A047] px-0.5 text-xs leading-4 font-bold text-white"
+                  className="text-label-medium-bold flex h-5 min-w-6.5 items-center justify-center rounded-[4px] bg-[#43A047] text-white"
                   dir="rtl"
                 >
                   {formatDiscountPercent(discount)}٪
@@ -191,7 +191,7 @@ function SupermarketProductCard({
           <div
             role="group"
             aria-label={`تعداد ${title} در سبد خرید`}
-            className="border-primary bg-background text-primary absolute top-[58px] right-0 z-10 flex h-[88px] w-10 flex-col items-center justify-between rounded-full border py-1"
+            className="border-primary bg-background text-primary absolute top-14.5 right-0 z-10 flex h-22 w-10 flex-col items-center justify-between rounded-full border py-1"
           >
             <button
               type="button"
@@ -231,9 +231,9 @@ function SupermarketProductCard({
             onClick={addToBasket}
             disabled={isBasketActionPending}
             aria-label={`افزودن ${title} به سبد خرید`}
-            className="focus-visible:outline-primary absolute top-[100px] right-0 z-10 flex size-12 items-center justify-center rounded-full border border-[#43A047] bg-white transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+            className="focus-visible:outline-primary absolute top-25 right-0 z-10 flex size-12 items-center justify-center rounded-full border border-[#43A047] bg-white transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
           >
-            <EtkalineCartIcon className="h-[17px] w-4" aria-hidden="true" />
+            <EtkalineCartIcon className="h-4.25 w-4" aria-hidden="true" />
           </button>
         )
       ) : null}
@@ -302,11 +302,11 @@ function CatalogMobileProductCard({
     <ProductCardLink id={id} productUrl={productUrl} title={title}>
       <article
         className={cn(
-          "flex h-[130px] gap-2 overflow-hidden rounded-[8px] border border-slate-200 bg-white p-2",
+          "flex h-32.5 gap-2 overflow-hidden rounded-[8px] border border-slate-200 bg-white p-2",
           className,
         )}
       >
-        <div className="relative flex h-full w-[113px] shrink-0 items-center justify-center overflow-hidden">
+        <div className="relative flex h-full w-28.25 shrink-0 items-center justify-center overflow-hidden">
           <AppImage
             src={image}
             alt={`عکس-${title}`}
@@ -450,7 +450,7 @@ function ProductCard({
             <div className="flex h-12.5 flex-col">
               {discount && originalPrice && (
                 <div className="flex items-center justify-between gap-1.5">
-                  <span className="bg-primary-hover rounded-lg px-1 py-0.5 text-[12px] text-white">
+                  <span className="bg-primary-hover flex h-3.5 w-5.5 justify-center overflow-hidden rounded-[4px] text-[10px] text-white">
                     {formatDiscountPercent(discount)}٪
                   </span>
                   <s className="text-[12px] text-gray-400">{formatProductPrice(originalPrice)}</s>

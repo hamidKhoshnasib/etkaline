@@ -37,6 +37,27 @@ function isBannerLayout(item: HomeLayoutItem) {
   return item.componentType === HOME_COMPONENT_TYPE.BANNER;
 }
 
+const HOME_TARGET_QUERY_KEY: Partial<Record<number, string>> = {
+  1: "category",
+  2: "tag",
+  3: "product",
+  4: "brand",
+};
+
+function getShowMoreLink(item: HomeLayoutItem, siteType: SiteType) {
+  if (item.targetId === null || !Number.isSafeInteger(item.targetId) || item.targetId <= 0) {
+    return undefined;
+  }
+
+  const queryKey = HOME_TARGET_QUERY_KEY[item.targetType];
+  if (!queryKey) {
+    return undefined;
+  }
+
+  const params = new URLSearchParams({ [queryKey]: String(item.targetId) });
+  return `${getStorefront(siteType).searchHref}?${params.toString()}`;
+}
+
 function renderLayoutItem(
   item: HomeLayoutItem,
   products: Awaited<ReturnType<typeof getProductsByLayoutId>>,
@@ -44,10 +65,7 @@ function renderLayoutItem(
   siteType: SiteType,
 ) {
   const description = item.subTitle ?? item.targetTitle ?? undefined;
-  const showMoreLink =
-    item.targetId !== null && item.targetId > 0
-      ? getStorefront(siteType).categoryHref(item.targetId)
-      : undefined;
+  const showMoreLink = getShowMoreLink(item, siteType);
 
   if (isProductLayout(item) && products.length === 0) {
     return null;

@@ -47,8 +47,6 @@ function ShipmentTime({
   if (!selection) {
     return null;
   }
-  const isApplianceDelivery =
-    Number.isSafeInteger(selection.year) && Number.isSafeInteger(selection.month);
 
   return (
     <div className="flex flex-col gap-2">
@@ -64,7 +62,7 @@ function ShipmentTime({
       </div>
       <div className="text-muted-foreground flex flex-wrap items-center gap-2 ps-7 text-sm">
         <span>{selection.dateLabel}</span>
-        {!selection.pickup && !isApplianceDelivery && selection.time ? (
+        {!selection.pickup && selection.time ? (
           <>
             <Separator orientation="vertical" className="h-5" />
             <span>
@@ -220,7 +218,21 @@ export default function ReviewStep({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="relative rounded-2xl py-7 shadow-none">
+      <header className="bg-background text-secondary relative flex h-18 items-center justify-center border-b text-sm font-bold lg:hidden">
+        <Button
+          type="button"
+          aria-label="تغییر آدرس و زمان ارسال"
+          variant="ghost"
+          size="icon-sm"
+          className="absolute start-4"
+          onClick={onEdit}
+        >
+          <ArrowRight aria-hidden="true" />
+        </Button>
+        <h1 className="text-base font-bold">بررسی نهایی</h1>
+      </header>
+
+      <Card className="relative hidden rounded-2xl py-7 shadow-none lg:block">
         <CardHeader className="relative px-5 text-center">
           <CardTitle className="text-secondary text-xl font-bold">بررسی نهایی</CardTitle>
           <Button

@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
@@ -34,6 +37,11 @@ const switchConfig = {
 
 export function StorefrontSwitchTab({ siteType }: { siteType: SiteType }) {
   const target = switchConfig[siteType];
+  const pathname = usePathname();
+
+  if (pathname === (siteType === SITE_TYPES.appliance ? "/cart" : "/fresh/cart")) {
+    return null;
+  }
 
   return (
     <Link

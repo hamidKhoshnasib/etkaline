@@ -3,6 +3,7 @@ import "server-only";
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import type { SiteType } from "@/lib/api-site-type";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
+import { formatBlogDate } from "@/features/blog/model/format-blog-date";
 
 export interface BlogPostDetail {
   id: number;
@@ -60,11 +61,9 @@ function toPlainText(value: unknown): string {
 }
 
 function parseCategories(value: unknown): Array<{ id: number; title: string }> {
-  if (!Array.isArray(value)) {
-    return [];
-  }
+  const categories = Array.isArray(value) ? value : value ? [value] : [];
 
-  return value.flatMap((value) => {
+  return categories.flatMap((value) => {
     const category = asRecord(value);
     const id = category && asInteger(category.id);
     const title = category && asText(category.title);
@@ -85,7 +84,11 @@ function parseBlogPostDetail(raw: unknown): BlogPostDetail | null {
     return null;
   }
 
-  const pictures = Array.isArray(post.pictures) ? post.pictures : [];
+  const pictures = Array.isArray(post.pictures)
+    ? post.pictures
+    : post.pictures
+      ? [post.pictures]
+      : [];
   const mainPicture = pictures.find((picture) => asRecord(picture)?.isMain === true) ?? pictures[0];
   const picture = asRecord(mainPicture);
 
@@ -93,12 +96,12 @@ function parseBlogPostDetail(raw: unknown): BlogPostDetail | null {
     id,
     title,
     summary: toPlainText(post.summary),
-    description: toPlainText(post.description),
+    description: asText(post.description) ?? "",
     metaTitle: asText(post.metaTitle),
     seoDescription: toPlainText(post.seoDesc),
     studyTime: asText(post.studyTime),
     creatorName: asText(post.creatorName),
-    createDate: asText(post.createDateFa),
+    createDate: formatBlogDate(asText(post.createDate) ?? asText(post.createDateFa)),
     categories: parseCategories(post.catList),
     image: toImageUrl(picture?.streamUrl) ?? toImageUrl(picture?.downloadUrl),
   };

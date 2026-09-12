@@ -95,7 +95,7 @@ export default function CartItemRow({
   return (
     <article
       className={cn(
-        "bg-card border-border relative grid min-h-32 grid-cols-[5.5rem_minmax(0,1fr)] gap-x-3 gap-y-4 rounded-xl border p-3 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:p-4",
+        "bg-card border-border relative grid min-h-44 grid-cols-[5.5rem_minmax(0,1fr)] gap-x-3 gap-y-4 border p-4 max-lg:rounded-none sm:min-h-32 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:rounded-xl sm:p-4",
         !item.hasInventory && "opacity-55",
       )}
       aria-busy={isDeleting}
@@ -109,7 +109,7 @@ export default function CartItemRow({
           <span className="sr-only">مشاهده جزئیات محصول</span>
         </Link>
       ) : null}
-      <div className="bg-muted row-span-2 flex size-22 items-center justify-center overflow-hidden rounded-lg sm:size-26">
+      <div className="border-border bg-muted max-lg:bg-background row-span-2 flex size-22 items-center justify-center overflow-hidden rounded-lg border sm:size-26">
         <AppImage
           src={image}
           alt={item.productTitle}

@@ -2,6 +2,7 @@
 
 import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import CartItemRow from "@/features/cart/components/CartItemRow";
+import { MobilePageHeader } from "@/components/layout/header/MobilePageHeader";
 import { ProductCard } from "@/features/product/components/ProductCard";
 import ProductSwiper from "@/features/product/components/ProductSwiper";
 import { useRecentlyViewedProducts } from "@/features/product/hooks/use-recently-viewed-products";
@@ -24,13 +25,14 @@ export default function CartStep({
   onQuantityChange,
   onUndoRemoval,
 }: CartStepProps) {
-  const { siteType } = useStorefront();
+  const { siteType, homeHref } = useStorefront();
   const recentProducts = useRecentlyViewedProducts(siteType);
 
   return (
     <div className="flex min-w-0 flex-col gap-7">
       <section aria-labelledby="cart-items-heading">
-        <header className="mb-5 flex items-center justify-between gap-4 px-1">
+        <MobilePageHeader title="سبد خرید" fallbackHref={homeHref} />
+        <header className="mb-5 hidden items-center justify-between gap-4 px-1 lg:flex">
           <h1 id="cart-items-heading" className="text-secondary text-xl font-bold">
             سبد خرید
           </h1>
@@ -40,7 +42,7 @@ export default function CartStep({
           {/*</div>*/}
         </header>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0 lg:gap-3">
           {items.map((item) => (
             <CartItemRow
               key={item.id}
@@ -56,7 +58,7 @@ export default function CartStep({
       </section>
 
       {recentProducts.length ? (
-        <section aria-labelledby="recent-products-heading">
+        <section aria-labelledby="recent-products-heading" className="hidden lg:block">
           <h2 id="recent-products-heading" className="text-secondary mb-5 text-xl font-bold">
             اخیراً بازدید کردید
           </h2>

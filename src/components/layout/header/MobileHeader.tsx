@@ -21,7 +21,8 @@ export function MobileHeader() {
   if (
     pathname.startsWith(storefront.productPathPrefix) ||
     pathname.startsWith(storefront.categoryPathPrefix) ||
-    pathname.startsWith("/account")
+    pathname.startsWith("/account") ||
+    pathname === storefront.cartHref
   ) {
     return null;
   }
@@ -32,9 +33,9 @@ export function MobileHeader() {
       <div className="flex items-center gap-3 px-4 py-3">
         <Link href={storefront.homeHref} aria-label="اتکالاین" className="text-secondary shrink-0">
           {storefront.siteType === SITE_TYPES.supermarket ? (
-            <SupermarketMobileLogo className="block h-8 w-[135px]" />
+            <SupermarketMobileLogo className="block h-8 w-33.75" />
           ) : (
-            <EtkalineMobileLogo className="block h-8 w-[135px]" />
+            <EtkalineMobileLogo className="block h-8 w-33.75" />
           )}
         </Link>
 
@@ -43,7 +44,7 @@ export function MobileHeader() {
             showMissingAddressPrompt
             trigger={
               <button
-                className="border-primary flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border bg-white px-2.5 sm:flex-none sm:px-4"
+                className="border-primary flex h-10 min-w-0  items-center gap-2 rounded-full border bg-white px-2.5 sm:flex-none sm:px-4"
                 type="button"
               >
                 <MapPin size={18} className="text-primary-hover shrink-0" />

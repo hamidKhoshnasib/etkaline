@@ -23,6 +23,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Spinner } from "@/components/ui/spinner";
 import { WELCOME_DIALOG_EVENT, type LastLoginInfo } from "./WelcomeDialog";
 import {
+  OTP_DIGITS_PATTERN,
+  OTP_LENGTH,
   isValidMobile as validateMobile,
   isValidOtp as validateOtp,
   normalizeMobile as normalizeMobileValue,
@@ -32,9 +34,7 @@ import type { ApiResponse, CaptchaValue } from "@/types/auth";
 import { getSiteTypeHeaders } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 
-const OTP_LENGTH = 6;
 const RESEND_SECONDS = 120;
-const OTP_DIGITS_PATTERN = "[0-9۰-۹٠-٩]*";
 
 type AuthStep = "login" | "verify";
 
@@ -209,10 +209,10 @@ export function AuthDialog({ trigger, listenForOpenEvent = false }: AuthDialogPr
   }, [open, secondsLeft, step]);
 
   React.useEffect(() => {
-    if (step === "verify" && error && !loading) {
+    if (step === "verify" && !loading) {
       otpInputRef.current?.focus();
     }
-  }, [error, loading, step]);
+  }, [loading, step]);
 
   function resetDialog() {
     setStep("login");

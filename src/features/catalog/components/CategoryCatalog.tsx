@@ -47,7 +47,20 @@ const FILTER_QUERY_KEYS = [
   "valueIds",
   "searchText",
   "brandIds",
+  "category",
+  "tag",
+  "product",
+  "brand",
 ] as const;
+
+function parsePositiveId(value: string | null) {
+  if (!value || !/^\d+$/.test(value)) {
+    return 0;
+  }
+
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : 0;
+}
 
 function parsePositiveIds(value: string | null) {
   return (value ?? "")
@@ -160,7 +173,17 @@ export default function CategoryCatalog({
   const priceRange = parsePriceRange(searchParams);
   const [priceFilterResetKey, setPriceFilterResetKey] = useState(0);
   const selectedValueIds = parsePositiveIds(searchParams.get("valueIds"));
-  const brandIds = parsePositiveIds(searchParams.get("brandIds"));
+  const targetCategoryId = parsePositiveId(searchParams.get("category"));
+  const targetTagId = parsePositiveId(searchParams.get("tag"));
+  const targetProductId = parsePositiveId(searchParams.get("product"));
+  const targetBrandId = parsePositiveId(searchParams.get("brand"));
+  const resolvedCategoryId = categoryId > 0 ? categoryId : targetCategoryId;
+  const brandIds = Array.from(
+    new Set([
+      ...parsePositiveIds(searchParams.get("brandIds")),
+      ...(targetBrandId ? [targetBrandId] : []),
+    ]),
+  );
   const searchText = searchParams.get("searchText")?.trim() ?? "";
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -175,7 +198,9 @@ export default function CategoryCatalog({
     page,
     pageLength: PAGE_LENGTH,
     sortType: SORT_TYPE_BY_ID[sort] ?? SORT_TYPE_BY_ID.popular,
-    ...(categoryId > 0 ? { categoryId } : {}),
+    ...(resolvedCategoryId > 0 ? { categoryId: resolvedCategoryId } : {}),
+    ...(targetTagId > 0 ? { tagId: targetTagId } : {}),
+    ...(targetProductId > 0 ? { currentProductId: targetProductId } : {}),
     ...(priceRange ?? {}),
     ...(searchText ? { searchText } : {}),
     ...(brandIds.length > 0 ? { brandIds } : {}),
@@ -192,12 +217,12 @@ export default function CategoryCatalog({
   const products = Array.from(
     new Map((data?.products ?? []).map((product) => [String(product.id), product])).values(),
   );
-  const { data: properties = [] } = useSearchableCategoryProperties(categoryId);
+  const { data: properties = [] } = useSearchableCategoryProperties(resolvedCategoryId);
   const isLoadingProducts = isPending || isFetching;
   const responseMaxPrice = data?.maxPrice && data.maxPrice > 0 ? data.maxPrice : undefined;
   const responseMinPrice = data?.minPrice && data.minPrice > 0 ? data.minPrice : undefined;
   const storedPriceLimits =
-    appliedPriceLimits?.categoryId === categoryId ? appliedPriceLimits : null;
+    appliedPriceLimits?.categoryId === resolvedCategoryId ? appliedPriceLimits : null;
   const maxPriceLimit = storedPriceLimits?.maxPrice ?? responseMaxPrice;
   const minPriceLimit = storedPriceLimits?.minPrice ?? responseMinPrice;
 
@@ -225,7 +250,7 @@ export default function CategoryCatalog({
 
   const applyPriceRange = (nextRange: { minPrice: number; maxPrice: number }) => {
     setAppliedPriceLimits({
-      categoryId,
+      categoryId: resolvedCategoryId,
       minPrice: minPriceLimit,
       maxPrice: maxPriceLimit,
     });
@@ -269,7 +294,7 @@ export default function CategoryCatalog({
       filters.minPrice === undefined || filters.maxPrice === undefined
         ? null
         : {
-            categoryId,
+            categoryId: resolvedCategoryId,
             minPrice: minPriceLimit,
             maxPrice: maxPriceLimit,
           },

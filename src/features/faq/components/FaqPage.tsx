@@ -41,31 +41,11 @@ import { type Faq, useFaqs } from "@/features/faq/api/use-faqs";
 import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
-type FaqCategoryId = "orders" | "delivery" | "returns";
-
 interface FaqCategory {
-  id: FaqCategoryId;
+  id: string;
   title: string;
-  keywords: readonly string[];
+  faqs: Faq[];
 }
-
-const FAQ_CATEGORIES: readonly FaqCategory[] = [
-  {
-    id: "orders",
-    title: "سفارش و خرید",
-    keywords: [],
-  },
-  {
-    id: "delivery",
-    title: "ارسال و تحویل",
-    keywords: ["ارسال", "تحویل", "پست", "پیک", "باربری", "زمان رسیدن", "هزینه ارسال"],
-  },
-  {
-    id: "returns",
-    title: "مرجوعی و بازگشت",
-    keywords: ["مرجوع", "بازگشت", "تعویض", "انصراف", "لغو", "پس دادن"],
-  },
-];
 
 function normalizePersianText(value: string) {
   return value
@@ -77,18 +57,6 @@ function normalizePersianText(value: string) {
     .replace(/\s+/g, " ");
 }
 
-function getFaqCategory(faq: Faq): FaqCategoryId {
-  const searchableText = normalizePersianText(`${faq.question} ${faq.answer}`);
-
-  for (const category of [FAQ_CATEGORIES[2], FAQ_CATEGORIES[1]]) {
-    if (category.keywords.some((keyword) => searchableText.includes(keyword))) {
-      return category.id;
-    }
-  }
-
-  return "orders";
-}
-
 function groupFaqs(faqs: Faq[], query: string) {
   const normalizedQuery = normalizePersianText(query);
   const visibleFaqs = normalizedQuery
@@ -96,25 +64,33 @@ function groupFaqs(faqs: Faq[], query: string) {
         normalizePersianText(`${faq.question} ${faq.answer}`).includes(normalizedQuery),
       )
     : faqs;
+  const categories = new Map<string, FaqCategory>();
 
-  return FAQ_CATEGORIES.map((category) => ({
-    ...category,
-    faqs: visibleFaqs.filter((faq) => getFaqCategory(faq) === category.id),
-  })).filter((category) => category.faqs.length > 0);
+  for (const faq of visibleFaqs) {
+    const id = `faq-group-${faq.groupId}`;
+    const category = categories.get(id);
+
+    if (category) {
+      category.faqs.push(faq);
+    } else {
+      categories.set(id, { id, title: faq.groupTitle, faqs: [faq] });
+    }
+  }
+
+  return [...categories.values()];
 }
-
 export function FaqPage() {
   const { homeHref } = useStorefront();
   const { data: faqs, error, isLoading, refetch, isFetching } = useFaqs();
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
-  const [activeCategory, setActiveCategory] = useState<FaqCategoryId>("orders");
+  const [activeCategory, setActiveCategory] = useState("");
   const availableCategories = faqs ? groupFaqs(faqs, "") : [];
   const selectedCategory = availableCategories.some((category) => category.id === activeCategory)
     ? activeCategory
     : availableCategories[0]?.id;
 
-  function scrollToCategory(categoryId: FaqCategoryId) {
+  function scrollToCategory(categoryId: string) {
     setActiveCategory(categoryId);
     document.getElementById(`faq-${categoryId}`)?.scrollIntoView({
       behavior: "smooth",

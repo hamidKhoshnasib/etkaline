@@ -29,7 +29,7 @@ export function CartSkeleton({ count = 3 }: { count?: number }) {
           ))}
         </section>
 
-        <section className="flex flex-col gap-5">
+        <section className="hidden flex-col gap-5 lg:flex">
           <Skeleton className="h-7 w-40" />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
             {Array.from({ length: 5 }, (_, index) => (
@@ -39,7 +39,7 @@ export function CartSkeleton({ count = 3 }: { count?: number }) {
         </section>
       </div>
 
-      <div className="bg-card border-border h-fit rounded-2xl border p-5 lg:sticky lg:top-36">
+      <div className="bg-card border-border hidden h-fit rounded-2xl border p-5 lg:sticky lg:top-36 lg:block">
         <Skeleton className="mx-auto mb-6 h-7 w-32" />
         <div className="flex flex-col gap-4">
           <Skeleton className="h-5 w-full" />
