@@ -246,7 +246,7 @@ export default function OrderSummary({
               </form>
             ) : null}
 
-            <div className="mt-5 flex items-start gap-2 text-xs leading-5 text-[#1E293B]">
+            <div className="mt-5 flex items-start gap-2 pb-6 text-xs leading-5 text-[#1E293B] lg:pb-0">
               <TriangleAlert className="text-primary mt-0.5 size-5 shrink-0" aria-hidden="true" />
               <p>
                 هزینه این سفارش هنوز پرداخت نشده و در صورت اتمام موجودی، کالاها از سبد حذف می‌شوند.
