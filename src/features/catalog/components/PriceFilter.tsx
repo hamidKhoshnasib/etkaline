@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
+import { formatToman, tomanToRial } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 const PRICE_FLOOR = 0;
@@ -20,11 +21,7 @@ interface PriceFilterProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("fa-IR").format(value);
-}
-
-function parsePrice(value: string) {
+function parseToman(value: string) {
   const normalized = value
     .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
     .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
@@ -69,8 +66,8 @@ export function PriceFilter({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(variant === "sheet");
   const [minPrice, setMinPrice] = useState(initialMinPrice);
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
-  const [minInput, setMinInput] = useState(formatPrice(initialMinPrice));
-  const [maxInput, setMaxInput] = useState(formatPrice(initialMaxPrice));
+  const [minInput, setMinInput] = useState(formatToman(initialMinPrice));
+  const [maxInput, setMaxInput] = useState(formatToman(initialMaxPrice));
   const open = controlledOpen ?? uncontrolledOpen;
 
   const toggleOpen = () => {
@@ -88,14 +85,14 @@ export function PriceFilter({
   const updateMinPrice = (value: number) => {
     const nextMinPrice = clamp(value, priceFloor, maxPrice - PRICE_STEP);
     setMinPrice(nextMinPrice);
-    setMinInput(formatPrice(nextMinPrice));
+    setMinInput(formatToman(nextMinPrice));
     onRangeChange?.({ minPrice: nextMinPrice, maxPrice });
   };
 
   const updateMaxPrice = (value: number) => {
     const nextMaxPrice = clamp(value, minPrice + PRICE_STEP, priceCeiling);
     setMaxPrice(nextMaxPrice);
-    setMaxInput(formatPrice(nextMaxPrice));
+    setMaxInput(formatToman(nextMaxPrice));
     onRangeChange?.({ minPrice, maxPrice: nextMaxPrice });
   };
 
@@ -166,12 +163,12 @@ export function PriceFilter({
                   value={minInput}
                   onChange={(event) => setMinInput(event.target.value)}
                   onBlur={() => {
-                    const value = parsePrice(minInput);
+                    const value = parseToman(minInput);
                     if (value === null) {
-                      setMinInput(formatPrice(minPrice));
+                      setMinInput(formatToman(minPrice));
                       return;
                     }
-                    updateMinPrice(value);
+                    updateMinPrice(tomanToRial(value));
                   }}
                   className="focus:border-auth-accent h-12 w-full rounded-[8px] border border-slate-200 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
                 />
@@ -190,12 +187,12 @@ export function PriceFilter({
                   value={maxInput}
                   onChange={(event) => setMaxInput(event.target.value)}
                   onBlur={() => {
-                    const value = parsePrice(maxInput);
+                    const value = parseToman(maxInput);
                     if (value === null) {
-                      setMaxInput(formatPrice(maxPrice));
+                      setMaxInput(formatToman(maxPrice));
                       return;
                     }
-                    updateMaxPrice(value);
+                    updateMaxPrice(tomanToRial(value));
                   }}
                   className="focus:border-auth-accent h-12 w-full rounded-[8px] border border-slate-200 ps-3 pe-14 text-sm text-slate-600 transition-colors outline-none"
                 />

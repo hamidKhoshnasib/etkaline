@@ -29,6 +29,7 @@ import {
 import { useSetSupermarketDeliveryTime } from "@/features/cart/api/supermarket-delivery-times";
 import { type PayBasketInput, usePayBasket } from "@/features/cart/api/payment";
 import { useAddresses } from "@/features/address/api/use-addresses";
+import { CompleteProfileDialog } from "@/features/account/components/CompleteProfileDialog";
 import AddressStep from "@/features/cart/checkout/AddressStep";
 import OrderSummary from "@/features/cart/checkout/OrderSummary";
 import ReviewStep from "@/features/cart/checkout/ReviewStep";
@@ -90,8 +91,9 @@ function toApplianceDeliveryTimeSelection(
 
 export default function CartPage() {
   const { homeHref, siteType } = useStorefront();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [step, setStep] = useState<CheckoutStep>("cart");
+  const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [addressReady, setAddressReady] = useState(false);
   const [paymentReady, setPaymentReady] = useState(false);
   const [deliverySelections, setDeliverySelections] = useState<DeliverySelections>({});
@@ -266,26 +268,35 @@ export default function CartPage() {
     [addToBasketMutation, pendingRemovals],
   );
 
+  async function saveBasketAndContinue() {
+    const basketId = openBasketQuery.data?.id;
+    if (!basketId) {
+      toast.error("سبد خرید معتبر نیست.");
+      return;
+    }
+
+    try {
+      const savedBasket = await saveBasketMutation.mutateAsync({
+        basketId,
+        customerDescription: "",
+      });
+      setSavedBasket(savedBasket);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "ثبت سبد خرید ناموفق بود.");
+      return;
+    }
+
+    setStep("address");
+  }
+
   async function handlePrimary() {
     if (step === "cart") {
-      const basketId = openBasketQuery.data?.id;
-      if (!basketId) {
-        toast.error("سبد خرید معتبر نیست.");
+      if (session?.user.needCompleteProfile === true) {
+        setIsCompleteProfileOpen(true);
         return;
       }
 
-      try {
-        const savedBasket = await saveBasketMutation.mutateAsync({
-          basketId,
-          customerDescription: "",
-        });
-        setSavedBasket(savedBasket);
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "ثبت سبد خرید ناموفق بود.");
-        return;
-      }
-
-      setStep("address");
+      await saveBasketAndContinue();
     } else if (step === "address") {
       if (siteType === SITE_TYPES.appliance) {
         const basketId = openBasketQuery.data?.id;
@@ -510,68 +521,77 @@ export default function CartPage() {
   }
 
   return (
-    <main className="bg-muted/60 lg:bg-background py-7 sm:py-10">
-      <Container className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-        <div className="min-w-0">
-          {step === "cart" ? (
-            <CartStep
-              items={displayItems}
-              deletingStoreProductId={
-                deleteItemMutation.isPending
-                  ? deleteItemMutation.variables?.storeProductId
-                  : undefined
-              }
-              pendingRemovalCountdowns={pendingRemovalCountdowns}
-              restoringStoreProductId={restoringStoreProductId ?? undefined}
-              onQuantityChange={handleQuantityChange}
-              onUndoRemoval={handleUndoRemoval}
-            />
-          ) : null}
-          {step === "address" ? (
-            <AddressStep
-              address={selectedAddress}
-              checkoutDetails={checkoutDetails}
-              selections={deliverySelections}
-              onSelectionsChange={setDeliverySelections}
-              onReadyChange={handleReadyChange}
-              onBack={handleBack}
-            />
-          ) : null}
-          {step === "review" && selectedAddress ? (
-            <ReviewStep
-              address={selectedAddress}
-              checkoutDetails={checkoutDetails}
-              items={items}
-              selections={deliverySelections}
-              onEdit={() => {
-                setPaymentReady(false);
-                setStep("address");
-              }}
-              onPaymentReadyChange={setPaymentReady}
-              onPaymentSelectionChange={handlePaymentSelectionChange}
-            />
-          ) : null}
-        </div>
+    <>
+      <CompleteProfileDialog
+        open={isCompleteProfileOpen}
+        onCompleted={async () => {
+          setIsCompleteProfileOpen(false);
+          await saveBasketAndContinue();
+        }}
+      />
+      <main className="bg-muted/60 lg:bg-background py-7 sm:py-10">
+        <Container className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <div className="min-w-0">
+            {step === "cart" ? (
+              <CartStep
+                items={displayItems}
+                deletingStoreProductId={
+                  deleteItemMutation.isPending
+                    ? deleteItemMutation.variables?.storeProductId
+                    : undefined
+                }
+                pendingRemovalCountdowns={pendingRemovalCountdowns}
+                restoringStoreProductId={restoringStoreProductId ?? undefined}
+                onQuantityChange={handleQuantityChange}
+                onUndoRemoval={handleUndoRemoval}
+              />
+            ) : null}
+            {step === "address" ? (
+              <AddressStep
+                address={selectedAddress}
+                checkoutDetails={checkoutDetails}
+                selections={deliverySelections}
+                onSelectionsChange={setDeliverySelections}
+                onReadyChange={handleReadyChange}
+                onBack={handleBack}
+              />
+            ) : null}
+            {step === "review" && selectedAddress ? (
+              <ReviewStep
+                address={selectedAddress}
+                checkoutDetails={checkoutDetails}
+                items={items}
+                selections={deliverySelections}
+                onEdit={() => {
+                  setPaymentReady(false);
+                  setStep("address");
+                }}
+                onPaymentReadyChange={setPaymentReady}
+                onPaymentSelectionChange={handlePaymentSelectionChange}
+              />
+            ) : null}
+          </div>
 
-        <OrderSummary
-          step={step}
-          items={checkoutItems}
-          checkoutDetails={checkoutDetails}
-          savedBasket={savedBasket}
-          canProceed={canProceed}
-          onDiscountApplied={handleDiscountApplied}
-          isSubmitting={
-            (step === "cart" && saveBasketMutation.isPending) ||
-            (step === "address" &&
-              (setApplianceDeliveryTimeMutation.isPending ||
-                setSupermarketDeliveryTimeMutation.isPending)) ||
-            (step === "review" &&
-              (payBasketMutation.isPending ||
-                (!removeDiscountOnCheckoutFetch && checkoutQuery.isFetching)))
-          }
-          onPrimary={handlePrimary}
-        />
-      </Container>
-    </main>
+          <OrderSummary
+            step={step}
+            items={checkoutItems}
+            checkoutDetails={checkoutDetails}
+            savedBasket={savedBasket}
+            canProceed={canProceed}
+            onDiscountApplied={handleDiscountApplied}
+            isSubmitting={
+              (step === "cart" && saveBasketMutation.isPending) ||
+              (step === "address" &&
+                (setApplianceDeliveryTimeMutation.isPending ||
+                  setSupermarketDeliveryTimeMutation.isPending)) ||
+              (step === "review" &&
+                (payBasketMutation.isPending ||
+                  (!removeDiscountOnCheckoutFetch && checkoutQuery.isFetching)))
+            }
+            onPrimary={handlePrimary}
+          />
+        </Container>
+      </main>
+    </>
   );
 }

@@ -18,40 +18,32 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { profileQueryKeys, useCompleteProfile } from "@/features/account/api/use-profile";
-import {
-  isValidNationalCode,
-  normalizeNationalCode,
-} from "@/features/account/lib/profile-validation";
 import { useStorefront } from "@/providers/storefront-provider";
 
-export function CompleteProfileDialog() {
-  const { data: session, status, update: updateSession } = useSession();
+interface CompleteProfileDialogProps {
+  open: boolean;
+  onCompleted: () => void | Promise<void>;
+}
+
+export function CompleteProfileDialog({ open, onCompleted }: CompleteProfileDialogProps) {
+  const { update: updateSession } = useSession();
   const { siteType } = useStorefront();
   const queryClient = useQueryClient();
   const router = useRouter();
   const completeProfile = useCompleteProfile();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [nationalCode, setNationalCode] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const normalizedFirstName = firstName.trim();
   const normalizedLastName = lastName.trim();
-  const normalizedNationalCode = normalizeNationalCode(nationalCode);
   const firstNameIsInvalid = submitted && !normalizedFirstName;
   const lastNameIsInvalid = submitted && !normalizedLastName;
-  const nationalCodeIsInvalid = submitted && !isValidNationalCode(normalizedNationalCode);
-  const open = status === "authenticated" && session.user.needCompleteProfile;
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
 
-    if (
-      !normalizedFirstName ||
-      !normalizedLastName ||
-      !isValidNationalCode(normalizedNationalCode)
-    ) {
+    if (!normalizedFirstName || !normalizedLastName) {
       return;
     }
 
@@ -59,7 +51,6 @@ export function CompleteProfileDialog() {
       await completeProfile.mutateAsync({
         firstName: normalizedFirstName,
         lastName: normalizedLastName,
-        nationalCode: normalizedNationalCode,
       });
 
       await updateSession({
@@ -72,6 +63,7 @@ export function CompleteProfileDialog() {
       router.refresh();
       window.dispatchEvent(new Event("etkala:authenticated"));
       toast.success("اطلاعات حساب کاربری با موفقیت تکمیل شد.");
+      await onCompleted();
     } catch {
       // The mutation error is rendered inside the dialog.
     }
@@ -88,9 +80,7 @@ export function CompleteProfileDialog() {
           <DialogTitle className="text-secondary text-lg font-bold">
             تکمیل اطلاعات حساب کاربری
           </DialogTitle>
-          <DialogDescription>
-            برای ادامه، نام، نام خانوادگی و کد ملی خود را وارد کنید.
-          </DialogDescription>
+          <DialogDescription>برای ادامه، نام و نام خانوادگی خود را وارد کنید.</DialogDescription>
         </DialogHeader>
 
         <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
@@ -121,23 +111,6 @@ export function CompleteProfileDialog() {
                 required
               />
               {lastNameIsInvalid ? <FieldError>نام خانوادگی را وارد کنید.</FieldError> : null}
-            </Field>
-
-            <Field data-invalid={nationalCodeIsInvalid || undefined}>
-              <FieldLabel htmlFor="complete-profile-national-code">کد ملی</FieldLabel>
-              <Input
-                id="complete-profile-national-code"
-                name="nationalCode"
-                dir="ltr"
-                inputMode="numeric"
-                maxLength={10}
-                pattern="[0-9]*"
-                aria-invalid={nationalCodeIsInvalid || undefined}
-                value={nationalCode}
-                onChange={(event) => setNationalCode(normalizeNationalCode(event.target.value))}
-                required
-              />
-              {nationalCodeIsInvalid ? <FieldError>کد ملی باید ۱۰ رقم باشد.</FieldError> : null}
             </Field>
           </FieldGroup>
 

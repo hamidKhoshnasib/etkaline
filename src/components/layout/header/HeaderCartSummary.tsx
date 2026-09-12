@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteBasketItem, useOpenBasket, useUpdateBasketQuantity } from "@/features/cart";
 import { SITE_TYPES } from "@/lib/api-site-type";
+import { formatToman } from "@/lib/currency";
 import { useStorefront } from "@/providers/storefront-provider";
 
-function formatPrice(value: number) {
+function formatNumber(value: number) {
   return new Intl.NumberFormat("fa-IR").format(value);
 }
 
@@ -70,7 +71,7 @@ export function HeaderCartSummary() {
         <ShoppingCart className="size-5 text-[#94A3B8]" strokeWidth={1.8} aria-hidden="true" />
         {itemCount > 0 && (
           <span className="bg-primary text-primary-foreground absolute inset-s-1 top-1 flex size-4 items-center justify-center rounded-full text-[10px] font-bold">
-            {itemCount > 99 ? "۹۹+" : formatPrice(itemCount)}
+            {itemCount > 99 ? "۹۹+" : formatNumber(itemCount)}
           </span>
         )}
       </DropdownMenuTrigger>
@@ -139,7 +140,7 @@ export function HeaderCartSummary() {
 
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-secondary text-sm font-bold">
-                        {formatPrice(price)} تومان
+                        {formatToman(price)} تومان
                       </span>
                       <div className="relative z-10 flex items-center gap-2">
                         <Button
@@ -156,7 +157,7 @@ export function HeaderCartSummary() {
                           <Plus />
                         </Button>
                         <span className="min-w-4 text-center text-xs font-bold">
-                          {formatPrice(item.productCount)}
+                          {formatNumber(item.productCount)}
                         </span>
                         <Button
                           type="button"
@@ -192,7 +193,7 @@ export function HeaderCartSummary() {
           <footer className="flex items-center justify-between border-t bg-white px-6 py-4">
             <div>
               <p className="text-secondary text-sm font-bold">
-                مجموع: {formatPrice(totalPrice)} تومان
+                مجموع: {formatToman(totalPrice)} تومان
               </p>
               <p className="text-secondary/70 mt-1 text-xs">{itemCount} کالا</p>
             </div>

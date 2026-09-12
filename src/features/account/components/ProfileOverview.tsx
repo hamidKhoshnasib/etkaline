@@ -27,7 +27,6 @@ import {
   type Profile,
 } from "@/features/account/api/use-profile";
 import { ACCOUNT_OUTLINE_ACTION_CLASS } from "@/features/account/components/account-action-styles";
-import { normalizeNationalCode } from "@/features/account/lib/profile-validation";
 import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
@@ -105,7 +104,6 @@ function ProfileEditForm({
   const updateProfile = useUpdateProfile();
   const [firstName, setFirstName] = useState(profile.firstName);
   const [lastName, setLastName] = useState(profile.lastName);
-  const [nationalCode, setNationalCode] = useState(profile.nationalCode);
   const [email, setEmail] = useState(profile.email);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -116,7 +114,7 @@ function ProfileEditForm({
         id: profile.id,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        nationalCode: normalizeNationalCode(nationalCode),
+        nationalCode: profile.nationalCode,
         email: email.trim(),
       },
       {
@@ -176,20 +174,6 @@ function ProfileEditForm({
             autoComplete="family-name"
             required
             className="bg-card h-12"
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="profile-national-code">کد ملی</FieldLabel>
-          <Input
-            id="profile-national-code"
-            name="nationalCode"
-            value={nationalCode}
-            onChange={(event) => setNationalCode(normalizeNationalCode(event.target.value))}
-            inputMode="numeric"
-            pattern="[0-9]*"
-            dir="ltr"
-            required
-            className="bg-card h-12 text-right"
           />
         </Field>
         <Field>

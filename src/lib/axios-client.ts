@@ -8,6 +8,7 @@ import { API_DEFAULT_HEADERS, API_TIMEOUT_MS, getClientApiBaseUrl } from "@/lib/
 const SESSION_CACHE_TTL_MS = 60_000;
 
 export const CLIENT_SESSION_SYNC_EVENT = "etkala:session-synced";
+export const ADDRESS_REQUIRED_EVENT = "etkala:address-required";
 
 interface ClientSessionSnapshot {
   accessToken?: string;
@@ -71,6 +72,9 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401) {
       setClientSessionSnapshot(null);
       void signOut({ redirect: false });
+    }
+    if (error.response?.status === 603 && typeof window !== "undefined") {
+      window.dispatchEvent(new Event(ADDRESS_REQUIRED_EVENT));
     }
     return Promise.reject(error);
   },
