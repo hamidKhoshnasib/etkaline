@@ -44,7 +44,7 @@ export function MobileHeader() {
             showMissingAddressPrompt
             trigger={
               <button
-                className="border-primary flex h-10 min-w-0  items-center gap-2 rounded-full border bg-white px-2.5 sm:flex-none sm:px-4"
+                className="border-primary flex h-10 min-w-0 items-center gap-2 rounded-full border bg-white px-2.5 sm:flex-none sm:px-4"
                 type="button"
               >
                 <MapPin size={18} className="text-primary-hover shrink-0" />

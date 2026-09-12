@@ -94,9 +94,7 @@ function parseFaqResponse(response: FaqResponse): Faq[] {
     })
     .sort(
       (first, second) =>
-        first.groupOrder - second.groupOrder ||
-        first.order - second.order ||
-        first.id - second.id,
+        first.groupOrder - second.groupOrder || first.order - second.order || first.id - second.id,
     );
 }
 
