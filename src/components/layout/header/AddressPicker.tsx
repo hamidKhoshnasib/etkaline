@@ -1029,10 +1029,10 @@ function DetailsStep({
       .filter(Boolean)
       .join(" ");
 
-    if (!receiverFirstName || !receiverLastName || !submittedReceiverPhone || !headerName) {
-      toast.error("اطلاعات گیرنده را کامل کنید.");
-      return;
-    }
+    // if (!receiverFirstName || !receiverLastName || !submittedReceiverPhone || !headerName) {
+    //   toast.error("اطلاعات گیرنده را کامل کنید.");
+    //   return;
+    // }
 
     await onSave(
       {
