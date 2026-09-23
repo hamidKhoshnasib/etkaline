@@ -74,18 +74,23 @@ export function MegaMenu({
             <ChevronLeft size={16} className="shrink-0" />
           </Link>
 
-          <div className="grid grid-cols-4 gap-x-12 gap-y-19.25 pb-5">
+          <div
+            className={`grid grid-cols-4 pb-5 ${
+              activeCategory.children.some((subcategory) => subcategory.children.length > 0)
+                ? "gap-x-12 gap-y-19.25"
+                : "gap-0"
+            }`}
+          >
             {activeCategory.children.map((subcategory) => (
               <div key={subcategory.id}>
                 <Link
                   href={subcategory.href}
                   onClick={onClose}
-                  className="title-small-bold hover:text-primary-hover mb-6 flex w-42 items-center justify-between gap-1 transition-colors"
+                  className="title-small-bold hover:text-primary-hover mb-6 flex w-42 items-center transition-colors"
                 >
                   <span className="border-primary-hover line-clamp-1 rounded-r-[4px] border-r-4 pr-2">
                     {subcategory.title}
                   </span>
-                  <ChevronLeft size={16} className="shrink-0" />
                 </Link>
                 <ul className="flex flex-col gap-2">
                   {subcategory.children.map((item) => (
