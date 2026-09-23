@@ -1,4 +1,5 @@
 import { Footer } from "@/components/layout/footer/Footer";
+import { AddressRequiredDialog } from "@/components/layout/AddressRequiredDialog";
 import { RouteAwareFooter } from "@/components/layout/footer/RouteAwareFooter";
 import { Header } from "@/components/layout/header/Header";
 import { StorefrontSwitchTab } from "@/components/layout/StorefrontSwitchTab";
@@ -18,6 +19,7 @@ export function StorefrontLayout({
     <StorefrontProvider siteType={siteType}>
       <QuickAddDialogProvider>
         <NetworkStatusWatcher />
+        <AddressRequiredDialog />
         <div data-site={siteType} className="flex min-h-full flex-1 flex-col">
           <Header siteType={siteType} />
           <StorefrontSwitchTab siteType={siteType} />

@@ -108,7 +108,6 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
           </nav>
 
           <AddressPicker
-            listenForAddressRequired
             showMissingAddressPrompt
             trigger={
               <button
