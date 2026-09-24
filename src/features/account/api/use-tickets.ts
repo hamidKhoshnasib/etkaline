@@ -230,20 +230,23 @@ async function createTicket(input: CreateTicketInput, siteType: SiteType): Promi
   formData.set("Captcha", input.captcha.trim());
   formData.set("CpCode", input.cpCode);
 
-  let payload: ApiResponse<number>;
+  let response: Response;
   try {
-    ({ data: payload } = await axiosClient.post<ApiResponse<number>>("/api/Tickets", formData, {
-      headers: {
-        ...getSiteTypeHeaders(siteType),
-        "Content-Type": "multipart/form-data",
-      },
-    }));
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
+    response = await fetch("/api/support/tickets", {
+      method: "POST",
+      credentials: "include",
+      headers: getSiteTypeHeaders(siteType),
+      body: formData,
+    });
+  } catch {
+    throw new Error("ارتباط با سرور برقرار نشد.");
   }
 
-  if (payload.isSuccess !== true || typeof payload.value !== "number") {
-    throw new Error(responseMessage(payload, "ارسال تیکت ناموفق بود."));
+  const payload = (await response.json().catch(() => null)) as ApiResponse<number> | null;
+  if (!response.ok || payload?.isSuccess !== true || typeof payload.value !== "number") {
+    throw new Error(
+      payload ? responseMessage(payload, "ارسال تیکت ناموفق بود.") : "ارسال تیکت ناموفق بود.",
+    );
   }
 
   return payload.value;
