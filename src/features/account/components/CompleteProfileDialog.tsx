@@ -3,12 +3,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { XIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -22,10 +24,11 @@ import { useStorefront } from "@/providers/storefront-provider";
 
 interface CompleteProfileDialogProps {
   open: boolean;
+  onClose: () => void;
   onCompleted: () => void | Promise<void>;
 }
 
-export function CompleteProfileDialog({ open, onCompleted }: CompleteProfileDialogProps) {
+export function CompleteProfileDialog({ open, onClose, onCompleted }: CompleteProfileDialogProps) {
   const { update: updateSession } = useSession();
   const { siteType } = useStorefront();
   const queryClient = useQueryClient();
@@ -70,12 +73,35 @@ export function CompleteProfileDialog({ open, onCompleted }: CompleteProfileDial
   }
 
   return (
-    <Dialog disablePointerDismissal modal open={open}>
+    <Dialog
+      disablePointerDismissal
+      modal
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent
         data-site={siteType}
         showCloseButton={false}
         className="max-w-[calc(100%-2rem)] gap-6 rounded-[28px] p-6 sm:max-w-md"
       >
+        <DialogClose
+          render={
+            <Button
+              aria-label="بستن مدال تکمیل اطلاعات حساب کاربری"
+              className="absolute end-4 top-4"
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            />
+          }
+        >
+          <XIcon />
+          <span className="sr-only">بستن</span>
+        </DialogClose>
         <DialogHeader>
           <DialogTitle className="text-secondary text-lg font-bold">
             تکمیل اطلاعات حساب کاربری
@@ -95,6 +121,7 @@ export function CompleteProfileDialog({ open, onCompleted }: CompleteProfileDial
                 value={firstName}
                 onChange={(event) => setFirstName(event.target.value)}
                 required
+                className="bg-card h-12"
               />
               {firstNameIsInvalid ? <FieldError>نام را وارد کنید.</FieldError> : null}
             </Field>
@@ -109,6 +136,7 @@ export function CompleteProfileDialog({ open, onCompleted }: CompleteProfileDial
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
                 required
+                className="bg-card h-12"
               />
               {lastNameIsInvalid ? <FieldError>نام خانوادگی را وارد کنید.</FieldError> : null}
             </Field>
