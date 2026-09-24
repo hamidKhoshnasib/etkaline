@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { PaymentFailedPage } from "@/components/status/PaymentFailedPage";
 import { PaymentSuccessPage } from "@/components/status/PaymentSuccessPage";
@@ -66,6 +67,7 @@ async function getPaymentResult(factorNumber: string, siteType: "appliance" | "s
 }
 
 export function PaymentCallbackPage() {
+  const router = useRouter();
   const { cartHref, homeHref, siteType } = useStorefront();
   const [storedFactor, setStoredFactor] = useState<StoredPaymentFactor | null>(() =>
     typeof window === "undefined" ? null : readPaymentFactor(),
@@ -79,10 +81,15 @@ export function PaymentCallbackPage() {
   });
 
   useEffect(() => {
-    if (paymentQuery.data !== undefined) {
-      window.sessionStorage.removeItem(PAYMENT_FACTOR_STORAGE_KEY);
+    if (paymentQuery.data === undefined) {
+      return;
     }
-  }, [paymentQuery.data]);
+
+    window.sessionStorage.removeItem(PAYMENT_FACTOR_STORAGE_KEY);
+    if (paymentQuery.data) {
+      router.replace("/account/orders");
+    }
+  }, [paymentQuery.data, router]);
 
   if (storedFactor === null || storedFactor.siteType !== siteType) {
     return <ServerErrorPage unstable_retry={() => setStoredFactor(readPaymentFactor())} />;
