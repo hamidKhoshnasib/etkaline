@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Check,
@@ -13,6 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { AppImage } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -188,13 +190,13 @@ function MobileOrderDetail({ order }: { order: MockOrder }) {
                 <div key={product.id}>
                   <div className="flex min-h-27 items-center gap-3 py-3">
                     <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white">
-                      <span
-                        className="text-muted-foreground px-1 text-center text-[10px]"
-                        role="img"
-                        aria-label="بدون تصویر"
-                      >
-                        No image
-                      </span>
+                      <AppImage
+                        src={product.image}
+                        alt={product.title}
+                        fill
+                        sizes="64px"
+                        className="object-contain p-1"
+                      />
                       <span className="bg-background/90 absolute end-1 bottom-0 rounded-full px-1 text-[10px]">
                         {index + 1}
                       </span>
@@ -283,7 +285,7 @@ function DesktopOrderDetail({ order }: { order: MockOrder }) {
                 <MapPin aria-hidden="true" />
                 {order.recipient.address}
                 <span className="ms-3 flex items-center gap-2">
-                  <Copy aria-hidden="true" />
+                  <Image src="/icons/map.svg" width={18} height={18} alt="" aria-hidden="true" />
                   <bdi dir="ltr">{order.recipient.postalCode}</bdi>
                 </span>
               </p>
@@ -380,13 +382,13 @@ function DesktopOrderDetail({ order }: { order: MockOrder }) {
               <div key={product.id}>
                 <div className="flex items-center gap-4 py-3">
                   <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white">
-                    <span
-                      className="text-muted-foreground px-1 text-center text-[10px]"
-                      role="img"
-                      aria-label="بدون تصویر"
-                    >
-                      No image
-                    </span>
+                    <AppImage
+                      src={product.image}
+                      alt={product.title}
+                      fill
+                      sizes="64px"
+                      className="object-contain p-1"
+                    />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-secondary truncate font-medium">{product.title}</p>
