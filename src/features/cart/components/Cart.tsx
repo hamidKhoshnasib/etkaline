@@ -376,7 +376,7 @@ export default function CartPage() {
       }
 
       try {
-        const callbackUrl = new URL("/payment/callback", window.location.origin).toString();
+        const callbackUrl = new URL("/account/orders", window.location.origin).toString();
         const result = await payBasketMutation.mutateAsync({ ...paymentSelection, callbackUrl });
         const message = result.message || "پرداخت سفارش با موفقیت ثبت شد.";
 
