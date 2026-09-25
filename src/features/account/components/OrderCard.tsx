@@ -4,6 +4,7 @@ import { Check, ChevronLeft } from "lucide-react";
 import { AppImage } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
   formatMockPrice,
@@ -29,9 +30,12 @@ const MOBILE_DELIVERY_STEPS = [
 
 function OrderMeta({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="text-secondary truncate font-medium">{value}</span>
+    <div className="flex min-w-0 items-center justify-between gap-3">
+      <div className="flex min-w-0 flex-col gap-1">
+        <span className="text-muted-foreground text-xs">{label}</span>
+        <span className="text-secondary truncate font-medium">{value}</span>
+      </div>
+      <Separator orientation="vertical" className="h-9" />
     </div>
   );
 }
@@ -39,18 +43,14 @@ function OrderMeta({ label, value }: { label: string; value: React.ReactNode }) 
 function ProductPreview({ order }: { order: MockOrder }) {
   const product = order.products[0];
 
-  if (!product) {
-    return null;
-  }
-
   return (
     <div className="relative size-16 shrink-0">
       <span className="border-border absolute inset-y-1 start-2 end-0 rounded-xl border bg-white" />
       <span className="border-border absolute inset-y-0 start-1 end-1 rounded-xl border bg-white" />
       <div className="relative flex size-16 items-center justify-center overflow-hidden rounded-xl border bg-white">
         <AppImage
-          src={product.image}
-          alt={product.title}
+          src={product?.image ?? "/images/image-placeholder.svg"}
+          alt={product?.title ?? "بدون تصویر محصول"}
           fill
           sizes="64px"
           className="object-contain p-1"
@@ -75,7 +75,7 @@ function MobileOrderProgress({ delivered }: { delivered: boolean }) {
           <li key={step} className="relative flex min-w-0 flex-col items-center gap-2 text-center">
             <span
               className={cn(
-                "bg-background z-10 flex size-6 items-center justify-center rounded-full border-2",
+                "bg-background z-10 flex size-6 items-center justify-center rounded-full border",
                 isDone && "border-primary bg-primary text-secondary",
                 isActive && "border-primary-hover",
                 !isDone && !isActive && "border-border",
@@ -106,7 +106,7 @@ function MobileOrderCard({ order, history }: { order: MockOrder; history: boolea
     <Link
       href={`/account/orders/${order.id}`}
       aria-label={`مشاهده جزئیات سفارش ${order.orderNumber}`}
-      className="focus-visible:ring-ring block rounded-[26px] focus-visible:ring-3 focus-visible:outline-none lg:hidden"
+      className="block rounded-[26px] lg:hidden"
     >
       <Card className="gap-0 rounded-[26px] py-0 shadow-none">
         <CardContent className={cn("px-4 pb-0", history ? "pt-2" : "pt-3")}>
@@ -117,10 +117,10 @@ function MobileOrderCard({ order, history }: { order: MockOrder; history: boolea
                 <span>شماره سفارش</span>
                 <bdi dir="ltr">{order.orderNumber}</bdi>
               </div>
-              <p className="text-muted-foreground truncate text-xs">
-                بازار، خ پانزده خرداد، خ پامنار...
-              </p>
-              <span className="text-secondary text-xs font-bold">۱۲ کالا</span>
+              <p className="text-muted-foreground truncate text-xs">{order.recipient.address}</p>
+              <span className="text-secondary text-xs font-bold">
+                {order.products.length.toLocaleString("fa-IR")} کالا
+              </span>
             </div>
             <div className="flex min-w-16 flex-col items-end justify-between py-1">
               {history ? (
@@ -184,8 +184,8 @@ export function OrderCard({ order, history = false }: { order: MockOrder; histor
         aria-label={`مشاهده جزئیات سفارش ${order.orderNumber}`}
         className="focus-visible:ring-ring hidden rounded-xl focus-visible:ring-3 focus-visible:outline-none lg:block"
       >
-        <Card className="hover:border-primary/60 rounded-xl border py-0 shadow-none transition-colors">
-          <CardHeader className="grid grid-cols-2 gap-x-4 gap-y-3 border-b px-4 py-3 sm:grid-cols-4 lg:grid-cols-[1fr_.85fr_1fr_1fr_auto]">
+        <Card className="hover:border-primary/60 gap-0 rounded-xl border py-0 shadow-none transition-colors">
+          <CardHeader className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3 sm:grid-cols-4 lg:grid-cols-[1fr_.85fr_1fr_1fr_auto]">
             <OrderMeta label="شماره سفارش" value={<bdi dir="ltr">{order.orderNumber}</bdi>} />
             <OrderMeta label="مبلغ" value={formatMockPrice(order.total)} />
             <OrderMeta
@@ -210,7 +210,19 @@ export function OrderCard({ order, history = false }: { order: MockOrder; histor
               <ChevronLeft className="text-primary-hover" aria-hidden="true" />
             </div>
           </CardHeader>
+          <Separator />
           <CardContent className="flex min-h-20 items-center justify-start gap-2 px-4 py-4">
+            {order.products.length === 0 && (
+              <div className="relative size-14 overflow-hidden rounded-xl border bg-white">
+                <AppImage
+                  src="/images/image-placeholder.svg"
+                  alt="بدون تصویر محصول"
+                  fill
+                  sizes="56px"
+                  className="object-contain p-1"
+                />
+              </div>
+            )}
             {order.products.map((product, index) => (
               <div
                 key={product.id}

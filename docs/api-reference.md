@@ -183,10 +183,11 @@ This file is generated from the server contract. When behavior and this document
 
 ### - فاکتور ها
 
-| Method  | Path                                                    | Summary |
-| ------- | ------------------------------------------------------- | ------- |
-| **GET** | [`/api/Factors`](#operation-get--api-factors)           | —       |
-| **GET** | [`/api/Factors/{id}`](#operation-get--api-factors--id-) | —       |
+| Method  | Path                                                                        | Summary |
+| ------- | --------------------------------------------------------------------------- | ------- |
+| **GET** | [`/api/Factors`](#operation-get--api-factors)                               | —       |
+| **GET** | [`/api/Factors/GetStatusCount`](#operation-get--api-factors-getstatuscount) | —       |
+| **GET** | [`/api/Factors/{id}`](#operation-get--api-factors--id-)                     | —       |
 
 ### - محصولات
 
@@ -1245,11 +1246,34 @@ This file is generated from the server contract. When behavior and this document
 | `FactorNum`  | query | No       | string                                                                                              |                                                                                                                                          |
 | `StoreId`    | query | No       | integer (int64)                                                                                     |                                                                                                                                          |
 
+**Order list usage:** `Page=1&PageLength=20&Status=1` returns placed/current orders; `Status=2` returns delivered/past orders. The `BaseResult<FactorGetCustomerListDTO>` response contains `value.factors` and pagination fields `page`, `pageLength`, `pageCount`, and `totalCount`. Each list factor uses `items` for products, `totalOffPrice` for the order amount, and `payDate` for the timestamp. The unauthenticated test request returned HTTP 401 on 2026-09-24. These details come from the [live Ordering Swagger](https://test12.etkala.ir/swagger/Ordering/v1/swagger.json).
+
 #### Responses
 
 | Status | Description | Content                                                                                                                                                                                                                                              | Headers |
 | ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `200`  | OK          | `application/json`: [Abstractions.Application.DTOs.BaseResult`1[OrderingModule.Application.FactorCQRS.FactorGetCustomerListDTO]](#schema-abstractions-application-dtos-baseresult-1-orderingmodule-application-factorcqrs-factorgetcustomerlistdto-) | —       |
+
+<a id="operation-get--api-factors-getstatuscount"></a>
+
+### GET /api/Factors/GetStatusCount
+
+- **Tags:** - فاکتور ها
+- **Security:** Inherited from the API-level security declaration
+
+#### Parameters
+
+| Name      | In    | Required | Schema          | Description           |
+| --------- | ----- | -------- | --------------- | --------------------- |
+| `StoreId` | query | No       | integer (int64) | Optional store filter |
+
+#### Responses
+
+| Status | Description | Content                                                         | Headers |
+| ------ | ----------- | --------------------------------------------------------------- | ------- |
+| `200`  | OK          | `application/json`: `BaseResult<List<FactorGetStatusCountDTO>>` | —       |
+
+The successful response contains `value` as an array of `{ status, statusCount }` objects. The customer endpoint returned HTTP 401 without an authenticated session on 2026-09-24.
 
 <a id="operation-get--api-factors--id-"></a>
 
@@ -5088,6 +5112,39 @@ This file is generated from the server contract. When behavior and this document
 | `snappTotalResult`      | No       | string or null                                                                                             | —                     |             |
 | `id`                    | No       | integer (int64)                                                                                            | —                     | شناسه       |
 
+<a id="schema-orderingmodule-application-factorcqrs-basketitemcustomerdto"></a>
+
+### OrderingModule.Application.FactorCQRS.BasketItemCustomerDTO
+
+- **Definition:** object
+- **Additional properties:** False
+
+| Property               | Required | Schema                             | Constraints / default | Description |
+| ---------------------- | -------- | ---------------------------------- | --------------------- | ----------- |
+| `storeProductId`       | No       | integer (int64)                    | —                     |             |
+| `productId`            | No       | integer (int64)                    | —                     |             |
+| `productTitle`         | No       | string or null                     | —                     |             |
+| `barcode`              | No       | string or null                     | —                     |             |
+| `inventory`            | No       | integer (int32)                    | —                     |             |
+| `productType`          | No       | Abstractions.Domain.Enums.SiteType | —                     |             |
+| `productTypeFa`        | No       | string or null                     | read-only             |             |
+| `isHeavyWeight`        | No       | boolean                            | —                     |             |
+| `propertyId`           | No       | integer (int64) or null            | —                     |             |
+| `propertyTitle`        | No       | string or null                     | —                     |             |
+| `valueId`              | No       | integer (int64) or null            | —                     |             |
+| `valueTitle`           | No       | string or null                     | —                     |             |
+| `mainPrice`            | No       | integer (int64)                    | —                     |             |
+| `offPrice`             | No       | integer (int64)                    | —                     |             |
+| `quantity`             | No       | integer (int32)                    | —                     |             |
+| `hekmatDiscountAmount` | No       | integer (int64)                    | —                     |             |
+| `taxPercent`           | No       | number (float)                     | —                     |             |
+| `taxAmount`            | No       | number (double)                    | —                     |             |
+| `tollPercent`          | No       | number (float)                     | —                     |             |
+| `tollAmount`           | No       | number (double)                    | —                     |             |
+| `pic`                  | No       | string or null                     | —                     |             |
+| `picUrl`               | No       | string or null                     | read-only             |             |
+| `id`                   | No       | integer (int64)                    | —                     | شناسه       |
+
 <a id="schema-orderingmodule-application-factorcqrs-factordto"></a>
 
 ### OrderingModule.Application.FactorCQRS.FactorDTO
@@ -5095,37 +5152,40 @@ This file is generated from the server contract. When behavior and this document
 - **Definition:** object
 - **Additional properties:** False
 
-| Property              | Required | Schema                                                                                                                                 | Constraints / default | Description |
-| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ----------- |
-| `factorNumber`        | No       | string or null                                                                                                                         | —                     |             |
-| `customerId`          | No       | integer (int64) or null                                                                                                                | —                     |             |
-| `customerName`        | No       | string or null                                                                                                                         | —                     |             |
-| `customerMobile`      | No       | string or null                                                                                                                         | —                     |             |
-| `storeId`             | No       | integer (int64)                                                                                                                        | —                     |             |
-| `storeTitle`          | No       | string or null                                                                                                                         | —                     |             |
-| `type`                | No       | [Abstractions.Domain.Enums.SiteType](#schema-abstractions-domain-enums-sitetype)                                                       | —                     |             |
-| `typeFa`              | No       | string or null                                                                                                                         | read-only             |             |
-| `status`              | No       | [OrderingModule.Domain.Enums.BasketStatus](#schema-orderingmodule-domain-enums-basketstatus)                                           | —                     |             |
-| `statusFa`            | No       | string or null                                                                                                                         | read-only             |             |
-| `payType`             | No       | [OrderingModule.Domain.Enums.BasketPayType](#schema-orderingmodule-domain-enums-basketpaytype)                                         | —                     |             |
-| `payTypeFa`           | No       | string or null                                                                                                                         | read-only             |             |
-| `basketPrice`         | No       | integer (int64)                                                                                                                        | —                     |             |
-| `hasHekmatPayment`    | No       | boolean                                                                                                                                | —                     |             |
-| `discountId`          | No       | integer (int64) or null                                                                                                                | —                     |             |
-| `discountCode`        | No       | string or null                                                                                                                         | —                     |             |
-| `customerDescription` | No       | string or null                                                                                                                         | —                     |             |
-| `isPrinted`           | No       | boolean                                                                                                                                | —                     |             |
-| `createDate`          | No       | string (date-time)                                                                                                                     | —                     |             |
-| `createDateFa`        | No       | string or null                                                                                                                         | read-only             |             |
-| `payDate`             | No       | string (date-time)                                                                                                                     | —                     |             |
-| `payDateFa`           | No       | string or null                                                                                                                         | read-only             |             |
-| `amounts`             | No       | [OrderingModule.Domain.Entities.FactorAmount](#schema-orderingmodule-domain-entities-factoramount)                                     | —                     |             |
-| `hekmatInfo`          | No       | [OrderingModule.Domain.Entities.BasketHekmatInfo](#schema-orderingmodule-domain-entities-baskethekmatinfo)                             | —                     |             |
-| `products`            | No       | array<[OrderingModule.Application.DTOs.BasketItemDTO](#schema-orderingmodule-application-dtos-basketitemdto)> or null                  | —                     |             |
-| `address`             | No       | [OrderingModule.Application.FactorCQRS.FactorAddressDTO](#schema-orderingmodule-application-factorcqrs-factoraddressdto)               | —                     |             |
-| `deliveryInfo`        | No       | [OrderingModule.Application.FactorCQRS.FactorDeliveryInfoDTO](#schema-orderingmodule-application-factorcqrs-factordeliveryinfodto)     | —                     |             |
-| `eifaInfo`            | No       | [OrderingModule.Application.FactorCQRS.FactorSendToEifaInfoDTO](#schema-orderingmodule-application-factorcqrs-factorsendtoeifainfodto) | —                     |             |
-| `id`                  | No       | integer (int64)                                                                                                                        | —                     | شناسه       |
+| Property               | Required | Schema                                                                     | Constraints / default | Description                                                                                        |
+| ---------------------- | -------- | -------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------- |
+| `factorNumber`         | No       | string or null                                                             | —                     |                                                                                                    |
+| `customerId`           | No       | integer (int64) or null                                                    | —                     |                                                                                                    |
+| `customerName`         | No       | string or null                                                             | —                     |                                                                                                    |
+| `customerMobile`       | No       | string or null                                                             | —                     |                                                                                                    |
+| `storeId`              | No       | integer (int64)                                                            | —                     |                                                                                                    |
+| `storeTitle`           | No       | string or null                                                             | —                     |                                                                                                    |
+| `type`                 | No       | Abstractions.Domain.Enums.SiteType                                         | —                     |                                                                                                    |
+| `typeFa`               | No       | string or null                                                             | read-only             |                                                                                                    |
+| `status`               | No       | OrderingModule.Domain.Enums.BasketStatus                                   | —                     |                                                                                                    |
+| `statusFa`             | No       | string or null                                                             | read-only             |                                                                                                    |
+| `payType`              | No       | OrderingModule.Domain.Enums.BasketPayType                                  | —                     |                                                                                                    |
+| `payTypeFa`            | No       | string or null                                                             | read-only             |                                                                                                    |
+| `discountCode`         | No       | string or null                                                             | —                     |                                                                                                    |
+| `payDate`              | No       | string (date-time)                                                         | —                     |                                                                                                    |
+| `payDateFa`            | No       | string or null                                                             | read-only             |                                                                                                    |
+| `totalMainPrice`       | No       | integer (int64)                                                            | —                     | مجموع ارزش کالاها بدون در نظر گرفتن تخفیف و آف<br>و متناسب با قیمت مصرف کننده                      |
+| `totalOffPrice`        | No       | integer (int64)                                                            | —                     | مبلغ سفارش با احتساب تخفیف و قیمت فروش اتکا                                                        |
+| `offDiscountAmount`    | No       | integer (int64)                                                            | —                     | مجموع تخفیف عمومی اتکا که روی جنس ها آف میزنه<br>اختلاف بین TotalMainPrice و TotalOffPrice         |
+| `discountAmount`       | No       | integer (int64)                                                            | —                     | تخفیف گرفته شده با کد تخفیف سایت                                                                   |
+| `hekmatIpgAmount`      | No       | integer (int64)                                                            | —                     | مبلغی که در درگاه حکمت پرداخت شد. بجز تخفیف.<br>شامل مجموع مبالغ بن، یارانه و اعتبار حکمت می باشد. |
+| `hekmatIpgDiscount`    | No       | integer (int64)                                                            | —                     | مجموع تخفیف حکمت که در درگاه حکمت استفاده شده است                                                  |
+| `hekmatSubsidAmount`   | No       | integer (int64)                                                            | —                     | مجموع مبلغ پرداختی از یارانه حکمت                                                                  |
+| `hekmatBonAmount`      | No       | integer (int64)                                                            | —                     | مجموع مبلغ پرداختی از بن حکمت                                                                      |
+| `hekmatDiscountAmount` | No       | integer (int64)                                                            | —                     | مجموع تخفیف حکمت اعمال شده روی ایتم های سبد                                                        |
+| `hekmatCreditAmount`   | No       | integer (int64)                                                            | —                     | مبلغ پرداختی از اعتبار ریالی حکمت                                                                  |
+| `deliveryAmount`       | No       | integer (int64)                                                            | —                     |                                                                                                    |
+| `serviceAmount`        | No       | integer (int64)                                                            | —                     |                                                                                                    |
+| `balanceAmount`        | No       | integer (int64)                                                            | —                     |                                                                                                    |
+| `paygateAmount`        | No       | integer (int64)                                                            | —                     |                                                                                                    |
+| `posAmount`            | No       | integer (int64)                                                            | —                     | مبلغی که باید در محل توسط مشتری کارت کشیده شود                                                     |
+| `items`                | No       | array<OrderingModule.Application.FactorCQRS.BasketItemCustomerDTO> or null | —                     |                                                                                                    |
+| `id`                   | No       | integer (int64)                                                            | —                     | شناسه                                                                                              |
 
 <a id="schema-orderingmodule-application-factorcqrs-factorgetcustomerlistdto"></a>
 
@@ -5141,6 +5201,18 @@ This file is generated from the server contract. When behavior and this document
 | `pageCount`  | No       | integer (int32)                                                                                                           | —                     | تعداد صفحات              |
 | `totalCount` | No       | integer (int32)                                                                                                           | —                     | تعداد کل فاکتور ها       |
 | `factors`    | No       | array<[OrderingModule.Application.FactorCQRS.FactorDTO](#schema-orderingmodule-application-factorcqrs-factordto)> or null | —                     | فاکتور ها                |
+
+<a id="schema-orderingmodule-application-factorcqrs-factorgetstatuscountdto"></a>
+
+### OrderingModule.Application.FactorCQRS.FactorGetStatusCountDTO
+
+- **Definition:** object
+- **Additional properties:** False
+
+| Property      | Required | Schema                                                                                       | Description                      |
+| ------------- | -------- | -------------------------------------------------------------------------------------------- | -------------------------------- |
+| `status`      | No       | [OrderingModule.Domain.Enums.BasketStatus](#schema-orderingmodule-domain-enums-basketstatus) | Factor status                    |
+| `statusCount` | No       | integer (int32)                                                                              | Number of factors in this status |
 
 <a id="schema-orderingmodule-application-factorcqrs-factorgetdetailsdto"></a>
 

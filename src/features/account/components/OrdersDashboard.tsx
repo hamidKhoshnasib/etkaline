@@ -43,14 +43,12 @@ function OrdersList({ orders, previous = false }: { orders: MockOrder[]; previou
 }
 
 export function OrdersDashboard() {
-  const { data, error, isLoading } = useFactors();
-  const orders = data?.orders ?? [];
-  const currentOrders = orders.filter(
-    (order) => order.status === "open" || order.status === "paid",
-  );
-  const previousOrders = orders.filter(
-    (order) => order.status === "delivered" || order.status === "canceled",
-  );
+  const current = useFactors({ status: 1 });
+  const previous = useFactors({ status: 2 });
+  const currentOrders = current.data?.orders ?? [];
+  const previousOrders = previous.data?.orders ?? [];
+  const error = current.error ?? previous.error;
+  const isLoading = current.isLoading || previous.isLoading;
 
   return (
     <div className="bg-muted/60 flex min-w-0 flex-col gap-0 lg:gap-4 lg:bg-transparent">
@@ -70,7 +68,7 @@ export function OrdersDashboard() {
         </Empty>
       ) : (
         <>
-          <OrderStats orders={orders} />
+          <OrderStats />
 
           <Tabs
             defaultValue="current"

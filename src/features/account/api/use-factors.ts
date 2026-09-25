@@ -118,14 +118,20 @@ export function parseFactor(value: unknown): MockOrder | null {
   }
 
   const amounts = isRecord(value.amounts) ? value.amounts : {};
-  const total = getNumber(value.basketPrice) || getNumber(amounts.totalOffPrice);
-  const deliveryAmount = getNumber(amounts.deliveryAmount);
-  const serviceAmount = getNumber(amounts.serviceAmount);
+  const total =
+    getNumber(value.totalOffPrice) ||
+    getNumber(value.basketPrice) ||
+    getNumber(amounts.totalOffPrice);
+  const deliveryAmount = getNumber(value.deliveryAmount) || getNumber(amounts.deliveryAmount);
+  const serviceAmount = getNumber(value.serviceAmount) || getNumber(amounts.serviceAmount);
   const address = isRecord(value.address) ? value.address : {};
   const recipientName = [getText(address.receiverFirstName), getText(address.receiverLastName)]
     .filter((name): name is string => Boolean(name))
     .join(" ");
-  const { date, time } = getDateParts(value.createDate, value.createDateFa);
+  const { date, time } = getDateParts(
+    value.payDate ?? value.createDate,
+    value.payDateFa ?? value.createDateFa,
+  );
 
   return {
     id: String(id ?? factorNumber),
@@ -134,7 +140,9 @@ export function parseFactor(value: unknown): MockOrder | null {
     time,
     status,
     total,
-    discount: getNumber(amounts.discountAmount) + getNumber(amounts.offDiscountAmount),
+    discount:
+      getNumber(value.discountAmount ?? amounts.discountAmount) +
+      getNumber(value.offDiscountAmount ?? amounts.offDiscountAmount),
     shippingCost: deliveryAmount + serviceAmount,
     trackingCode:
       getDisplayText(
@@ -146,7 +154,7 @@ export function parseFactor(value: unknown): MockOrder | null {
       address: getText(address.fullAddress) || "—",
       postalCode: getText(address.postalCode) || "—",
     },
-    products: parseProducts(value.products ?? value.basketItems),
+    products: parseProducts(value.items ?? value.products ?? value.basketItems),
   };
 }
 
@@ -164,18 +172,18 @@ function parseFactors(response: FactorsResponse): FactorsData {
 
 export function useFactors({
   factorNumber,
-  status = factorNumber ? undefined : 3,
+  status,
 }: { factorNumber?: string; status?: number } = {}) {
   const params = {
     Page: 1,
-    PageLength: 300,
+    PageLength: 20,
     ...(status === undefined ? {} : { Status: status }),
     ...(factorNumber ? { FactorNum: factorNumber } : {}),
   };
 
   return useApiQuery<FactorsResponse, FactorsData>({
     url: "/api/Factors",
-    queryKey: ["factors", { factorNumber, page: 1, pageLength: 300, status }],
+    queryKey: ["factors", { factorNumber, page: 1, pageLength: 20, status }],
     axiosConfig: {
       params,
     },

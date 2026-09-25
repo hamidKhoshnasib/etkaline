@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Check,
@@ -284,7 +285,7 @@ function DesktopOrderDetail({ order }: { order: MockOrder }) {
                 <MapPin aria-hidden="true" />
                 {order.recipient.address}
                 <span className="ms-3 flex items-center gap-2">
-                  <Copy aria-hidden="true" />
+                  <Image src="/icons/map.svg" width={18} height={18} alt="" aria-hidden="true" />
                   <bdi dir="ltr">{order.recipient.postalCode}</bdi>
                 </span>
               </p>

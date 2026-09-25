@@ -29,6 +29,7 @@ import {
 import { useSetSupermarketDeliveryTime } from "@/features/cart/api/supermarket-delivery-times";
 import { type PayBasketInput, usePayBasket } from "@/features/cart/api/payment";
 import { useAddresses } from "@/features/address/api/use-addresses";
+import { useProfile } from "@/features/account/api/use-profile";
 import { CompleteProfileDialog } from "@/features/account/components/CompleteProfileDialog";
 import AddressStep from "@/features/cart/checkout/AddressStep";
 import OrderSummary from "@/features/cart/checkout/OrderSummary";
@@ -91,7 +92,7 @@ function toApplianceDeliveryTimeSelection(
 
 export default function CartPage() {
   const { homeHref, siteType } = useStorefront();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [step, setStep] = useState<CheckoutStep>("cart");
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [addressReady, setAddressReady] = useState(false);
@@ -111,6 +112,7 @@ export default function CartPage() {
   const [restoringStoreProductId, setRestoringStoreProductId] = useState<number | null>(null);
   const openBasketQuery = useOpenBasket();
   const addressesQuery = useAddresses();
+  const profileQuery = useProfile();
   const checkoutQuery = useCheckoutDetails(
     openBasketQuery.data
       ? {
@@ -299,7 +301,16 @@ export default function CartPage() {
 
   async function handlePrimary() {
     if (step === "cart") {
-      if (session?.user.needCompleteProfile === true) {
+      if (profileQuery.isPending) {
+        return;
+      }
+
+      if (profileQuery.error) {
+        toast.error(profileQuery.error.message);
+        return;
+      }
+
+      if (!profileQuery.data?.firstName || !profileQuery.data.lastName) {
         setIsCompleteProfileOpen(true);
         return;
       }
@@ -365,7 +376,7 @@ export default function CartPage() {
       }
 
       try {
-        const callbackUrl = new URL("/payment/callback", window.location.origin).toString();
+        const callbackUrl = new URL("/account/orders", window.location.origin).toString();
         const result = await payBasketMutation.mutateAsync({ ...paymentSelection, callbackUrl });
         const message = result.message || "پرداخت سفارش با موفقیت ثبت شد.";
 
@@ -532,6 +543,7 @@ export default function CartPage() {
     <>
       <CompleteProfileDialog
         open={isCompleteProfileOpen}
+        onClose={() => setIsCompleteProfileOpen(false)}
         onCompleted={async () => {
           setIsCompleteProfileOpen(false);
           await saveBasketAndContinue();
@@ -598,7 +610,7 @@ export default function CartPage() {
             canProceed={canProceed}
             onDiscountApplied={handleDiscountApplied}
             isSubmitting={
-              (step === "cart" && saveBasketMutation.isPending) ||
+              (step === "cart" && (saveBasketMutation.isPending || profileQuery.isPending)) ||
               (step === "address" &&
                 (setApplianceDeliveryTimeMutation.isPending ||
                   setSupermarketDeliveryTimeMutation.isPending)) ||
