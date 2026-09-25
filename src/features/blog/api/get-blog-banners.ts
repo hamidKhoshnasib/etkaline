@@ -1,9 +1,7 @@
 import "server-only";
 
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 export interface BlogBanner {
   id: number;
@@ -36,7 +34,7 @@ function toImageUrl(value: unknown): string | undefined {
   }
 
   try {
-    const url = new URL(image, API_BASE_URL);
+    const url = new URL(image, getServerApiBaseUrl());
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : undefined;
   } catch {
     return undefined;
@@ -95,7 +93,7 @@ function parseBlogBanners(value: unknown): BlogBanner[] {
 }
 
 export async function getBlogBanners(siteType: SiteType): Promise<BlogBanner[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Banners/GetBlogBanners`, {
+  const response = await fetch(new URL("/api/Banners/GetBlogBanners", getServerApiBaseUrl()), {
     headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
     next: { revalidate: 300, tags: [`blog-banners-${siteType}`] },
     signal: AbortSignal.timeout(15_000),

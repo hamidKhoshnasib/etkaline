@@ -1,10 +1,8 @@
 import "server-only";
 
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 export interface HomeMetaTags {
   homeMetaTitle: string;
@@ -32,10 +30,13 @@ function isHomeMetaTags(value: unknown): value is HomeMetaTags {
 
 export async function getHomeMetaTags(siteType: SiteType): Promise<HomeMetaTags | null> {
   try {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/api/Home/GetMetaTags`, {
-      headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
-      next: { revalidate: 300, tags: [`home-meta-tags-${siteType}`] },
-    });
+    const response = await fetchWithTimeout(
+      new URL("/api/Home/GetMetaTags", getServerApiBaseUrl()),
+      {
+        headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+        next: { revalidate: 300, tags: [`home-meta-tags-${siteType}`] },
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Home metadata request failed with status ${response.status}`);

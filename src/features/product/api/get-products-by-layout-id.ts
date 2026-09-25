@@ -5,12 +5,10 @@ import {
   type BackendLayoutProduct,
   type Product,
 } from "@/features/product/model/product";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 interface LayoutProductsResponse {
   value: BackendLayoutProduct[];
@@ -46,7 +44,7 @@ export async function getProductsByLayoutId(
     return [];
   }
 
-  const url = new URL("/api/Products/GetProdutsByLayoutId", API_BASE_URL);
+  const url = new URL("/api/Products/GetProdutsByLayoutId", getServerApiBaseUrl());
   url.searchParams.set("LayoutId", String(layoutId));
   url.searchParams.set("Count", String(count));
 

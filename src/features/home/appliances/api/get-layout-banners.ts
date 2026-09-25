@@ -1,11 +1,9 @@
 import "server-only";
 
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 export interface LayoutBanner {
   id: number;
@@ -47,7 +45,7 @@ export async function getBannersByLayoutId(
     return [];
   }
 
-  const url = new URL(`/api/Banners/GetBannersByLayoutId/${layoutId}`, API_BASE_URL);
+  const url = new URL(`/api/Banners/GetBannersByLayoutId/${layoutId}`, getServerApiBaseUrl());
   url.searchParams.set("LayoutId", String(layoutId));
 
   const response = await fetchWithTimeout(url, {

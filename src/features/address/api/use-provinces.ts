@@ -1,6 +1,7 @@
 "use client";
 
 import { useApiQuery } from "@/hooks/use-api-query";
+import { getClientMapBaseUrl } from "@/lib/api-config";
 
 export interface Province {
   id: number;
@@ -30,9 +31,6 @@ export interface LocationCoordinates {
 }
 
 type ReverseGeocodeAddress = Record<string, unknown>;
-
-const MAP_SEARCH_URL = "https://map.etkala.ir/search";
-const MAP_REVERSE_URL = `${MAP_SEARCH_URL}/reverse`;
 
 function getAddressPart(address: ReverseGeocodeAddress, ...keys: string[]) {
   for (const key of keys) {
@@ -146,7 +144,7 @@ export async function geocodeLocation(
   query: string,
   signal?: AbortSignal,
 ): Promise<LocationCoordinates | null> {
-  const url = new URL(MAP_SEARCH_URL);
+  const url = new URL("/search", getClientMapBaseUrl());
   url.searchParams.set("q", `${query}، ایران`);
   url.searchParams.set("format", "json");
 
@@ -180,7 +178,7 @@ export async function reverseGeocodeLocation(
   coordinates: LocationCoordinates,
   signal?: AbortSignal,
 ): Promise<string | null> {
-  const url = new URL(MAP_REVERSE_URL);
+  const url = new URL("/search/reverse", getClientMapBaseUrl());
   url.searchParams.set("lat", String(coordinates.latitude));
   url.searchParams.set("lon", String(coordinates.longitude));
   url.searchParams.set("format", "json");

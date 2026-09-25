@@ -2,12 +2,12 @@
 <svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24">
   <defs>
     <style>
-      .cls-1 { fill: #fff; }
+      .cls-1 { fill: #001d3d; }
       .cls-2 { fill: url(#linear-gradient); }
     </style>
-    <linearGradient id="linear-gradient" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#42d778"/>
-      <stop offset="1" stop-color="#34b171"/>
+    <linearGradient id="linear-gradient" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset=".26" stop-color="#ffc300"/>
+      <stop offset=".84" stop-color="#ffd60a"/>
     </linearGradient>
   </defs>
   <g id="Layer_1-2" data-name="Layer 1">

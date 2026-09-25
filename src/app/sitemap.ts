@@ -81,7 +81,7 @@ async function getStorefrontEntries(siteType: SiteType): Promise<MetadataRoute.S
     {
       url: storefront.absoluteUrl(storefront.homeHref),
       changeFrequency: "daily",
-      priority: siteType === SITE_TYPES.appliance ? 1 : 0.9,
+      priority: siteType === SITE_TYPES.supermarket ? 1 : 0.9,
     },
     ...categoryEntries,
     ...products,
@@ -89,7 +89,7 @@ async function getStorefrontEntries(siteType: SiteType): Promise<MetadataRoute.S
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const defaultStorefront = getStorefront(SITE_TYPES.appliance);
+  const defaultStorefront = getStorefront(SITE_TYPES.supermarket);
   const sharedEntries: MetadataRoute.Sitemap = sharedStaticRoutes.map((pathname) => ({
     url: defaultStorefront.absoluteUrl(pathname),
     changeFrequency: "weekly",

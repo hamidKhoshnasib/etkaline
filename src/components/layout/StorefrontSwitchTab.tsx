@@ -8,7 +8,7 @@ import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
 const switchConfig = {
   [SITE_TYPES.appliance]: {
-    href: "/fresh",
+    href: "/",
     openInNewTab: true,
     label: "سوپر مارکت",
     className: "bg-linear-to-b from-[#42D778] to-[#34B171] text-white",
@@ -16,7 +16,7 @@ const switchConfig = {
     iconClassName: "brightness-0 invert",
   },
   [SITE_TYPES.supermarket]: {
-    href: "/",
+    href: "/appliance",
     label: "لوازم خانگی",
     className: "bg-[#FFC400] text-secondary",
     icon: "/images/storefront-switch/device-tv.png",
@@ -39,7 +39,7 @@ export function StorefrontSwitchTab({ siteType }: { siteType: SiteType }) {
   const target = switchConfig[siteType];
   const pathname = usePathname();
 
-  if (pathname === (siteType === SITE_TYPES.appliance ? "/cart" : "/fresh/cart")) {
+  if (pathname === (siteType === SITE_TYPES.appliance ? "/appliance/cart" : "/cart")) {
     return null;
   }
 

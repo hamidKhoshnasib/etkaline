@@ -1,11 +1,9 @@
 import "server-only";
 
 import { cache } from "react";
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 interface ProductDetailResponse {
   value?: unknown;
@@ -216,7 +214,7 @@ export const getProductDetail = cache(
     }
 
     try {
-      const response = await fetch(new URL(`/api/Products/${productId}`, API_BASE_URL), {
+      const response = await fetch(new URL(`/api/Products/${productId}`, getServerApiBaseUrl()), {
         headers: await getServerApiHeaders(siteType),
         cache: "no-store",
         signal: AbortSignal.timeout(15_000),

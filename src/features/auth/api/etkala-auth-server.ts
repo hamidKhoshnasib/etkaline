@@ -1,10 +1,8 @@
 import "server-only";
 
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 import type { ApiResponse, AuthValue } from "@/types/auth";
-
-const AUTH_API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 type AuthEndpoint = "GetCaptcha" | "Login" | "VerifyCode" | "RefreshToken" | "ResendCode";
 
@@ -18,7 +16,7 @@ export async function requestEtkalaAuthWithCookies<T>(
   siteType: SiteType | null,
   init?: RequestInit,
 ): Promise<AuthServerResponse<T>> {
-  const response = await fetch(`${AUTH_API_BASE_URL}/api/Auth/${endpoint}`, {
+  const response = await fetch(new URL(`/api/Auth/${endpoint}`, getServerApiBaseUrl()), {
     ...init,
     cache: "no-store",
     credentials: "include",

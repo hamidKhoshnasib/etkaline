@@ -1,11 +1,9 @@
 import "server-only";
 
+import { getServerApiBaseUrl } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
-
-const API_BASE_URL =
-  process.env.ETKALA_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://test12.etkala.ir";
 
 export interface CategoryBanner {
   id: number;
@@ -30,7 +28,7 @@ function toImageUrl(value: unknown): string | null {
   }
 
   try {
-    const url = new URL(image, API_BASE_URL);
+    const url = new URL(image, getServerApiBaseUrl());
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
   } catch {
     return null;
@@ -87,7 +85,7 @@ function parseCategoryBanners(value: unknown): CategoryBanner[] {
 }
 
 export async function getCategoryBanners(siteType: SiteType): Promise<CategoryBanner[]> {
-  const url = new URL("/api/Banners/GetByType", API_BASE_URL);
+  const url = new URL("/api/Banners/GetByType", getServerApiBaseUrl());
   url.searchParams.set("Type", "3");
 
   const response = await fetchWithTimeout(url, {

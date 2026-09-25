@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useId, useRef } from "react";
 import type { NearApplianceStore } from "@/features/store/api/use-near-appliance-stores";
+import { getClientMapBaseUrl } from "@/lib/api-config";
 
 const DEFAULT_CENTER: [number, number] = [51.389, 35.6892];
 
@@ -109,13 +110,14 @@ export function AddressMap({
         return;
       }
 
+      const mapBaseUrl = getClientMapBaseUrl();
       mapService = new MapServiceConstructor({
         center,
         editable: true,
-        geoserver: "https://map.etkala.ir/geoserver",
+        geoserver: new URL("/geoserver", mapBaseUrl).toString(),
         layername: ["osm:osm", "osm:osm_defaults"],
         map: mapId,
-        searchServer: "https://map.etkala.ir/search",
+        searchServer: new URL("/search", mapBaseUrl).toString(),
         viewJson: createStoreFeatures(storesRef.current),
         zoom: selectedCoordinates ? 15 : 12,
       });

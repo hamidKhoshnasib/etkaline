@@ -33,15 +33,15 @@ export const metadata: Metadata = {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`,
   },
-  description: "فروش آنلاین لوازم خانگی با ارسال مطمئن و پشتیبانی اتکالاین",
+  description: "خرید آنلاین محصولات سوپرمارکتی از فروشگاه اینترنتی اتکالاین",
   applicationName: SITE_NAME,
   openGraph: {
     type: "website",
     locale: "fa_IR",
     siteName: SITE_NAME,
     title: SITE_NAME,
-    description: "فروش آنلاین لوازم خانگی با ارسال مطمئن و پشتیبانی اتکالاین",
-    url: getStorefront(SITE_TYPES.appliance).absoluteUrl("/"),
+    description: "خرید آنلاین محصولات سوپرمارکتی از فروشگاه اینترنتی اتکالاین",
+    url: getStorefront(SITE_TYPES.supermarket).absoluteUrl("/"),
   },
   robots: {
     index: true,
