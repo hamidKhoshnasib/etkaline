@@ -8,6 +8,7 @@ import { getBlogPosts } from "@/features/blog/api/get-blog-posts";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import type { SiteType } from "@/lib/api-site-type";
+import { BlogScrollToTop } from "./BlogScrollToTop";
 
 async function BlogPromoBanners({ siteType }: { siteType: SiteType }) {
   const blogBanners = await getBlogBanners(siteType);
@@ -43,6 +44,7 @@ async function PopularBlogPosts({ siteType }: { siteType: SiteType }) {
 export default function BlogPage({ siteType }: { siteType: SiteType }) {
   return (
     <Container as="main" className="space-y-6 py-6">
+      <BlogScrollToTop />
       {/* ── Latest posts grid + sidebar ─────────────────────────────── */}
       <section className="flex flex-col gap-6 lg:flex-row">
         <aside className="flex w-full shrink-0 flex-col gap-6 lg:w-[308px]">
