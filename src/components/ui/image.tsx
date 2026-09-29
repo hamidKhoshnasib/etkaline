@@ -10,8 +10,8 @@ function isAbsoluteUrl(value: string) {
   return /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(value);
 }
 
-function isEtkalaImageUrl(url: URL) {
-  return url.hostname === "etkala.ir" || url.hostname.endsWith(".etkala.ir");
+function isEtkalineImageUrl(url: URL) {
+  return url.hostname === "etkaline.ir" || url.hostname.endsWith(".etkaline.ir");
 }
 
 export function resolveImageSrc(src: ImageProps["src"]): ImageProps["src"] {
@@ -29,11 +29,11 @@ export function resolveImageSrc(src: ImageProps["src"]): ImageProps["src"] {
   }
 
   const sourceUrl = new URL(src, imageBaseUrl);
-  if (isAbsoluteUrl(src) && !isEtkalaImageUrl(sourceUrl)) {
+  if (isAbsoluteUrl(src) && !isEtkalineImageUrl(sourceUrl)) {
     return src;
   }
 
-  return isEtkalaImageUrl(sourceUrl)
+  return isEtkalineImageUrl(sourceUrl)
     ? new URL(`${sourceUrl.pathname}${sourceUrl.search}`, imageBaseUrl).toString()
     : sourceUrl.toString();
 }

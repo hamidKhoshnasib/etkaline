@@ -17,6 +17,12 @@ interface HomeBannersResponse {
   isSuccess?: boolean;
 }
 
+const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL;
+
+if (!imageBaseUrl) {
+  throw new Error("NEXT_PUBLIC_IMAGE_BASE_URL must be defined.");
+}
+
 function toImageUrl(value: unknown): string | null {
   if (typeof value !== "string" || !value.trim()) {
     return null;
@@ -24,7 +30,11 @@ function toImageUrl(value: unknown): string | null {
 
   try {
     const url = new URL(value.trim(), getServerApiBaseUrl());
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return null;
+    }
+
+    return new URL(`${url.pathname}${url.search}`, imageBaseUrl).toString();
   } catch {
     return null;
   }
