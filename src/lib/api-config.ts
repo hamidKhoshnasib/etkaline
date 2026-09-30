@@ -1,4 +1,5 @@
 export const API_TIMEOUT_MS = 15_000;
+export const STOREFRONT_REQUEST_TIMEOUT_MS = 60_000;
 
 export const API_DEFAULT_HEADERS = {
   "Content-Type": "application/json",

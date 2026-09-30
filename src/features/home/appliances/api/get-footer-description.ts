@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getServerApiBaseUrl } from "@/lib/api-config";
+import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
@@ -16,6 +16,7 @@ export async function getFooterDescription(siteType: SiteType): Promise<string |
       headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
       next: { revalidate: 300, tags: [`footer-description-${siteType}`] },
     },
+    STOREFRONT_REQUEST_TIMEOUT_MS,
   );
 
   if (!response.ok) {

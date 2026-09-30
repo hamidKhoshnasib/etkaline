@@ -75,11 +75,18 @@ function parseSocialNetwork(value: unknown): SocialNetwork | null {
   };
 }
 
-export async function getSocialNetworks(siteType: SiteType): Promise<SocialNetwork[]> {
-  const response = await fetchWithTimeout(new URL("/api/SocialNetworks", getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
-    next: { revalidate: 300, tags: [`social-networks-${siteType}`] },
-  });
+export async function getSocialNetworks(
+  siteType: SiteType,
+  timeoutMs?: number,
+): Promise<SocialNetwork[]> {
+  const response = await fetchWithTimeout(
+    new URL("/api/SocialNetworks", getServerApiBaseUrl()),
+    {
+      headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+      next: { revalidate: 300, tags: [`social-networks-${siteType}`] },
+    },
+    timeoutMs,
+  );
 
   if (!response.ok) {
     throw new Error(`Social networks request failed with status ${response.status}`);

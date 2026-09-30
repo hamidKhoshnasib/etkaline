@@ -42,11 +42,16 @@ function parseItems(value: unknown): ExtraPageLink[] {
 
 export const getExtraPages = cache(async function getExtraPages(
   siteType: SiteType,
+  timeoutMs?: number,
 ): Promise<ExtraPages> {
-  const response = await fetchWithTimeout(new URL("/api/ExtraPages", getServerApiBaseUrl()), {
-    headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
-    next: { revalidate: 300, tags: [`extra-pages-${siteType}`] },
-  });
+  const response = await fetchWithTimeout(
+    new URL("/api/ExtraPages", getServerApiBaseUrl()),
+    {
+      headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
+      next: { revalidate: 300, tags: [`extra-pages-${siteType}`] },
+    },
+    timeoutMs,
+  );
 
   if (!response.ok) {
     throw new Error(`Extra pages request failed with status ${response.status}`);

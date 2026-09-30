@@ -9,18 +9,23 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { getMenuCategories } from "@/features/catalog/api/get-menu-categories";
 import { getExtraPages } from "@/features/extra-pages/api/get-extra-pages";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
+import { STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import type { SiteType } from "@/lib/api-site-type";
 
 async function HeaderNavigation({ siteType }: { siteType: SiteType }) {
   const [categories, extraPages] = await Promise.all([
-    getMenuCategories(siteType),
-    getExtraPages(siteType),
+    getMenuCategories(siteType, STOREFRONT_REQUEST_TIMEOUT_MS),
+    getExtraPages(siteType, STOREFRONT_REQUEST_TIMEOUT_MS),
   ]);
   return <NavBar categories={categories} extraPages={extraPages.headerItems} />;
 }
 
 async function MobileNavigation({ siteType }: { siteType: SiteType }) {
-  return <MobileBottomNav categories={await getMenuCategories(siteType)} />;
+  return (
+    <MobileBottomNav
+      categories={await getMenuCategories(siteType, STOREFRONT_REQUEST_TIMEOUT_MS)}
+    />
+  );
 }
 
 export function Header({ siteType }: { siteType: SiteType }) {

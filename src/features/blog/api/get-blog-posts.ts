@@ -84,15 +84,23 @@ function parseBlogPosts(raw: unknown): BlogPost[] {
   });
 }
 
-export async function getBlogPosts(siteType: SiteType, pageLength = 4): Promise<BlogPost[]> {
+export async function getBlogPosts(
+  siteType: SiteType,
+  pageLength = 4,
+  timeoutMs?: number,
+): Promise<BlogPost[]> {
   const url = new URL("/api/Posts/Search", getServerApiBaseUrl());
   url.searchParams.set("Page", "1");
   url.searchParams.set("PageLength", String(pageLength));
 
-  const response = await fetchWithTimeout(url, {
-    headers: await getServerApiHeaders(siteType),
-    next: { revalidate: 60, tags: [`blog-posts-${siteType}`] },
-  });
+  const response = await fetchWithTimeout(
+    url,
+    {
+      headers: await getServerApiHeaders(siteType),
+      next: { revalidate: 60, tags: [`blog-posts-${siteType}`] },
+    },
+    timeoutMs,
+  );
   if (!response.ok) {
     throw new Error(`Blog posts request failed with status ${response.status}`);
   }

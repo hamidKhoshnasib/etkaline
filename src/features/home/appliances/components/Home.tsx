@@ -18,6 +18,7 @@ import { getHomeBrands } from "../api/get-home-brands";
 import { Container } from "@/components/ui/Container";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { getBlogPosts } from "@/features/blog/api/get-blog-posts";
+import { STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import type { SiteType } from "@/lib/api-site-type";
 
 async function HomeHero({ siteType }: { siteType: SiteType }) {
@@ -34,7 +35,7 @@ async function HomeBrands({ siteType }: { siteType: SiteType }) {
 }
 
 async function HomeBlog({ siteType }: { siteType: SiteType }) {
-  const posts = await getBlogPosts(siteType);
+  const posts = await getBlogPosts(siteType, 4, STOREFRONT_REQUEST_TIMEOUT_MS);
   if (!posts.length) {
     return null;
   }

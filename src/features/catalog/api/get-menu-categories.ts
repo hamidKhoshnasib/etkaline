@@ -112,11 +112,16 @@ function buildMenuCategories(categories: ApiCategory[], siteType: SiteType): Men
 
 export const getMenuCategories = cache(async function getMenuCategories(
   siteType: SiteType,
+  timeoutMs?: number,
 ): Promise<MenuCategory[]> {
-  const response = await fetchWithTimeout(new URL("/api/Categories", getServerApiBaseUrl()), {
-    headers: await getServerApiHeaders(siteType),
-    cache: "no-store",
-  });
+  const response = await fetchWithTimeout(
+    new URL("/api/Categories", getServerApiBaseUrl()),
+    {
+      headers: await getServerApiHeaders(siteType),
+      cache: "no-store",
+    },
+    timeoutMs,
+  );
   if (!response.ok) {
     throw new Error(`Menu categories request failed with status ${response.status}`);
   }

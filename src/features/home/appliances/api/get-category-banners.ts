@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getServerApiBaseUrl } from "@/lib/api-config";
+import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
@@ -88,10 +88,14 @@ export async function getCategoryBanners(siteType: SiteType): Promise<CategoryBa
   const url = new URL("/api/Banners/GetByType", getServerApiBaseUrl());
   url.searchParams.set("Type", "3");
 
-  const response = await fetchWithTimeout(url, {
-    headers: await getServerApiHeaders(siteType),
-    cache: "no-store",
-  });
+  const response = await fetchWithTimeout(
+    url,
+    {
+      headers: await getServerApiHeaders(siteType),
+      cache: "no-store",
+    },
+    STOREFRONT_REQUEST_TIMEOUT_MS,
+  );
 
   if (!response.ok) {
     throw new Error(`Category banners request failed with status ${response.status}`);

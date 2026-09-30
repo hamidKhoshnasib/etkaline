@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
-import { getServerApiBaseUrl } from "@/lib/api-config";
+import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 export interface HomeMetaTags {
@@ -36,6 +36,7 @@ export async function getHomeMetaTags(siteType: SiteType): Promise<HomeMetaTags 
         headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
         next: { revalidate: 300, tags: [`home-meta-tags-${siteType}`] },
       },
+      STOREFRONT_REQUEST_TIMEOUT_MS,
     );
 
     if (!response.ok) {

@@ -5,7 +5,7 @@ import {
   type BackendLayoutProduct,
   type Product,
 } from "@/features/product/model/product";
-import { getServerApiBaseUrl } from "@/lib/api-config";
+import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
@@ -48,10 +48,14 @@ export async function getProductsByLayoutId(
   url.searchParams.set("LayoutId", String(layoutId));
   url.searchParams.set("Count", String(count));
 
-  const response = await fetchWithTimeout(url, {
-    headers: await getServerApiHeaders(siteType),
-    cache: "no-store",
-  });
+  const response = await fetchWithTimeout(
+    url,
+    {
+      headers: await getServerApiHeaders(siteType),
+      cache: "no-store",
+    },
+    STOREFRONT_REQUEST_TIMEOUT_MS,
+  );
 
   if (!response.ok) {
     throw new Error(`Layout products request failed with status ${response.status}`);

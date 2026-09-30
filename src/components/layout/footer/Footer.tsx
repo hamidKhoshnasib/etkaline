@@ -13,6 +13,7 @@ import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href
 import { getFooterDescription } from "@/features/home/appliances/api/get-footer-description";
 import { getSocialNetworks } from "@/features/social/api/get-social-networks";
 import { SocialNetworkLinks } from "@/features/social/components/SocialNetworkLinks";
+import { STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import type { SiteType } from "@/lib/api-site-type";
 
 interface FooterLinkColumnProps {
@@ -59,7 +60,7 @@ async function FooterDescription({ siteType }: { siteType: SiteType }) {
 }
 
 async function FooterExtraPagesColumn({ siteType }: { siteType: SiteType }) {
-  const extraPages = await getExtraPages(siteType);
+  const extraPages = await getExtraPages(siteType, STOREFRONT_REQUEST_TIMEOUT_MS);
   return (
     <FooterLinkColumn
       title={LINK_COLUMNS[1].title}
@@ -74,7 +75,7 @@ async function FooterExtraPagesColumn({ siteType }: { siteType: SiteType }) {
 async function FooterSocialLinks({ siteType }: { siteType: SiteType }) {
   return (
     <SocialNetworkLinks
-      socialNetworks={await getSocialNetworks(siteType)}
+      socialNetworks={await getSocialNetworks(siteType, STOREFRONT_REQUEST_TIMEOUT_MS)}
       className="flex justify-center gap-3 lg:justify-start"
     />
   );
