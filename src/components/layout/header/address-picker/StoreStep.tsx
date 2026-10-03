@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AddressAuthValue } from "@/features/address/api/use-addresses";
-import { useNearApplianceStores } from "@/features/store/api/use-near-appliance-stores";
+import { useNearStores } from "@/features/store/api/use-near-stores";
 import { useSetDefaultStore } from "@/features/store/api/use-store-mutations";
 
 import { getResponseMessage } from "./get-response-message";
@@ -21,9 +21,13 @@ export function StoreStep({
   onSelectStore: (storeId: string) => void;
   onComplete: (storeTitle: string, value: AddressAuthValue) => Promise<void>;
 }) {
-  const { data: stores = [], isError, isPending } = useNearApplianceStores();
+  const { data: stores = [], isError, isPending } = useNearStores();
   const setDefaultStore = useSetDefaultStore();
-  const activeStoreId = selectedStore || committedStoreId || stores[0]?.id || "";
+  const activeStoreId =
+    stores.find((store) => store.id === selectedStore)?.id ||
+    stores.find((store) => store.id === committedStoreId)?.id ||
+    stores[0]?.id ||
+    "";
   const orderedStores = [...stores].sort(
     (firstStore, secondStore) =>
       Number(secondStore.id === committedStoreId) - Number(firstStore.id === committedStoreId),
@@ -84,12 +88,6 @@ export function StoreStep({
                 <MapPin className="fill-primary text-secondary size-10 shrink-0" />
                 <span className="min-w-0 flex-1">
                   <span className="body-medium-bold text-secondary block">{store.title}</span>
-                  <span className="body-small text-muted-foreground mt-1 block">
-                    {store.address}
-                  </span>
-                  {store.tel && (
-                    <span className="body-small text-muted-foreground mt-1 block">{store.tel}</span>
-                  )}
                 </span>
               </button>
             );
