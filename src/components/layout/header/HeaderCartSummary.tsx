@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AppImage } from "@/components/ui/image";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
 import { useDeleteBasketItem, useOpenBasket, useUpdateBasketQuantity } from "@/features/cart";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import { formatToman } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 import { useStorefront } from "@/providers/storefront-provider";
 
 function formatNumber(value: number) {
@@ -32,6 +33,7 @@ export function HeaderCartSummary() {
   const itemCount = items.reduce((total, item) => total + item.productCount, 0);
   const totalPrice = basket?.totalOffPrice ?? 0;
   const isChangingBasket = isUpdatingQuantity || isDeletingItem;
+  const isCheckoutDisabled = isPending || isError;
 
   async function changeQuantity(storeProductId: number, quantity: number) {
     if (!basket || isDeletingItem) {
@@ -197,14 +199,24 @@ export function HeaderCartSummary() {
               </p>
               <p className="text-secondary/70 mt-1 text-xs">{itemCount} کالا</p>
             </div>
-            <Button
-              render={<Link href={cartHref} />}
-              onClick={() => setOpen(false)}
-              disabled={isPending || isError}
-              className="h-11 rounded-full px-5"
+            <Link
+              href={cartHref}
+              aria-disabled={isCheckoutDisabled || undefined}
+              tabIndex={isCheckoutDisabled ? -1 : undefined}
+              onClick={(event) => {
+                if (isCheckoutDisabled) {
+                  event.preventDefault();
+                  return;
+                }
+                setOpen(false);
+              }}
+              className={cn(
+                buttonVariants({ className: "h-11 rounded-full px-5" }),
+                isCheckoutDisabled && "pointer-events-none opacity-50",
+              )}
             >
               تکمیل خرید
-            </Button>
+            </Link>
           </footer>
         )}
       </DropdownMenuContent>
