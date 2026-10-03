@@ -55,6 +55,10 @@ interface AddressesResponse {
   isSuccess?: unknown;
 }
 
+export const addressQueryKeys = {
+  list: ["address", "list"] as const,
+};
+
 function getText(record: Record<string, unknown>, keys: string[]): string | null {
   for (const key of keys) {
     const value = record[key];
@@ -144,7 +148,7 @@ export function useAddresses() {
 
   return useApiQuery<AddressesResponse, Address[]>({
     url: "/api/Addresses",
-    queryKey: ["address", "list"],
+    queryKey: addressQueryKeys.list,
     select: parseAddresses,
     enabled: status === "authenticated",
     staleTime: 60_000,

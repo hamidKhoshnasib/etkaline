@@ -20,6 +20,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { profileQueryKeys, useCompleteProfile } from "@/features/account/api/use-profile";
+import { addressQueryKeys } from "@/features/address/api/use-addresses";
 import { useStorefront } from "@/providers/storefront-provider";
 
 interface CompleteProfileDialogProps {
@@ -62,7 +63,10 @@ export function CompleteProfileDialog({ open, onClose, onCompleted }: CompletePr
           needCompleteProfile: false,
         },
       });
-      await queryClient.invalidateQueries({ queryKey: profileQueryKeys.detail(siteType) });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: profileQueryKeys.detail(siteType) }),
+        queryClient.invalidateQueries({ queryKey: [siteType, ...addressQueryKeys.list] }),
+      ]);
       router.refresh();
       window.dispatchEvent(new Event("etkala:authenticated"));
       toast.success("اطلاعات حساب کاربری با موفقیت تکمیل شد.");
