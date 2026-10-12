@@ -15,7 +15,8 @@ if (imageUrl.protocol !== "http:" && imageUrl.protocol !== "https:") {
 const imageProtocol: "http" | "https" = imageUrl.protocol === "http:" ? "http" : "https";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  // Keep production rendering optimized without paying Babel's compile cost in local development.
+  reactCompiler: process.env.NODE_ENV === "production",
   images: {
     dangerouslyAllowLocalIP: true,
     remotePatterns: [

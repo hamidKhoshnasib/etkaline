@@ -22,21 +22,27 @@ export interface FlashDealsProps {
   items: Product[];
 }
 
-const dealFilters = [
+type DealFilter = {
+  id: "all";
+  label: string;
+  width: string;
+  keyword: string | null;
+};
+
+const dealFilters: readonly DealFilter[] = [
   { id: "all", label: "همه", width: "w-19", keyword: null },
-  { id: "washing-machine", label: "ماشین لباسشویی", width: "w-[142px]", keyword: "لباسشویی" },
-  { id: "dishwasher", label: "ماشین ظرف‌شویی", width: "w-[143px]", keyword: "ظرفشویی" },
-] as const;
+];
 
 type DealFilterId = (typeof dealFilters)[number]["id"];
 
 function filterDeals(items: Product[], filterId: DealFilterId) {
   const filter = dealFilters.find((item) => item.id === filterId);
-  if (!filter?.keyword) {
+  const keyword = filter?.keyword;
+  if (typeof keyword !== "string") {
     return items;
   }
 
-  return items.filter((product) => product.title.includes(filter.keyword));
+  return items.filter((product) => product.title.includes(keyword));
 }
 
 function DealFilters({

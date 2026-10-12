@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, MapPin } from "lucide-react";
+import { ChevronDown, MapPin, ShoppingBasket, Tv } from "lucide-react";
 
 import { AddressPicker } from "./AddressPicker";
 import { MegaMenu } from "./MegaMenu";
@@ -12,6 +12,7 @@ import { useAddresses } from "@/features/address/api/use-addresses";
 import type { MenuCategory } from "@/features/catalog/model/menu-category";
 import type { ExtraPageLink } from "@/features/extra-pages/api/get-extra-pages";
 import { getExtraPageHref } from "@/features/extra-pages/lib/get-extra-page-href";
+import { SITE_TYPES } from "@/lib/api-site-type";
 import { useStorefront } from "@/providers/storefront-provider";
 
 const [categoriesLink, ...otherNavLinks] = navLinks;
@@ -24,6 +25,10 @@ interface NavBarProps {
 
 export function NavBar({ categories, extraPages }: NavBarProps) {
   const storefront = useStorefront();
+  const storefrontSwitch =
+    storefront.siteType === SITE_TYPES.supermarket
+      ? { href: "/appliance", label: "لوازم خانگی", Icon: Tv }
+      : { href: "/", label: "سوپر مارکت", Icon: ShoppingBasket };
   const { data: addresses = [] } = useAddresses();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(
@@ -96,6 +101,13 @@ export function NavBar({ categories, extraPages }: NavBarProps) {
                 </Link>
               );
             })}
+            <Link
+              href={storefrontSwitch.href}
+              className="label-large hover:text-primary-hover hover:border-primary-hover flex h-full items-center gap-3 border-b-2 border-transparent text-gray-600 transition-colors"
+            >
+              <storefrontSwitch.Icon className="size-4" aria-hidden="true" />
+              <span>{storefrontSwitch.label}</span>
+            </Link>
             {extraPages.map((page) => (
               <Link
                 key={page.id}

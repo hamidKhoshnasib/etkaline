@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl } from "@/lib/api-config";
 import { getSiteTypeHeaders, type SiteType } from "@/lib/api-site-type";
+import { getBackendHref } from "@/lib/get-backend-href";
 
 export interface BlogBanner {
   id: number;
@@ -41,24 +42,6 @@ function toImageUrl(value: unknown): string | undefined {
   }
 }
 
-function toBannerHref(value: unknown): string | undefined {
-  const href = readText(value);
-  if (!href) {
-    return undefined;
-  }
-
-  if (href.startsWith("/") && !href.startsWith("//")) {
-    return href;
-  }
-
-  try {
-    const url = new URL(href);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 function parseBlogBanners(value: unknown): BlogBanner[] {
   if (!Array.isArray(value)) {
     return [];
@@ -84,7 +67,7 @@ function parseBlogBanners(value: unknown): BlogBanner[] {
           image,
           width: isPositiveInteger(banner.width) ? banner.width : 600,
           height: isPositiveInteger(banner.height) ? banner.height : 300,
-          href: toBannerHref(banner.link),
+          href: getBackendHref(banner.link) ?? undefined,
           order: typeof banner.order === "number" ? banner.order : index,
         },
       ];

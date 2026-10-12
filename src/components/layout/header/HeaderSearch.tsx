@@ -273,7 +273,8 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
           <div className="relative flex-1">
             {!query && !isOpen ? (
               <div className="pointer-events-none absolute inset-y-0 start-8 end-10 flex items-center truncate text-sm text-gray-400">
-                <span className="shrink-0">خرید از&nbsp;</span>
+                <span className="shrink-0">  جستجو در  &nbsp;</span>
+                {" "}
                 <span className="text-secondary truncate font-bold">{activeStoreTitle}</span>
               </div>
             ) : null}
@@ -309,11 +310,17 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
                 <X className="size-5" />
               </button>
             ) : (
-              <Search
-                size={16}
-                className="text-secondary/40 absolute inset-e-3 top-1/2 -translate-y-1/2"
-                aria-hidden="true"
-              />
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(true);
+                  window.requestAnimationFrame(() => inputRef.current?.focus());
+                }}
+                className="text-secondary/40 focus-visible:outline-ring absolute end-3 top-1/2 -translate-y-1/2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+                aria-label="باز کردن جستجو"
+              >
+                <Search size={16} aria-hidden="true" />
+              </button>
             )}
           </div>
         </form>

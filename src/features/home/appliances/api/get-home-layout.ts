@@ -49,7 +49,8 @@ export async function getHomeLayout(
     url,
     {
       headers: { Accept: "application/json", ...getSiteTypeHeaders(siteType) },
-      next: { revalidate: 300, tags: [`home-layout-${siteType}-${layoutType}-${platformType}`] },
+      // Layout changes are managed in the backend and must be reflected immediately after a deletion.
+      cache: "no-store",
     },
     STOREFRONT_REQUEST_TIMEOUT_MS,
   );

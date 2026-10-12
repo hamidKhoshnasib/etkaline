@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { getBackendHref } from "@/lib/get-backend-href";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -35,24 +36,6 @@ function toImageUrl(value: unknown): string | null {
   }
 }
 
-function toBannerHref(value: unknown): string | null {
-  const href = readText(value);
-  if (!href) {
-    return null;
-  }
-
-  if ((href.startsWith("/") && !href.startsWith("//")) || href.startsWith("#")) {
-    return href;
-  }
-
-  try {
-    const url = new URL(href);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
 function parseCategoryBanners(value: unknown): CategoryBanner[] {
   if (!Array.isArray(value)) {
     return [];
@@ -75,7 +58,7 @@ function parseCategoryBanners(value: unknown): CategoryBanner[] {
           id: banner.id,
           title: readText(banner.title) ?? "دسته‌بندی",
           image,
-          href: toBannerHref(banner.link) ?? "#",
+          href: getBackendHref(banner.link) ?? "#",
           order: typeof banner.order === "number" ? banner.order : index,
         },
       ];

@@ -19,14 +19,32 @@ interface PaginationProps {
   className?: string;
 }
 
+type PaginationItem = number | "start-ellipsis" | "end-ellipsis";
+
 const navBtn = [
   "flex size-8 items-center justify-center rounded-lg",
   "text-primary transition-colors hover:text-gray-600",
   "disabled:pointer-events-none disabled:opacity-30",
 ].join(" ");
 
+function getPaginationItems(page: number, total: number): PaginationItem[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
+  if (page <= 4) {
+    return [1, 2, 3, 4, 5, "end-ellipsis", total];
+  }
+
+  if (page >= total - 3) {
+    return [1, "start-ellipsis", total - 4, total - 3, total - 2, total - 1, total];
+  }
+
+  return [1, "start-ellipsis", page - 1, page, page + 1, "end-ellipsis", total];
+}
+
 function Pagination({ page, total, onChange, className }: PaginationProps) {
-  const pages = Array.from({ length: total }, (_, i) => i + 1);
+  const items = getPaginationItems(page, total);
 
   return (
     <div className={cn("flex items-center gap-0.5", className)}>
@@ -43,8 +61,22 @@ function Pagination({ page, total, onChange, className }: PaginationProps) {
       <span className="mx-1.5 h-8 w-px shrink-0 bg-gray-300" />
 
       {/* Pages */}
-      {pages.map((p) => {
+      {items.map((item) => {
+        if (typeof item !== "number") {
+          return (
+            <span
+              key={item}
+              aria-hidden="true"
+              className="flex size-8 items-center justify-center text-gray-500"
+            >
+              …
+            </span>
+          );
+        }
+
+        const p = item;
         const isActive = p === page;
+
         return (
           <button
             key={p}

@@ -8,29 +8,31 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useHomeAdvertisement } from "@/features/home/appliances/api/use-home-advertisement";
 import { Container } from "@/components/ui/Container";
+import { getBackendHref } from "@/lib/get-backend-href";
 import { useStorefront } from "@/providers/storefront-provider";
 
-function getSafeHref(link: string | null): string | null {
-  if (!link) {
-    return null;
-  }
-
-  const trimmedLink = link.trim();
-
-  if (trimmedLink.startsWith("/") && !trimmedLink.startsWith("//")) {
-    return trimmedLink;
-  }
-
-  try {
-    const url = new URL(trimmedLink);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
+const TARGET_QUERY_KEYS: Partial<Record<number, string>> = {
+  1: "category",
+  2: "tag",
+  3: "product",
+  4: "brand",
+};
 
 function getSafeColor(color: string): string | undefined {
   return /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i.test(color.trim()) ? color.trim() : undefined;
+}
+
+function getTargetHref(targetType: number, targetId: number | null, searchHref: string) {
+  if (targetId === null) {
+    return null;
+  }
+
+  const queryKey = TARGET_QUERY_KEYS[targetType];
+  if (!queryKey) {
+    return null;
+  }
+
+  return `${searchHref}?${new URLSearchParams({ [queryKey]: String(targetId) }).toString()}`;
 }
 
 export function HomeAdvertisement() {
@@ -44,7 +46,9 @@ export function HomeAdvertisement() {
     return null;
   }
 
-  const href = getSafeHref(advertisement.link);
+  const href =
+    getBackendHref(advertisement.link) ??
+    getTargetHref(advertisement.targetType, advertisement.targetId, storefront.searchHref);
   const backgroundColor = getSafeColor(advertisement.backgroundColor);
   const textColor = getSafeColor(advertisement.textColor);
 

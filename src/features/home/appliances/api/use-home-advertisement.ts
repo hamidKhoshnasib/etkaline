@@ -18,23 +18,41 @@ export interface HomeAdvertisement {
   id: number;
 }
 
-function isAdvertisement(value: unknown): value is HomeAdvertisement {
+function readOptionalText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function parseAdvertisementValue(value: unknown): HomeAdvertisement | null {
   if (!value || typeof value !== "object") {
-    return false;
+    return null;
   }
+
   const advertisement = value as Record<string, unknown>;
-  return (
-    typeof advertisement.text === "string" &&
-    advertisement.text.trim().length > 0 &&
-    (advertisement.link === null || typeof advertisement.link === "string") &&
-    typeof advertisement.targetType === "number" &&
-    typeof advertisement.targetTypeFa === "string" &&
-    (advertisement.targetId === null || typeof advertisement.targetId === "number") &&
-    typeof advertisement.buttonText === "string" &&
-    typeof advertisement.backgroundColor === "string" &&
-    typeof advertisement.textColor === "string" &&
-    typeof advertisement.id === "number"
-  );
+  const text = readOptionalText(advertisement.text);
+
+  if (!text || typeof advertisement.id !== "number" || !Number.isSafeInteger(advertisement.id)) {
+    return null;
+  }
+
+  return {
+    text,
+    link: readOptionalText(advertisement.link),
+    targetType:
+      typeof advertisement.targetType === "number" && Number.isSafeInteger(advertisement.targetType)
+        ? advertisement.targetType
+        : 0,
+    targetTypeFa: readOptionalText(advertisement.targetTypeFa) ?? "",
+    targetId:
+      typeof advertisement.targetId === "number" &&
+      Number.isSafeInteger(advertisement.targetId) &&
+      advertisement.targetId > 0
+        ? advertisement.targetId
+        : null,
+    buttonText: readOptionalText(advertisement.buttonText) ?? "",
+    backgroundColor: typeof advertisement.backgroundColor === "string" ? advertisement.backgroundColor : "",
+    textColor: typeof advertisement.textColor === "string" ? advertisement.textColor : "",
+    id: advertisement.id,
+  };
 }
 
 function parseAdvertisement(raw: unknown): HomeAdvertisement | null {
@@ -42,7 +60,7 @@ function parseAdvertisement(raw: unknown): HomeAdvertisement | null {
     return null;
   }
   const response = raw as Record<string, unknown>;
-  return response.isSuccess === true && isAdvertisement(response.value) ? response.value : null;
+  return response.isSuccess === true ? parseAdvertisementValue(response.value) : null;
 }
 
 export function useHomeAdvertisement(enabled: boolean) {

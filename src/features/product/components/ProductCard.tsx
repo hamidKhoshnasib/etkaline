@@ -138,7 +138,7 @@ function SupermarketProductCard({
             alt={title}
             width={153}
             height={148}
-            className={cn("h-37 w-full object-cover", outOfStock && "opacity-45")}
+            className={cn("h-37 w-full object-contain", outOfStock && "opacity-45")}
           />
           {outOfStock ? (
             <span className="text-muted-foreground absolute inset-x-3 bottom-2 rounded-lg bg-white/90 py-1 text-center text-xs">
@@ -162,7 +162,7 @@ function SupermarketProductCard({
               )}
               {discount ? (
                 <span
-                  className="text-label-medium-bold flex h-5 min-w-6.5 items-center justify-center rounded-[4px] bg-[#43A047] text-white"
+                  className="text-label-medium-bold flex h-5 w-fit shrink-0 items-center justify-center rounded-[4px] bg-[#43A047] px-1 text-white"
                   dir="rtl"
                 >
                   {formatDiscountPercent(discount)}٪
