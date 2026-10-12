@@ -1,5 +1,6 @@
 import { auth } from "@/features/auth/server";
 import { NextResponse } from "next/server";
+import { getStorefrontRequestHeaders } from "@/lib/storefront-routing";
 
 const PROTECTED = ["/dashboard", "/profile", "/orders"];
 
@@ -13,7 +14,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: getStorefrontRequestHeaders(req) } });
 });
 
 export const config = {

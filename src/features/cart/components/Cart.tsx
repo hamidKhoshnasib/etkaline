@@ -41,6 +41,7 @@ import type { OpenBasketItem } from "@/features/cart/api/get-open-basket";
 import type { DeliverySelections } from "@/features/cart/model/checkout";
 import { useStorefront } from "@/providers/storefront-provider";
 import { SITE_TYPES } from "@/lib/api-site-type";
+import { getStorefrontOrdersHref } from "@/lib/storefront-orders";
 
 export type CheckoutStep = "cart" | "address" | "review";
 
@@ -376,7 +377,10 @@ export default function CartPage() {
       }
 
       try {
-        const callbackUrl = new URL("/account/orders", window.location.origin).toString();
+        const callbackUrl = new URL(
+          getStorefrontOrdersHref(siteType),
+          window.location.origin,
+        ).toString();
         const result = await payBasketMutation.mutateAsync({ ...paymentSelection, callbackUrl });
         const message = result.message || "پرداخت سفارش با موفقیت ثبت شد.";
 

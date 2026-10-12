@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 import { PaymentFailedPage } from "@/components/status/PaymentFailedPage";
 import { PaymentSuccessPage } from "@/components/status/PaymentSuccessPage";
@@ -10,6 +9,7 @@ import { ServerErrorPage } from "@/components/status/ServerErrorPage";
 import { StatusPage } from "@/components/status/StatusPage";
 import { axiosClient } from "@/lib/axios-client";
 import { getSiteTypeHeaders } from "@/lib/api-site-type";
+import { getStorefrontOrdersHref } from "@/lib/storefront-orders";
 import { useStorefront } from "@/providers/storefront-provider";
 
 const PAYMENT_FACTOR_STORAGE_KEY = "etkaline:payment-factor";
@@ -67,8 +67,8 @@ async function getPaymentResult(factorNumber: string, siteType: "appliance" | "s
 }
 
 export function PaymentCallbackPage() {
-  const router = useRouter();
   const { cartHref, homeHref, siteType } = useStorefront();
+  const orderHref = getStorefrontOrdersHref(siteType);
   const [storedFactor, setStoredFactor] = useState<StoredPaymentFactor | null>(() =>
     typeof window === "undefined" ? null : readPaymentFactor(),
   );
@@ -87,9 +87,10 @@ export function PaymentCallbackPage() {
 
     window.sessionStorage.removeItem(PAYMENT_FACTOR_STORAGE_KEY);
     if (paymentQuery.data) {
-      router.replace("/account/orders");
+      // Reload the account layout so a cached storefront from an earlier visit is not reused.
+      window.location.replace(orderHref);
     }
-  }, [paymentQuery.data, router]);
+  }, [paymentQuery.data, orderHref]);
 
   if (storedFactor === null || storedFactor.siteType !== siteType) {
     return <ServerErrorPage unstable_retry={() => setStoredFactor(readPaymentFactor())} />;
@@ -101,7 +102,7 @@ export function PaymentCallbackPage() {
     return <ServerErrorPage unstable_retry={() => void paymentQuery.refetch()} />;
   }
   if (paymentQuery.data) {
-    return <PaymentSuccessPage orderHref="/account/orders" storefrontHref={homeHref} />;
+    return <PaymentSuccessPage orderHref={orderHref} storefrontHref={homeHref} />;
   }
   return (
     <PaymentFailedPage
