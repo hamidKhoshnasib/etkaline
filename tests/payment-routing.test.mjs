@@ -35,7 +35,7 @@ function loadSource(relativePath, overrides = {}) {
 }
 
 const { getStorefrontOrdersHref } = loadSource("src/lib/storefront-orders.ts");
-const { default: middleware } = loadSource("middleware.ts", {
+const { proxy } = loadSource("src/proxy.ts", {
   "@/features/auth/server": { auth: (handler) => handler },
 });
 const { STOREFRONT_COOKIE_NAME, STOREFRONT_REQUEST_HEADER } = loadSource(
@@ -51,7 +51,7 @@ function routeRequest(href, cookieSiteType, suppliedSiteType) {
     headers.set(STOREFRONT_REQUEST_HEADER, suppliedSiteType);
   }
   const request = new NextRequest(new URL(href, "https://shop.example"), { headers });
-  const response = middleware(request);
+  const response = proxy(request);
   return { request, response };
 }
 

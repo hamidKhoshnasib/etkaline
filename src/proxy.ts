@@ -4,7 +4,7 @@ import { getStorefrontRequestHeaders } from "@/lib/storefront-routing";
 
 const PROTECTED = ["/dashboard", "/profile", "/orders"];
 
-export default auth((req) => {
+export const proxy = auth((req) => {
   const isProtected = PROTECTED.some((path) => req.nextUrl.pathname.startsWith(path));
 
   if (isProtected && !req.auth) {
