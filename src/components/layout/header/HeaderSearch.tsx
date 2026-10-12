@@ -273,8 +273,7 @@ export function HeaderSearch({ className, variant = "default" }: HeaderSearchPro
           <div className="relative flex-1">
             {!query && !isOpen ? (
               <div className="pointer-events-none absolute inset-y-0 start-8 end-10 flex items-center truncate text-sm text-gray-400">
-                <span className="shrink-0">  جستجو در  &nbsp;</span>
-                {" "}
+                <span className="shrink-0"> جستجو در &nbsp;</span>{" "}
                 <span className="text-secondary truncate font-bold">{activeStoreTitle}</span>
               </div>
             ) : null}

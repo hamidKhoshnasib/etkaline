@@ -49,7 +49,8 @@ function parseAdvertisementValue(value: unknown): HomeAdvertisement | null {
         ? advertisement.targetId
         : null,
     buttonText: readOptionalText(advertisement.buttonText) ?? "",
-    backgroundColor: typeof advertisement.backgroundColor === "string" ? advertisement.backgroundColor : "",
+    backgroundColor:
+      typeof advertisement.backgroundColor === "string" ? advertisement.backgroundColor : "",
     textColor: typeof advertisement.textColor === "string" ? advertisement.textColor : "",
     id: advertisement.id,
   };
