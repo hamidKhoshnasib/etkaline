@@ -36,8 +36,8 @@ export function MegaMenu({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Container className="flex py-6">
-        <div className="w-47.5 shrink-0 border-e border-gray-100">
+      <Container className="flex items-stretch py-6">
+        <div className="max-h-[min(32rem,calc(100dvh-12rem))] min-h-0 w-47.5 shrink-0 overflow-x-hidden overflow-y-auto overscroll-contain border-e border-gray-100 pe-2">
           {categories.map(({ id, title, iconName, href }) => {
             const active = id === activeCategory.id;
 
@@ -45,26 +45,27 @@ export function MegaMenu({
               <Link
                 key={id}
                 href={href}
+                title={title}
                 onClick={onClose}
                 onMouseEnter={() => onActiveCategoryChange(id)}
                 onFocus={() => onActiveCategoryChange(id)}
-                className={`label-large flex w-full items-center gap-2 pb-4 transition-colors ${
+                className={`label-large flex w-full min-w-0 items-center gap-2 pb-4 transition-colors ${
                   active ? "text-primary-hover" : "hover:text-primary-hover text-gray-700"
                 }`}
               >
                 <CategoryMenuIcon
                   iconName={iconName}
-                  className={`size-6 object-contain ${
+                  className={`size-6 shrink-0 object-contain ${
                     active ? "text-primary-hover" : "text-gray-600"
                   }`}
                 />
-                <span className="text-nowrap">{title}</span>
+                <span className="min-w-0 flex-1 truncate">{title}</span>
               </Link>
             );
           })}
         </div>
 
-        <div className="flex-1 px-8">
+        <div className="max-h-[min(32rem,calc(100dvh-12rem))] min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-8">
           <Link
             href={activeCategory.href}
             onClick={onClose}
@@ -86,7 +87,7 @@ export function MegaMenu({
                 <Link
                   href={subcategory.href}
                   onClick={onClose}
-                  className="title-small-bold hover:text-primary-hover mb-6 flex w-42 items-center transition-colors"
+                  className="title-small-bold hover:text-primary-hover mb-6 flex w-full min-w-0 items-center transition-colors"
                 >
                   <span className="border-primary-hover line-clamp-1 rounded-r-[4px] border-r-4 pr-2">
                     {subcategory.title}
