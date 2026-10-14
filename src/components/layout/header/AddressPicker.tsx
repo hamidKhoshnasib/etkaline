@@ -189,14 +189,19 @@ export function AddressPicker({
   }, [addresses.length, hasLoadedAddresses, onOpenChange]);
 
   useEffect(() => {
-    if (!showMissingAddressPrompt || !shouldPromptForAddress || hasAutoPromptedRef.current) {
+    if (
+      !showMissingAddressPrompt ||
+      !shouldPromptForAddress ||
+      (hasDefaultAddress && committedStoreId) ||
+      hasAutoPromptedRef.current
+    ) {
       if (!shouldPromptForAddress) {
         hasAutoPromptedRef.current = false;
       }
       return;
     }
 
-    const promptStorageKey = `${ADDRESS_PROMPT_STORAGE_KEY}:${session.user.backendId}`;
+    const promptStorageKey = `${ADDRESS_PROMPT_STORAGE_KEY}:${session.user.backendId}:${siteType}`;
     hasAutoPromptedRef.current = true;
 
     if (window.sessionStorage.getItem(promptStorageKey)) {
@@ -228,6 +233,8 @@ export function AddressPicker({
     shouldStartAddressCreation,
     showMissingAddressPrompt,
     hasDefaultAddress,
+    committedStoreId,
+    siteType,
     startInStoreMode,
   ]);
 
