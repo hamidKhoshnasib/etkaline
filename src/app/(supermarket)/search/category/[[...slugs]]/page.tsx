@@ -4,11 +4,13 @@ import { notFound } from "next/navigation";
 import { getStorefront } from "@/config/storefront";
 import { CategoryCatalog } from "@/features/catalog";
 import { getMenuCategoryPathById } from "@/features/catalog/api/get-menu-categories";
+import { parseCatalogCategoryId } from "@/features/catalog/lib/catalog-query";
 import { SITE_TYPES } from "@/lib/api-site-type";
 import { createStorefrontMetadata } from "@/lib/storefront-metadata";
 
 interface Props {
   params: Promise<{ slugs?: string[] }>;
+  searchParams: Promise<{ category?: string | string[] }>;
 }
 
 function categoryIdFromSlugs(slugs: string[] | undefined) {
@@ -48,11 +50,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function SupermarketCategoryPage({ params }: Props) {
-  const { slugs } = await params;
+export default async function SupermarketCategoryPage({ params, searchParams }: Props) {
+  const [{ slugs }, query] = await Promise.all([params, searchParams]);
   const categoryId = categoryIdFromSlugs(slugs);
   if (!categoryId) {
-    return <CategoryCatalog />;
+    const queryCategoryId = parseCatalogCategoryId(query.category);
+    const path = queryCategoryId
+      ? await getMenuCategoryPathById(queryCategoryId, SITE_TYPES.supermarket).catch(() => null)
+      : null;
+    return <CategoryCatalog categoryPath={path ?? []} />;
   }
 
   const path = await getMenuCategoryPathById(categoryId, SITE_TYPES.supermarket);

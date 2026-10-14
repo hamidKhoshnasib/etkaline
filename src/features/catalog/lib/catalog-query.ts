@@ -7,6 +7,16 @@ export interface CatalogQuery {
 const DEFAULT_SORT = "bestselling";
 const DEFAULT_PAGE = 1;
 
+export function parseCatalogCategoryId(value: string | string[] | null | undefined) {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  if (!candidate || !/^\d+$/.test(candidate)) {
+    return 0;
+  }
+
+  const id = Number(candidate);
+  return Number.isSafeInteger(id) && id > 0 ? id : 0;
+}
+
 export function parseCatalogQuery(searchParams: Pick<URLSearchParams, "get">): CatalogQuery {
   const pageValue = Number(searchParams.get("page"));
 

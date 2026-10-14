@@ -29,6 +29,12 @@ import { MobileFilterSheet } from "./MobileFilterSheet";
 import { SearchEmptyState } from "./SearchEmptyState";
 import { SortBar } from "./SortBar";
 import { useStorefront } from "@/providers/storefront-provider";
+import { parseCatalogCategoryId } from "@/features/catalog/lib/catalog-query";
+import {
+  getCatalogBreadcrumbs,
+  type CatalogBreadcrumbEntry,
+  type CategoryPathEntry,
+} from "@/features/catalog/lib/get-catalog-breadcrumbs";
 
 const PAGE_LENGTH = 30;
 const SORT_TYPE_BY_ID: Record<string, number> = {
@@ -90,16 +96,6 @@ function parseSort(value: string | null) {
   return value && Object.hasOwn(SORT_TYPE_BY_ID, value) ? value : DEFAULT_SORT;
 }
 
-interface CatalogBreadcrumbEntry {
-  label: string;
-  href?: string;
-}
-
-interface CategoryPathEntry {
-  id: number;
-  title: string;
-}
-
 function CatalogBreadcrumbSeparator() {
   return (
     <BreadcrumbSeparator className="[&>svg]:size-3.5!">
@@ -108,25 +104,7 @@ function CatalogBreadcrumbSeparator() {
   );
 }
 
-function CatalogBreadcrumbs({
-  title,
-  categoryPath,
-}: {
-  title: string;
-  categoryPath: CategoryPathEntry[];
-}) {
-  const storefront = useStorefront();
-  const crumbs: CatalogBreadcrumbEntry[] = [
-    { label: "خانه", href: storefront.homeHref },
-    ...(categoryPath.length > 0
-      ? categoryPath.map((category, index) => ({
-          label: category.title,
-          href:
-            index === categoryPath.length - 1 ? undefined : storefront.categoryHref(category.id),
-        }))
-      : [{ label: title.replace("محصولات ", "") }]),
-  ];
-
+function CatalogBreadcrumbs({ crumbs }: { crumbs: CatalogBreadcrumbEntry[] }) {
   return (
     <div className="-mx-4 mb-8 bg-[#F8FAFC] px-4 py-3 lg:mx-0 lg:bg-transparent lg:px-0 lg:py-0">
       <Breadcrumb className="mb-0">
@@ -178,7 +156,7 @@ export default function CategoryCatalog({
   const priceRange = parsePriceRange(searchParams);
   const [priceFilterResetKey, setPriceFilterResetKey] = useState(0);
   const selectedValueIds = parsePositiveIds(searchParams.get("valueIds"));
-  const targetCategoryId = parsePositiveId(searchParams.get("category"));
+  const targetCategoryId = parseCatalogCategoryId(searchParams.get("category"));
   const targetTagId = parsePositiveId(searchParams.get("tag"));
   const targetLayoutTagId = parsePositiveId(searchParams.get("layoutTag"));
   const targetProductId = parsePositiveId(searchParams.get("product"));
@@ -191,6 +169,13 @@ export default function CategoryCatalog({
     ]),
   );
   const searchText = searchParams.get("searchText")?.trim() ?? "";
+  const breadcrumbs = getCatalogBreadcrumbs({
+    siteType: storefront.siteType,
+    title,
+    categoryId: resolvedCategoryId,
+    categoryPath,
+    searchText,
+  });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const replaceFilterParams = (update: (params: URLSearchParams) => void) => {
@@ -355,7 +340,7 @@ export default function CategoryCatalog({
         }
       />
 
-      <CatalogBreadcrumbs title={title} categoryPath={categoryPath} />
+      <CatalogBreadcrumbs crumbs={breadcrumbs} />
 
       <MobileFilterSheet
         open={isMobileFilterOpen}
