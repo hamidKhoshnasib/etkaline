@@ -42,6 +42,8 @@ const SORT_TYPE_BY_ID: Record<string, number> = {
 const DEFAULT_SORT = "popular";
 const FILTER_QUERY_KEYS = [
   "available",
+  "discounted",
+  "offer",
   "minPrice",
   "maxPrice",
   "valueIds",
@@ -171,6 +173,8 @@ export default function CategoryCatalog({
   const sort = parseSort(searchParams.get("sort"));
   const [page, setPage] = useState(1);
   const onlyAvailable = searchParams.get("available") === "1";
+  const onlyDiscounted = searchParams.get("discounted") === "1";
+  const onlyOffers = searchParams.get("offer") === "1";
   const priceRange = parsePriceRange(searchParams);
   const [priceFilterResetKey, setPriceFilterResetKey] = useState(0);
   const selectedValueIds = parsePositiveIds(searchParams.get("valueIds"));
@@ -208,6 +212,8 @@ export default function CategoryCatalog({
     ...(searchText ? { searchText } : {}),
     ...(brandIds.length > 0 ? { brandIds } : {}),
     ...(onlyAvailable ? { justExist: true } : {}),
+    ...(onlyDiscounted ? { justDiscounted: true } : {}),
+    ...(onlyOffers ? { justOffer: true } : {}),
     ...(selectedValueIds.length > 0 ? { valueIds: selectedValueIds } : {}),
   };
 
@@ -360,7 +366,13 @@ export default function CategoryCatalog({
         minPriceLimit={minPriceLimit}
         priceRange={priceRange}
         hasActiveFilters={Boolean(
-          onlyAvailable || priceRange || selectedValueIds.length || searchText || brandIds.length,
+          onlyAvailable ||
+          onlyDiscounted ||
+          onlyOffers ||
+          priceRange ||
+          selectedValueIds.length ||
+          searchText ||
+          brandIds.length,
         )}
         properties={properties}
         onClearFilters={clearFilters}
@@ -377,7 +389,13 @@ export default function CategoryCatalog({
           minPriceLimit={minPriceLimit}
           priceRange={priceRange}
           hasActiveFilters={Boolean(
-            onlyAvailable || priceRange || selectedValueIds.length || searchText || brandIds.length,
+            onlyAvailable ||
+            onlyDiscounted ||
+            onlyOffers ||
+            priceRange ||
+            selectedValueIds.length ||
+            searchText ||
+            brandIds.length,
           )}
           onClearFilters={clearFilters}
           properties={properties}

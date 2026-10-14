@@ -8,7 +8,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 
 import TomanIcon from "@/assets/icons/Toman-Symbol.svg";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AppImage } from "@/components/ui/image";
 import { formatDiscountPercent, formatProductPrice } from "@/features/product/lib/format-price";
 import { ProductCard } from "@/features/product/components/ProductCard";
@@ -20,6 +20,16 @@ import { useStorefront } from "@/providers/storefront-provider";
 
 export interface FlashDealsProps {
   items: Product[];
+  showMoreLink?: string;
+}
+
+function FlashDealsMoreLink({ href }: { href: string }) {
+  return (
+    <Link href={href} className={buttonVariants({ variant: "link", size: "sm" })}>
+      مشاهده همه
+      <MoveLeft data-icon="inline-end" aria-hidden="true" />
+    </Link>
+  );
 }
 
 type DealFilter = {
@@ -129,6 +139,7 @@ function MobileDealCard({ product }: { product: Product }) {
 
 function MobileFlashDeals({
   items,
+  showMoreLink,
   activeFilter,
   onFilterChange,
 }: FlashDealsProps & {
@@ -155,8 +166,9 @@ function MobileFlashDeals({
         aria-hidden="true"
       />
 
-      <div className="absolute top-[19px] right-[18px] flex h-9 w-[379px] gap-3 overflow-hidden">
+      <div className="absolute inset-x-[18px] top-[19px] flex h-9 min-w-0 items-center justify-between gap-3">
         <DealFilters activeFilter={activeFilter} onChange={onFilterChange} />
+        {showMoreLink ? <FlashDealsMoreLink href={showMoreLink} /> : null}
       </div>
 
       <div className="absolute top-[77px] right-[68px] left-0 h-[228px] overflow-hidden bg-white">
@@ -219,7 +231,7 @@ function MobileFlashDeals({
   );
 }
 
-export default function FlashDeals({ items }: FlashDealsProps) {
+export default function FlashDeals({ items, showMoreLink }: FlashDealsProps) {
   const [activeFilter, setActiveFilter] = useState<DealFilterId>("all");
   const filteredItems = filterDeals(items, activeFilter);
   const { siteType } = useStorefront();
@@ -228,6 +240,7 @@ export default function FlashDeals({ items }: FlashDealsProps) {
     <>
       <MobileFlashDeals
         items={filteredItems}
+        showMoreLink={showMoreLink}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
       />
@@ -248,8 +261,9 @@ export default function FlashDeals({ items }: FlashDealsProps) {
             <span className="headline-large text-white">شگفتانه لحظه‌ای</span>
           </div>
 
-          <div className="z-10 flex h-18.75 flex-1 items-center overflow-hidden rounded-tr-[16px] bg-white px-5">
+          <div className="z-10 flex h-18.75 min-w-0 flex-1 items-center justify-between gap-4 overflow-hidden rounded-tr-[16px] bg-white px-5">
             <DealFilters activeFilter={activeFilter} onChange={setActiveFilter} />
+            {showMoreLink ? <FlashDealsMoreLink href={showMoreLink} /> : null}
           </div>
         </div>
 

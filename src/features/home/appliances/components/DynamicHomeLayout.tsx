@@ -21,7 +21,7 @@ import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import CategoryBanners from "./CategoryBanners";
 import { LazyFlashDeals } from "./LazyFlashDeals";
 import { HomeLayoutItemSkeleton } from "./HomeSectionSkeletons";
-import { getStorefront } from "@/config/storefront";
+import { getHomeLayoutLink } from "@/features/home/appliances/lib/get-home-layout-link";
 import { SITE_TYPES, type SiteType } from "@/lib/api-site-type";
 
 function isProductLayout(item: HomeLayoutItem) {
@@ -37,25 +37,6 @@ function isBannerLayout(item: HomeLayoutItem) {
   return item.componentType === HOME_COMPONENT_TYPE.BANNER;
 }
 
-const HOME_TARGET_QUERY_KEY: Partial<Record<number, string>> = {
-  0: "category",
-  1: "layoutTag",
-};
-
-function getShowMoreLink(item: HomeLayoutItem, siteType: SiteType) {
-  if (item.targetId === null || !Number.isSafeInteger(item.targetId) || item.targetId <= 0) {
-    return undefined;
-  }
-
-  const queryKey = HOME_TARGET_QUERY_KEY[item.targetType];
-  if (!queryKey) {
-    return undefined;
-  }
-
-  const params = new URLSearchParams({ [queryKey]: String(item.targetId) });
-  return `${getStorefront(siteType).searchHref}?${params.toString()}`;
-}
-
 function renderLayoutItem(
   item: HomeLayoutItem,
   products: Awaited<ReturnType<typeof getProductsByLayoutId>>,
@@ -63,7 +44,7 @@ function renderLayoutItem(
   siteType: SiteType,
 ) {
   const description = item.subTitle ?? item.targetTitle ?? undefined;
-  const showMoreLink = getShowMoreLink(item, siteType);
+  const showMoreLink = getHomeLayoutLink(item, siteType);
 
   if (isProductLayout(item) && products.length === 0) {
     return null;
@@ -112,7 +93,7 @@ function renderLayoutItem(
         />
       );
     case HOME_COMPONENT_TYPE.OFFER:
-      return <LazyFlashDeals items={products} />;
+      return <LazyFlashDeals items={products} showMoreLink={showMoreLink} />;
     default:
       return null;
   }

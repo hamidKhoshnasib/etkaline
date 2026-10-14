@@ -21,6 +21,7 @@ export function MobileHeader() {
   if (
     pathname.startsWith(storefront.productPathPrefix) ||
     pathname.startsWith(storefront.categoryPathPrefix) ||
+    pathname === storefront.searchHref ||
     pathname.startsWith("/account") ||
     pathname === storefront.cartHref
   ) {
