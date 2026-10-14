@@ -38,10 +38,8 @@ function isBannerLayout(item: HomeLayoutItem) {
 }
 
 const HOME_TARGET_QUERY_KEY: Partial<Record<number, string>> = {
-  1: "category",
-  2: "tag",
-  3: "product",
-  4: "brand",
+  0: "category",
+  1: "layoutTag",
 };
 
 function getShowMoreLink(item: HomeLayoutItem, siteType: SiteType) {

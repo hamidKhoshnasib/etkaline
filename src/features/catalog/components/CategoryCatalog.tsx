@@ -49,6 +49,7 @@ const FILTER_QUERY_KEYS = [
   "brandIds",
   "category",
   "tag",
+  "layoutTag",
   "product",
   "brand",
 ] as const;
@@ -175,6 +176,7 @@ export default function CategoryCatalog({
   const selectedValueIds = parsePositiveIds(searchParams.get("valueIds"));
   const targetCategoryId = parsePositiveId(searchParams.get("category"));
   const targetTagId = parsePositiveId(searchParams.get("tag"));
+  const targetLayoutTagId = parsePositiveId(searchParams.get("layoutTag"));
   const targetProductId = parsePositiveId(searchParams.get("product"));
   const targetBrandId = parsePositiveId(searchParams.get("brand"));
   const resolvedCategoryId = categoryId > 0 ? categoryId : targetCategoryId;
@@ -200,6 +202,7 @@ export default function CategoryCatalog({
     sortType: SORT_TYPE_BY_ID[sort] ?? SORT_TYPE_BY_ID.popular,
     ...(resolvedCategoryId > 0 ? { categoryId: resolvedCategoryId } : {}),
     ...(targetTagId > 0 ? { tagId: targetTagId } : {}),
+    ...(targetLayoutTagId > 0 ? { layoutTagId: targetLayoutTagId } : {}),
     ...(targetProductId > 0 ? { currentProductId: targetProductId } : {}),
     ...(priceRange ?? {}),
     ...(searchText ? { searchText } : {}),
