@@ -2,7 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
-import { getBackendHref } from "@/lib/get-backend-href";
+import { getBannerHref } from "@/features/home/appliances/lib/get-banner-href";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -22,6 +22,9 @@ interface BackendLayoutBanner {
   height: number;
   order: number;
   link: string | null;
+  targetType?: number;
+  targetId?: number | null;
+  targetUrlTitle?: string | null;
   pic: string | null;
   picUrl: string | null;
   id: number;
@@ -80,7 +83,7 @@ export async function getBannersByLayoutId(
               ? banner.width
               : 12,
           height: banner.height > 0 ? banner.height : 300,
-          href: getBackendHref(banner.link) ?? undefined,
+          href: getBannerHref(banner, siteType) ?? undefined,
           order: banner.order,
         },
       ];

@@ -2,7 +2,7 @@ import "server-only";
 
 import { getServerApiBaseUrl, STOREFRONT_REQUEST_TIMEOUT_MS } from "@/lib/api-config";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
-import { getBackendHref } from "@/lib/get-backend-href";
+import { getBannerHref } from "@/features/home/appliances/lib/get-banner-href";
 import { getServerApiHeaders } from "@/lib/get-server-api-headers";
 import type { SiteType } from "@/lib/api-site-type";
 
@@ -36,7 +36,7 @@ function toImageUrl(value: unknown): string | null {
   }
 }
 
-function parseCategoryBanners(value: unknown): CategoryBanner[] {
+function parseCategoryBanners(value: unknown, siteType: SiteType): CategoryBanner[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -58,7 +58,7 @@ function parseCategoryBanners(value: unknown): CategoryBanner[] {
           id: banner.id,
           title: readText(banner.title) ?? "دسته‌بندی",
           image,
-          href: getBackendHref(banner.link) ?? "#",
+          href: getBannerHref(banner, siteType) ?? "#",
           order: typeof banner.order === "number" ? banner.order : index,
         },
       ];
@@ -89,5 +89,5 @@ export async function getCategoryBanners(siteType: SiteType): Promise<CategoryBa
     throw new Error("Category banners response was unsuccessful");
   }
 
-  return parseCategoryBanners(payload.value);
+  return parseCategoryBanners(payload.value, siteType);
 }
